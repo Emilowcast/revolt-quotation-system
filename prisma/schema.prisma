@@ -1,0 +1,295 @@
+// prisma/schema.prisma - ACTUALIZADO PARA MÓDULO DE REPORTES
+// ⭐ MANTIENE TODOS LOS DATOS EXISTENTES + AGREGA FUNCIONALIDAD DE REPORTES
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         Int        @id @default(autoincrement())
+  name       String
+  email      String     @unique
+  password   String
+  role       String     @default("vendedor")
+  active     Boolean    @default(true)
+  signature  String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+  quotes     Quote[]    @relation("UserQuotes")
+  sales      Sale[]     @relation("UserSales")
+  activities Activity[]
+  productionOrdersCreated ProductionOrder[] @relation("ProductionOrderCreator")
+  commissions           Commission[]       @relation("UserCommissions") // ⭐ NUEVO
+  reportsGenerated      SalesReport[]      @relation("ReportGenerator") // ⭐ NUEVO
+}
+
+model Client {
+  id        Int      @id @default(autoincrement())
+  name      String
+  company   String?
+  phone     String?
+  email     String?
+  address   String?
+  estado    String?
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  quotes    Quote[]
+  sales     Sale[]
+}
+
+model Product {
+  id          Int         @id @default(autoincrement())
+  model       String      @unique
+  description String?
+  price       Float
+  currency    String      @default("USD")
+  ficha       String?
+  category    String?     // ⭐ NUEVO: 'regulador', 'transformador', 'supresor', 'variador', 'ups'
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  items       QuoteItem[]
+  saleItems   SaleItem[]
+}
+
+model Quote {
+  id                 Int         @id @default(autoincrement())
+  folio              String      @unique
+  date               DateTime    @default(now())
+  client             Client?     @relation(fields: [clientId], references: [id])
+  clientId           Int?
+  subtotal           Float
+  discount           Float
+  tax                Float
+  total              Float
+  netMxn             Float?
+  exchangeRate       Float?
+  currency           String      @default("USD")
+  status             String      @default("vigente")
+  tiempoEntrega      String?     @db.Text
+  formaPago          String?     @db.Text
+  template           String?
+  createdBy          User?       @relation("UserQuotes", fields: [createdById], references: [id])
+  createdById        Int?
+  items              QuoteItem[]
+  notes              String?
+  deletedAt          DateTime?
+  convertedToSaleAt  DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+  sale               Sale?       @relation("QuoteToSale")
+  activities         Activity[]
+}
+
+model QuoteItem {
+  id          Int      @id @default(autoincrement())
+  quote       Quote    @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quoteId     Int
+  product     Product? @relation(fields: [productId], references: [id])
+  productId   Int?
+  modelo      String
+  descripcion String?
+  unitPrice   Float
+  qty         Int
+  subtotal    Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// ========================================
+// MODELOS DE VENTAS (ACTUALIZADOS)
+// ========================================
+
+model Sale {
+  id               Int               @id @default(autoincrement())
+  folio            String            @unique
+  date             DateTime          @default(now())
+  quote            Quote             @relation("QuoteToSale", fields: [quoteId], references: [id])
+  quoteId          Int               @unique
+  client           Client?           @relation(fields: [clientId], references: [id])
+  clientId         Int?
+  subtotal         Float
+  discount         Float
+  tax              Float
+  total            Float
+  netMxn           Float?
+  exchangeRate     Float?
+  currency         String            @default("USD")
+  status           String            @default("pendiente")
+  paymentStatus    String            @default("pending")
+  deliveryStatus   String            @default("pending")
+  template         String?
+  tiempoEntrega    String?
+  formaPago        String?
+  
+  // ⭐ NUEVOS CAMPOS PARA REPORTES (todos opcionales para no romper datos existentes)
+  paymentType      String?           // 'anticipo', 'saldo', 'total'
+  country          String?   @default("MX") // MX, GT, SV, PA, etc.
+  hasIVA           Boolean?  @default(true) // false para ventas internacionales
+  providerCost     Float?            // Costo del proveedor (para comercialización)
+  weekEndDate      DateTime?         // Fecha del viernes de la semana
+  categoryType     String?           // 'regulador', 'transformador', 'supresor', 'variador', 'ups', 'mantenimiento'
+  isService        Boolean?  @default(false) // true para mantenimientos/reparaciones
+  
+  createdBy        User?             @relation("UserSales", fields: [createdById], references: [id])
+  createdById      Int?
+  items            SaleItem[]
+  productionOrders ProductionOrder[]
+  commissions      Commission[]      @relation("SaleCommissions") // ⭐ NUEVO
+  notes            String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+  activities       Activity[]
+}
+
+model SaleItem {
+  id          Int      @id @default(autoincrement())
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId      Int
+  product     Product? @relation(fields: [productId], references: [id])
+  productId   Int?
+  modelo      String
+  descripcion String?
+  unitPrice   Float
+  qty         Int
+  subtotal    Float
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model ProductionOrder {
+  id                 Int       @id @default(autoincrement())
+  folio              String?   @unique
+  status             String    @default("pending")
+  priority           String?   @default("normal")
+  dueDate            DateTime?
+  startDate          DateTime?
+  completedAt        DateTime?
+  notes              String?
+  excelPath          String?
+  orderNumber        String?   @unique
+  clientName         String?   @default("Cliente")
+  productModel       String?   @default("N/A")
+  productDescription String?
+  quantity           Int?      @default(1)
+  sale               Sale      @relation(fields: [saleId], references: [id])
+  saleId             Int
+  createdBy          User?     @relation("ProductionOrderCreator", fields: [createdById], references: [id])
+  createdById        Int?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+}
+
+// ========================================
+// NUEVOS MODELOS PARA REPORTES Y COMISIONES
+// ========================================
+
+model CommissionRule {
+  id              Int      @id @default(autoincrement())
+  name            String   // Nombre descriptivo de la regla
+  rangeMin        Float    // Rango mínimo (ej: 0, 690000, 890000)
+  rangeMax        Float?   // Rango máximo (ej: 690000, 890000, null=infinito)
+  percentageTotal Float    // Porcentaje total de comisión (ej: 0.015 = 1.5%)
+  percentageHugo  Float    // Porcentaje para Hugo (ej: 0.01 = 1%)
+  percentageAux   Float    // Porcentaje para Auxiliar (ej: 0.005 = 0.5%)
+  productType     String?  // 'regulador', 'comercializacion', null=todos
+  month           Int?     // Mes (1-12) o null para regla general
+  year            Int?     // Año o null para regla general
+  active          Boolean  @default(true)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@index([rangeMin, rangeMax])
+  @@index([year, month])
+}
+
+model Commission {
+  id                Int      @id @default(autoincrement())
+  sale              Sale     @relation("SaleCommissions", fields: [saleId], references: [id])
+  saleId            Int
+  user              User     @relation("UserCommissions", fields: [userId], references: [id])
+  userId            Int
+  vendorRole        String   // 'hugo' o 'auxiliar'
+  month             Int      // 1-12
+  year              Int
+  productType       String   // 'regulador', 'transformador', 'supresor', etc.
+  baseAmount        Float    // Monto base para calcular comisión (sin IVA)
+  rangeApplied      String   // Descripción del rango aplicado
+  percentage        Float    // % aplicado (ej: 0.01 = 1%)
+  commissionAmount  Float    // $ comisión calculada
+  monthlyAccumulated Float   // Total acumulado del mes al momento del cálculo
+  isPaid            Boolean  @default(false)
+  paidAt            DateTime?
+  notes             String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+  
+  @@index([userId, month, year])
+  @@index([saleId])
+  @@index([month, year])
+}
+
+model SalesReport {
+  id              Int      @id @default(autoincrement())
+  reportType      String   // 'monthly', 'quarterly', 'annual'
+  month           Int?
+  year            Int
+  quarter         Int?
+  filePath        String   // Ruta del Excel generado
+  generatedBy     User     @relation("ReportGenerator", fields: [generatedById], references: [id])
+  generatedById   Int
+  metadata        Json?    // Datos del reporte (totales, ventas por categoría, etc.)
+  createdAt       DateTime @default(now())
+  
+  @@index([year, month])
+  @@index([reportType])
+}
+
+// ========================================
+// MODELO DE ACTIVIDADES
+// ========================================
+
+model Activity {
+  id          Int      @id @default(autoincrement())
+  type        String
+  description String
+  metadata    Json?
+  quote       Quote?   @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  quoteId     Int?
+  sale        Sale?    @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  saleId      Int?
+  user        User?    @relation(fields: [userId], references: [id])
+  userId      Int?
+  createdAt   DateTime @default(now())
+  
+  @@index([quoteId])
+  @@index([saleId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// ========================================
+// MODELOS DE TEMPLATES
+// ========================================
+
+model Template {
+  id        Int               @id @default(autoincrement())
+  name      String            @unique
+  createdAt DateTime          @default(now())
+  versions  TemplateVersion[]
+}
+
+model TemplateVersion {
+  id          Int      @id @default(autoincrement())
+  template    Template @relation(fields: [templateId], references: [id])
+  templateId  Int
+  filename    String
+  storagePath String
+  calibration Json?
+  createdAt   DateTime @default(now())
+}

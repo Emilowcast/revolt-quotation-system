@@ -1,0 +1,2122 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Calibración de Plantillas - REVOLT SGAC</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --revolt-red: #F62E41;
+      --revolt-dark: #1a1a1a;
+    }
+
+    body {
+      /* 🎨 OPCIÓN 2: Degradado de negro a rojo intenso */
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 30%, #d41f33 70%, #F62E41 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* ⭐ NAVBAR - IGUAL QUE EL RESTO */
+    .navbar {
+      background: var(--revolt-dark) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .navbar-brand {
+      font-weight: bold;
+      color: var(--revolt-red) !important;
+      font-size: 1.5rem;
+    }
+
+    .nav-link {
+      color: rgba(255,255,255,0.8) !important;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-link:hover {
+      color: var(--revolt-red) !important;
+    }
+
+    .nav-link.active {
+      color: var(--revolt-red) !important;
+    }
+
+    /* ⭐ CONTAINER PRINCIPAL */
+    .container-main {
+      max-width: 1400px;
+      background: white;
+      border-radius: 20px;
+      box-shadow: 0 10px 40px rgba(246, 46, 65, 0.3);
+      padding: 40px;
+      margin: 30px auto;
+    }
+
+    /* ⭐ PAGE HEADER */
+    .page-header {
+      border-bottom: 3px solid var(--revolt-red);
+      padding-bottom: 20px;
+      margin-bottom: 35px;
+    }
+
+    .page-header h1 {
+      color: var(--revolt-dark);
+      font-weight: bold;
+      font-size: 2rem;
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin: 0;
+    }
+
+    .page-header h1 i {
+      color: var(--revolt-red);
+    }
+
+    .page-header .subtitle {
+      color: #666;
+      font-size: 0.95rem;
+      margin-top: 8px;
+    }
+
+    /* ⭐ CALIBRATION LAYOUT */
+    .calibration-layout {
+      display: grid;
+      grid-template-columns: 350px 1fr;
+      gap: 30px;
+      margin-top: 30px;
+    }
+
+    /* ⭐ SIDEBAR */
+    .calibration-sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .sidebar-card {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+
+    .sidebar-card-title {
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--revolt-dark);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 15px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .sidebar-card-title i {
+      color: var(--revolt-red);
+      font-size: 1.1rem;
+    }
+
+    /* ⭐ PAGE SELECTOR */
+    .page-selector select {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 14px;
+      font-weight: 600;
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .page-selector select:focus {
+      outline: none;
+      border-color: var(--revolt-red);
+      box-shadow: 0 0 0 3px rgba(246,46,65,0.1);
+    }
+
+    .page-selector select:hover {
+      border-color: var(--revolt-red);
+    }
+
+    /* ⭐ TOOLBAR */
+    .toolbar-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .tool-btn {
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      background: #fff;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 13px;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      justify-content: center;
+      color: var(--revolt-dark);
+    }
+
+    .tool-btn:hover {
+      border-color: var(--revolt-red);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(246,46,65,0.2);
+    }
+
+    .tool-btn.active {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: #fff;
+      border-color: var(--revolt-red);
+      box-shadow: 0 4px 12px rgba(246,46,65,0.3);
+    }
+
+    .tool-btn i {
+      font-size: 16px;
+    }
+
+    /* ⭐ FIELDS LIST */
+    .fields-scroll {
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 5px;
+    }
+
+    .fields-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .fields-scroll::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+
+    .fields-scroll::-webkit-scrollbar-thumb {
+      background: var(--revolt-red);
+      border-radius: 10px;
+    }
+
+    .field-card {
+      background: #fafafa;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .field-card:hover {
+      border-color: var(--revolt-red);
+      transform: translateX(4px);
+      box-shadow: 0 2px 8px rgba(246,46,65,0.15);
+    }
+
+    .field-card.selected {
+      border-color: var(--revolt-red);
+      background: linear-gradient(to right, rgba(246,46,65,0.05), transparent);
+      box-shadow: 0 0 0 3px rgba(246,46,65,0.1);
+    }
+
+    .field-name {
+      font-weight: 700;
+      color: var(--revolt-red);
+      font-size: 13px;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .field-meta {
+      font-size: 10px;
+      color: #666;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+      margin-bottom: 8px;
+    }
+
+    .field-actions {
+      display: flex;
+      gap: 5px;
+      padding-top: 8px;
+      border-top: 1px solid #e0e0e0;
+    }
+
+    .field-btn {
+      flex: 1;
+      padding: 5px 8px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      background: #fff;
+      font-size: 10px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 3px;
+    }
+
+    .field-btn:hover {
+      background: var(--revolt-red);
+      color: #fff;
+      border-color: var(--revolt-red);
+    }
+
+    .field-btn.danger:hover {
+      background: #ef4444;
+      border-color: #ef4444;
+    }
+
+    /* ⭐ ACTION BUTTONS */
+    .btn-revolt {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 8px;
+      box-shadow: 0 4px 12px rgba(246, 46, 65, 0.3);
+    }
+
+    .btn-revolt:hover {
+      background: linear-gradient(135deg, #d41f33, #b81b2a);
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(246, 46, 65, 0.4);
+    }
+
+    .btn-secondary-custom {
+      background: #fff;
+      color: var(--revolt-dark);
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 11px 16px;
+      font-weight: 600;
+      font-size: 14px;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      cursor: pointer;
+      width: 100%;
+      margin-bottom: 8px;
+    }
+
+    .btn-secondary-custom:hover {
+      border-color: var(--revolt-red);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    /* ⭐ CANVAS AREA */
+    .canvas-container {
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      position: relative;
+    }
+
+    .canvas-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .canvas-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--revolt-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .canvas-title i {
+      color: var(--revolt-red);
+    }
+
+    .zoom-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .zoom-btn {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      border: 2px solid #e0e0e0;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 700;
+      font-size: 18px;
+      transition: all 0.2s;
+      color: var(--revolt-dark);
+    }
+
+    .zoom-btn:hover {
+      background: var(--revolt-red);
+      color: #fff;
+      border-color: var(--revolt-red);
+      transform: translateY(-2px);
+    }
+
+    #zoomLevel {
+      font-weight: 700;
+      min-width: 60px;
+      text-align: center;
+      color: var(--revolt-red);
+      font-size: 14px;
+    }
+
+    .canvas-viewport {
+      background: #e5e7eb;
+      border-radius: 10px;
+      overflow: auto;
+      max-height: 600px;
+      padding: 20px;
+      position: relative;
+    }
+
+    .canvas-wrapper {
+      position: relative;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      border-radius: 10px;
+      background: #fff;
+      transform-origin: top left;
+      display: inline-block;
+      line-height: 0;
+    }
+
+    #pdfCanvas {
+      display: block;
+      background: #fff;
+      border-radius: 10px;
+      line-height: 0;
+    }
+
+    #overlay {
+      position: absolute;
+      left: 0;
+      top: 0;
+      cursor: crosshair;
+      pointer-events: auto;
+      border-radius: 10px;
+      z-index: 10;
+    }
+
+    #previewLayer {
+      position: absolute;
+      left: 0;
+      top: 0;
+      pointer-events: none;
+      z-index: 20;
+    }
+
+    /* ⭐ FIELD BOX */
+    .fieldBox {
+      position: absolute;
+      pointer-events: auto;
+      background: rgba(246,46,65,0.15);
+      border: 2px dashed var(--revolt-red);
+      border-radius: 6px;
+      min-width: 40px;
+      min-height: 20px;
+      cursor: move;
+      transition: all 0.15s;
+      display: flex;
+      align-items: center;
+      font-size: 11px;
+      font-weight: 600;
+      color: #111;
+      padding: 4px 6px;
+      z-index: 30;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .fieldBox:hover {
+      background: rgba(246,46,65,0.25);
+      transform: scale(1.02);
+      box-shadow: 0 4px 12px rgba(246,46,65,0.3);
+      z-index: 40;
+    }
+
+    .fieldBox.selected {
+      background: rgba(246,46,65,0.3);
+      border-color: #d41f33;
+      border-width: 3px;
+      box-shadow: 0 0 0 3px rgba(246,46,65,0.2);
+      z-index: 50;
+    }
+
+    /* ⭐ RESIZE HANDLES */
+    .handle {
+      width: 12px;
+      height: 12px;
+      background: #fff;
+      border: 2px solid var(--revolt-red);
+      position: absolute;
+      border-radius: 50%;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+      transition: all 0.15s;
+    }
+
+    .handle:hover {
+      transform: scale(1.3);
+      background: var(--revolt-red);
+    }
+
+    .handle.tl { left: -6px; top: -6px; cursor: nw-resize; }
+    .handle.tr { right: -6px; top: -6px; cursor: ne-resize; }
+    .handle.bl { left: -6px; bottom: -6px; cursor: sw-resize; }
+    .handle.br { right: -6px; bottom: -6px; cursor: se-resize; }
+
+    /* ⭐ STATS BAR */
+    .stats-bar {
+      margin-top: 15px;
+      padding: 15px;
+      background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+      border-radius: 10px;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 10px;
+    }
+
+    .stat-item {
+      text-align: center;
+    }
+
+    .stat-label {
+      font-size: 10px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      margin-bottom: 4px;
+    }
+
+    .stat-value {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--revolt-red);
+    }
+
+    /* ⭐ PROPERTY EDITOR */
+    .property-editor {
+      position: fixed;
+      top: 120px;
+      right: 30px;
+      width: 320px;
+      background: white;
+      border: 2px solid #e0e0e0;
+      border-radius: 15px;
+      padding: 20px;
+      box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+      display: none;
+      z-index: 1000;
+      max-height: calc(100vh - 160px);
+      overflow-y: auto;
+    }
+
+    .property-editor.show {
+      display: block;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .property-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+
+    .property-title {
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--revolt-red);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .btn-close-property {
+      background: none;
+      border: none;
+      font-size: 24px;
+      cursor: pointer;
+      color: #999;
+      padding: 0;
+      width: 28px;
+      height: 28px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 0.2s;
+      border-radius: 6px;
+    }
+
+    .btn-close-property:hover {
+      background: #f0f0f0;
+      color: var(--revolt-red);
+    }
+
+    .property-row {
+      margin-bottom: 16px;
+    }
+
+    .property-label {
+      font-size: 11px;
+      font-weight: 700;
+      color: #666;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .property-label i {
+      color: var(--revolt-red);
+    }
+
+    .property-input {
+      width: 100%;
+      padding: 10px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .property-input:focus {
+      outline: none;
+      border-color: var(--revolt-red);
+      box-shadow: 0 0 0 3px rgba(246,46,65,0.1);
+    }
+
+    .property-input:disabled {
+      background: #f5f5f5;
+      cursor: not-allowed;
+    }
+
+    /* ⭐ MODAL */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      backdrop-filter: blur(4px);
+    }
+
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal-content {
+      background: white;
+      border-radius: 20px;
+      padding: 35px;
+      width: 90%;
+      max-width: 700px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      max-height: 90vh;
+      overflow-y: auto;
+    }
+
+    .modal-header {
+      margin-bottom: 25px;
+    }
+
+    .modal-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: var(--revolt-red);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .preset-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 15px;
+      margin-bottom: 25px;
+    }
+
+    .preset-btn {
+      padding: 20px;
+      border: 2px solid #e0e0e0;
+      border-radius: 12px;
+      background: #fff;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .preset-btn:hover {
+      border-color: var(--revolt-red);
+      background: rgba(246,46,65,0.05);
+      transform: scale(1.05);
+      box-shadow: 0 4px 12px rgba(246,46,65,0.2);
+    }
+
+    .preset-icon {
+      font-size: 36px;
+      margin-bottom: 10px;
+    }
+
+    /* ⭐ TOAST */
+    .toast-container {
+      position: fixed;
+      top: 80px;
+      right: 20px;
+      z-index: 3000;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .toast {
+      background: white;
+      padding: 16px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-left: 4px solid #10b981;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 300px;
+      animation: toastIn 0.3s ease;
+    }
+
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+
+    .toast.warning {
+      border-left-color: #f59e0b;
+    }
+
+    .toast i {
+      font-size: 20px;
+    }
+
+    @keyframes toastIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    /* ⭐ EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+    }
+
+    .empty-state i {
+      font-size: 48px;
+      margin-bottom: 16px;
+      opacity: 0.3;
+      color: var(--revolt-red);
+    }
+
+    .empty-state-title {
+      font-weight: 700;
+      margin-bottom: 8px;
+      font-size: 15px;
+      color: var(--revolt-dark);
+    }
+
+    .empty-state-desc {
+      font-size: 12px;
+    }
+
+    /* ⭐ RESPONSIVE */
+    @media (max-width: 1200px) {
+      .calibration-layout {
+        grid-template-columns: 300px 1fr;
+      }
+    }
+
+    @media (max-width: 992px) {
+      .calibration-layout {
+        grid-template-columns: 1fr;
+      }
+
+      .container-main {
+        padding: 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- ⭐ NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard.html">
+        <i class="bi bi-lightning-charge-fill"></i> REVOLT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard.html">
+              <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/quotes_history.html">
+              <i class="bi bi-clock-history"></i> Historial
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/new_quote.html">
+              <i class="bi bi-file-earmark-plus"></i> Nueva Cotización
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/clients.html">
+              <i class="bi bi-people-fill"></i> Clientes
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/products.html">
+              <i class="bi bi-box-seam"></i> Productos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/reports.html">
+              <i class="bi bi-bar-chart"></i> Reportes
+            </a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="logout()">
+              <i class="bi bi-box-arrow-right"></i> Salir
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ⭐ MAIN CONTAINER -->
+  <div class="container-main">
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+      <h1>
+        <i class="bi bi-bullseye"></i>
+        Calibración de Plantillas PDF
+      </h1>
+      <div class="subtitle">
+        <strong id="templateName">Cargando plantilla...</strong> - Sistema de calibración multi-página para posicionamiento preciso de campos
+      </div>
+    </div>
+
+    <!-- CALIBRATION LAYOUT -->
+    <div class="calibration-layout">
+      <!-- SIDEBAR -->
+      <div class="calibration-sidebar">
+        <!-- PAGE SELECTOR -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">
+            <i class="bi bi-file-earmark-text"></i>
+            Página Actual
+          </div>
+          <div class="page-selector">
+            <select id="pageSelector" class="form-select">
+              <option value="1">Página 1 - Información General</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- TOOLS -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">
+            <i class="bi bi-tools"></i>
+            Herramientas
+          </div>
+          <div class="toolbar-grid">
+            <button class="tool-btn active" id="toolSelect" data-tool="select">
+              <i class="bi bi-cursor"></i> Seleccionar
+            </button>
+            <button class="tool-btn" id="toolField" data-tool="field">
+              <i class="bi bi-plus-circle"></i> Campo
+            </button>
+            <button class="tool-btn" id="toolTable" data-tool="table">
+              <i class="bi bi-table"></i> Tabla
+            </button>
+            <button class="tool-btn" id="toolSnap">
+              <i class="bi bi-grid-3x3"></i> <span id="snapLabel">Snap</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- FIELDS LIST -->
+        <div class="sidebar-card" style="flex: 1; display: flex; flex-direction: column;">
+          <div class="sidebar-card-title">
+            <i class="bi bi-list-ul"></i>
+            Campos (<span id="fieldCount">0</span>)
+          </div>
+          <div class="fields-scroll" id="fieldsPanel">
+            <div class="empty-state">
+              <i class="bi bi-file-text"></i>
+              <div class="empty-state-title">Sin campos</div>
+              <div class="empty-state-desc">Agrega campos usando las herramientas</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="sidebar-card">
+          <div class="sidebar-card-title">
+            <i class="bi bi-lightning-charge-fill"></i>
+            Acciones Rápidas
+          </div>
+          <button class="btn-revolt" id="btnQuickAdd">
+            <i class="bi bi-grid-3x3-gap"></i> Campos Rápidos
+          </button>
+          <button class="btn-secondary-custom" id="btnPreview">
+            <i class="bi bi-eye"></i> Vista Previa
+          </button>
+          <button class="btn-revolt" id="btnSave">
+            <i class="bi bi-save"></i> Guardar Calibración
+          </button>
+          <button class="btn-secondary-custom" id="btnExport">
+            <i class="bi bi-download"></i> Exportar JSON
+          </button>
+        </div>
+      </div>
+
+      <!-- CANVAS AREA -->
+      <div>
+        <div class="canvas-container">
+          <div class="canvas-header">
+            <div class="canvas-title">
+              <i class="bi bi-file-pdf"></i>
+              <span id="currentPageLabel">Página 1</span>
+            </div>
+            <div class="zoom-controls">
+              <button class="zoom-btn" id="zoomOut" title="Reducir zoom">−</button>
+              <span id="zoomLevel">100%</span>
+              <button class="zoom-btn" id="zoomIn" title="Aumentar zoom">+</button>
+              <button class="zoom-btn" id="zoomFit" style="width:auto;padding:0 12px;" title="Ajustar a ventana">
+                <i class="bi bi-arrows-angle-contract"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="canvas-viewport" id="canvasContainer">
+            <div class="canvas-wrapper" id="canvasWrapper">
+              <canvas id="pdfCanvas"></canvas>
+              <canvas id="overlay"></canvas>
+              <div id="previewLayer"></div>
+            </div>
+          </div>
+
+          <div class="stats-bar">
+            <div class="stat-item">
+              <div class="stat-label"><i class="bi bi-file-earmark"></i> Página</div>
+              <div class="stat-value" id="statPage">1/1</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label"><i class="bi bi-input-cursor-text"></i> Campos</div>
+              <div class="stat-value" id="statFields">0</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label"><i class="bi bi-check-circle"></i> Seleccionado</div>
+              <div class="stat-value" id="statSelected">-</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label"><i class="bi bi-crosshair"></i> Posición</div>
+              <div class="stat-value" id="statPos">-</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-label"><i class="bi bi-arrows-expand"></i> Tamaño</div>
+              <div class="stat-value" id="statSize">-</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ⭐ PROPERTY EDITOR -->
+  <div class="property-editor" id="propertyEditor">
+    <div class="property-header">
+      <div class="property-title">
+        <i class="bi bi-gear"></i> Propiedades del Campo
+      </div>
+      <button class="btn-close-property" id="btnClosePropertyEditor">
+        <i class="bi bi-x"></i>
+      </button>
+    </div>
+
+    <div class="property-row">
+      <label class="property-label">
+        <i class="bi bi-tag"></i> Nombre
+      </label>
+      <input class="property-input" id="propName" readonly />
+    </div>
+
+    <div class="property-row">
+      <label class="property-label">
+        <i class="bi bi-card-text"></i> Tipo de campo
+      </label>
+      <select class="property-input" id="propType">
+        <option value="text">📝 Texto</option>
+        <option value="number">🔢 Número</option>
+        <option value="date">📅 Fecha</option>
+        <option value="image">🖊️ Imagen (Firma)</option>
+      </select>
+    </div>
+
+    <div class="property-row">
+      <label class="property-label">
+        <i class="bi bi-fonts"></i> Tamaño fuente
+      </label>
+      <input class="property-input" type="number" id="propFontSize" value="10" min="6" max="72" />
+    </div>
+
+    <div class="property-row">
+      <label class="property-label">
+        <i class="bi bi-text-left"></i> Alineación
+      </label>
+      <select class="property-input" id="propAnchor">
+        <option value="left">Izquierda</option>
+        <option value="center">Centro</option>
+        <option value="right">Derecha</option>
+      </select>
+    </div>
+
+    <div class="property-row">
+      <label class="property-label">
+        <i class="bi bi-arrow-down-up"></i> Alineación vertical
+      </label>
+      <select class="property-input" id="propVAnchor">
+        <option value="baseline">Baseline</option>
+        <option value="center">Centro</option>
+        <option value="top">Superior</option>
+      </select>
+    </div>
+
+    <div class="property-row">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="propBold" style="width:18px;height:18px;cursor:pointer;">
+        <span style="font-size:11px;font-weight:700;color:#666;text-transform:uppercase;">Negritas (Bold)</span>
+      </label>
+    </div>
+
+    <div class="property-row">
+      <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+        <input type="checkbox" id="propJustify" style="width:18px;height:18px;cursor:pointer;">
+        <span style="font-size:11px;font-weight:700;color:#666;text-transform:uppercase;">Texto Justificado</span>
+      </label>
+    </div>
+
+    <div class="property-row">
+      <label class="property-label">
+        <i class="bi bi-pencil"></i> Valor de ejemplo
+      </label>
+      <input class="property-input" id="propSample" placeholder="Ej: Juan Pérez" />
+    </div>
+  </div>
+
+  <!-- ⭐ MODAL: QUICK ADD -->
+  <div class="modal-overlay" id="quickAddModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-title">
+          <i class="bi bi-lightning-charge-fill"></i>
+          Agregar Campos Rápidos
+        </div>
+      </div>
+
+      <div class="preset-grid">
+        <button class="preset-btn" data-preset="header">
+          <div class="preset-icon">📋</div>
+          Encabezado
+        </button>
+        <button class="preset-btn" data-preset="client">
+          <div class="preset-icon">👤</div>
+          Cliente
+        </button>
+        <button class="preset-btn" data-preset="totals">
+          <div class="preset-icon">💰</div>
+          Totales
+        </button>
+        <button class="preset-btn" data-preset="items">
+          <div class="preset-icon">📦</div>
+          Items (Tabla)
+        </button>
+        <button class="preset-btn" data-preset="condiciones">
+          <div class="preset-icon">📄</div>
+          Condiciones
+        </button>
+        <button class="preset-btn" data-preset="all">
+          <div class="preset-icon">🎯</div>
+          Todo
+        </button>
+      </div>
+
+      <button class="btn-secondary-custom" id="btnCloseModal">
+        <i class="bi bi-x-circle"></i> Cerrar
+      </button>
+    </div>
+  </div>
+
+  <!-- ⭐ TOAST CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+  <script>
+    (async () => {
+      const tpl = new URLSearchParams(location.search).get('template');
+      if (!tpl) {
+        document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100vh;background:linear-gradient(135deg, #667eea 0%, #764ba2 100%);"><div style="background:white;padding:40px;border-radius:20px;box-shadow:0 20px 60px rgba(0,0,0,0.3);text-align:center;"><i class="bi bi-exclamation-triangle" style="font-size:64px;color:#ef4444;margin-bottom:20px;"></i><h2 style="color:#1a1a1a;margin-bottom:10px;">Error: No se especificó plantilla</h2><p style="color:#666;">Usa ?template=archivo.pdf en la URL</p></div></div>';
+        return;
+      }
+
+      if (typeof window['pdfjs-dist/build/pdf'] === 'undefined') {
+        await new Promise(resolve => setTimeout(resolve, 500));
+      }
+
+      const pdfjs = window['pdfjs-dist/build/pdf'];
+      if (!pdfjs) {
+        alert('Error: PDF.js no se cargó correctamente');
+        return;
+      }
+      
+      pdfjs.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+      let pdfDoc, currentPage = 1, totalPages = 0;
+      let viewport, canvas, overlay, ctx, octx, previewLayer;
+      let currentTool = 'select';
+      let snapEnabled = false;
+      let zoom = 1;
+      
+      let calibration = { pages: {}, globalOffsetY: 0 };
+      
+      let selectedField = null;
+      let draggedField = null;
+      let resizeHandle = null;
+      let startPos = {x: 0, y: 0};
+      let startFieldData = null;
+
+      function showToast(msg, type='success') {
+        const container = document.getElementById('toastContainer');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        
+        const iconClass = type === 'success' ? 'bi-check-circle' : type === 'error' ? 'bi-x-circle' : 'bi-exclamation-triangle';
+        const iconColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#f59e0b';
+        
+        toast.innerHTML = `
+          <i class="bi ${iconClass}" style="color:${iconColor};"></i>
+          <span>${msg}</span>
+        `;
+        
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+      }
+
+      async function loadPDF() {
+        try {
+          const pdfUrl = '/templates/' + encodeURIComponent(tpl);
+          const loadingTask = pdfjs.getDocument(pdfUrl);
+          pdfDoc = await loadingTask.promise;
+          totalPages = pdfDoc.numPages;
+          
+          console.log('📄 PDF cargado:', { template: tpl, totalPages });
+          
+          const selector = document.getElementById('pageSelector');
+          selector.innerHTML = '';
+          for (let i = 1; i <= totalPages; i++) {
+            const opt = document.createElement('option');
+            opt.value = i;
+            opt.textContent = `Página ${i}${i === 1 ? ' - Información General' : i === totalPages ? ' - Condiciones Comerciales' : ''}`;
+            selector.appendChild(opt);
+          }
+          
+          await renderPage(currentPage);
+          
+          setTimeout(() => {
+            fitToScreen();
+            const container = document.getElementById('canvasContainer');
+            container.scrollTop = 0;
+            container.scrollLeft = 0;
+          }, 200);
+          
+          showToast('Plantilla cargada correctamente', 'success');
+        } catch (e) {
+          console.error('Error:', e);
+          showToast('Error cargando PDF: ' + e.message, 'error');
+        }
+      }
+
+      async function renderPage(pageNum) {
+        try {
+          const page = await pdfDoc.getPage(pageNum);
+          const scale = 1.0;
+          viewport = page.getViewport({ scale });
+
+          canvas.width = Math.round(viewport.width);
+          canvas.height = Math.round(viewport.height);
+          overlay.width = canvas.width;
+          overlay.height = canvas.height;
+          previewLayer.style.width = canvas.width + 'px';
+          previewLayer.style.height = canvas.height + 'px';
+
+          await page.render({ canvasContext: ctx, viewport }).promise;
+          
+          canvas.style.display = 'block';
+          canvas.style.visibility = 'visible';
+          canvas.style.opacity = '1';
+          
+          const wrapper = document.getElementById('canvasWrapper');
+          wrapper.style.display = 'block';
+          wrapper.style.visibility = 'visible';
+          
+          drawGrid();
+          renderFields();
+          updateStats();
+          
+          document.getElementById('currentPageLabel').textContent = `Página ${pageNum}`;
+          document.getElementById('statPage').textContent = `${pageNum}/${totalPages}`;
+          
+        } catch (e) {
+          console.error('Error renderizando página:', e);
+        }
+      }
+
+      function drawGrid() {
+        if (!octx || !overlay.width || !overlay.height) return;
+        
+        octx.clearRect(0, 0, overlay.width, overlay.height);
+        octx.strokeStyle = 'rgba(100,100,100,0.1)';
+        octx.lineWidth = 1;
+        
+        for (let x = 0; x < overlay.width; x += 50) {
+          octx.beginPath();
+          octx.moveTo(x, 0);
+          octx.lineTo(x, overlay.height);
+          octx.stroke();
+        }
+        
+        for (let y = 0; y < overlay.height; y += 50) {
+          octx.beginPath();
+          octx.moveTo(0, y);
+          octx.lineTo(overlay.width, y);
+          octx.stroke();
+        }
+      }
+
+      function setupTools() {
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+          btn.onclick = () => {
+            if (btn.id === 'toolSnap') {
+              snapEnabled = !snapEnabled;
+              document.getElementById('snapLabel').textContent = snapEnabled ? 'Snap ON' : 'Snap';
+              btn.classList.toggle('active');
+              showToast(`Snap ${snapEnabled ? 'activado' : 'desactivado'}`, 'success');
+              return;
+            }
+
+            document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            currentTool = btn.dataset.tool;
+            
+            if (currentTool === 'field' || currentTool === 'table') {
+              overlay.style.cursor = 'crosshair';
+              overlay.style.pointerEvents = 'auto';
+            } else {
+              overlay.style.cursor = 'default';
+              overlay.style.pointerEvents = 'none';
+            }
+          };
+        });
+
+        overlay.onclick = (e) => {
+          if (currentTool === 'field') {
+            const rect = overlay.getBoundingClientRect();
+            const x = (e.clientX - rect.left) / zoom;
+            const y = (e.clientY - rect.top) / zoom;
+            createField(x, y);
+          }
+        };
+
+        document.getElementById('btnQuickAdd').onclick = () => {
+          document.getElementById('quickAddModal').classList.add('show');
+        };
+
+        document.getElementById('btnCloseModal').onclick = () => {
+          document.getElementById('quickAddModal').classList.remove('show');
+        };
+
+        document.querySelectorAll('.preset-btn').forEach(btn => {
+          btn.onclick = () => {
+            addPreset(btn.dataset.preset);
+            document.getElementById('quickAddModal').classList.remove('show');
+          };
+        });
+
+        document.getElementById('btnSave').onclick = saveCalibration;
+        document.getElementById('btnPreview').onclick = previewPDF;
+        document.getElementById('btnExport').onclick = exportJSON;
+        document.getElementById('btnClosePropertyEditor').onclick = hidePropertyEditor;
+        
+        document.getElementById('pageSelector').onchange = async (e) => {
+          const newPage = parseInt(e.target.value);
+          if (newPage !== currentPage) {
+            currentPage = newPage;
+            await renderPage(currentPage);
+          }
+        };
+      }
+
+      function setupZoom() {
+        document.getElementById('zoomIn').onclick = () => {
+          zoom = Math.min(2, zoom + 0.1);
+          applyZoom();
+        };
+        
+        document.getElementById('zoomOut').onclick = () => {
+          zoom = Math.max(0.3, zoom - 0.1);
+          applyZoom();
+        };
+        
+        document.getElementById('zoomFit').onclick = () => {
+          fitToScreen();
+        };
+      }
+
+      function fitToScreen() {
+        const container = document.getElementById('canvasContainer');
+        const wrapper = document.getElementById('canvasWrapper');
+        
+        if (!container || !wrapper || !canvas) return;
+        
+        const containerWidth = container.clientWidth - 40;
+        const containerHeight = container.clientHeight - 40;
+        
+        const scaleX = containerWidth / canvas.width;
+        const scaleY = containerHeight / canvas.height;
+        
+        zoom = Math.min(scaleX, scaleY);
+        zoom = Math.max(zoom, 0.3);
+        zoom = Math.min(zoom, 1.5);
+        
+        applyZoom();
+        
+        setTimeout(() => {
+          container.scrollTop = 0;
+          container.scrollLeft = 0;
+        }, 50);
+      }
+
+      function applyZoom() {
+        const wrapper = document.getElementById('canvasWrapper');
+        if (!wrapper) return;
+        
+        wrapper.style.transform = `scale(${zoom})`;
+        wrapper.style.transformOrigin = 'top left';
+        document.getElementById('zoomLevel').textContent = Math.round(zoom * 100) + '%';
+      }
+
+      function createField(x, y) {
+        const name = prompt('Nombre del campo:');
+        if (!name) return;
+
+        const xFrac = +(x / canvas.width).toFixed(8);
+        const yFrac = +(1 - (y / canvas.height)).toFixed(8);
+
+        if (!calibration.pages[currentPage]) {
+          calibration.pages[currentPage] = {
+            fields: {},
+            table: { startY: 0.61, lineHeight: 0.045 }
+          };
+        }
+
+        calibration.pages[currentPage].fields[name] = {
+          x: xFrac,
+          y: yFrac,
+          anchor: 'left',
+          vAnchor: 'center',
+          fontSize: 10,
+          offsetX: 0,
+          offsetY: 0,
+          widthFrac: 0.15,
+          heightFrac: 0.02,
+          sampleValue: '',
+          type: 'text',
+          bold: false,
+          justify: false
+        };
+
+        renderFields();
+        updateFieldsList();
+        showToast(`Campo "${name}" creado en página ${currentPage}`, 'success');
+      }
+
+      function getCurrentPageFields() {
+        if (!calibration.pages[currentPage]) {
+          calibration.pages[currentPage] = {
+            fields: {},
+            table: { startY: 0.61, lineHeight: 0.045 }
+          };
+        }
+        return calibration.pages[currentPage].fields;
+      }
+
+      function renderFields() {
+        previewLayer.innerHTML = '';
+        
+        const fields = getCurrentPageFields();
+        
+        if (Object.keys(fields).length > 0) {
+          previewLayer.style.pointerEvents = 'none';
+        }
+        
+        Object.keys(fields).forEach(name => {
+          const field = fields[name];
+          const box = document.createElement('div');
+          box.className = 'fieldBox';
+          box.dataset.name = name;
+          box.style.pointerEvents = 'auto';
+
+          const isImage = field.type === 'image';
+          
+          if (isImage) {
+            box.style.background = 'rgba(34, 197, 94, 0.15)';
+            box.style.borderColor = '#10b981';
+            box.style.borderStyle = 'solid';
+          }
+          
+          const xPts = canvas.width * (field.x + (field.offsetX || 0));
+          const yPts = canvas.height * (field.y + (field.offsetY || 0));
+          const yTopPts = canvas.height - yPts;
+          const widthPx = (field.widthFrac || 0.15) * canvas.width;
+          const heightPx = (field.heightFrac || 0.02) * canvas.height;
+          const fontSize = field.fontSize || 10;
+          
+          let leftPx;
+          if (field.anchor === 'center') {
+            leftPx = xPts - (widthPx / 2);
+          } else if (field.anchor === 'right') {
+            leftPx = xPts - widthPx;
+          } else {
+            leftPx = xPts;
+          }
+          
+          let topPx;
+          if (field.vAnchor === 'top') {
+            topPx = yTopPts - (fontSize * 0.8);
+          } else if (field.vAnchor === 'baseline') {
+            topPx = yTopPts - (fontSize * 0.2);
+          } else {
+            topPx = yTopPts - (fontSize * 0.35);
+          }
+          
+          box.style.left = Math.round(leftPx) + 'px';
+          box.style.top = Math.round(topPx) + 'px';
+          box.style.width = Math.round(widthPx) + 'px';
+          box.style.height = Math.round(heightPx) + 'px';
+          box.style.fontSize = fontSize + 'px';
+          box.style.lineHeight = fontSize + 'px';
+          
+          const displayText = isImage ? '🖊️ FIRMA' : (field.sampleValue || name);
+          box.textContent = displayText;
+          
+          if (field.anchor === 'center') {
+            box.style.textAlign = 'center';
+            box.style.justifyContent = 'center';
+          } else if (field.anchor === 'right') {
+            box.style.textAlign = 'right';
+            box.style.justifyContent = 'flex-end';
+          } else {
+            box.style.textAlign = 'left';
+            box.style.justifyContent = 'flex-start';
+          }
+
+          box.onclick = (e) => {
+            e.stopPropagation();
+            selectField(name, false);
+          };
+          
+          box.ondblclick = (e) => {
+            e.stopPropagation();
+            showPropertyEditor(name);
+          };
+
+          ['tl', 'tr', 'bl', 'br'].forEach(pos => {
+            const handle = document.createElement('div');
+            handle.className = 'handle ' + pos;
+            box.appendChild(handle);
+          });
+
+          previewLayer.appendChild(box);
+        });
+
+        updateStats();
+      }
+
+      function selectField(name, showProperties = false) {
+        selectedField = name;
+        document.querySelectorAll('.fieldBox').forEach(b => b.classList.remove('selected'));
+        document.querySelector(`[data-name="${name}"]`)?.classList.add('selected');
+
+        document.querySelectorAll('.field-card').forEach(c => c.classList.remove('selected'));
+        document.querySelector(`[data-field="${name}"]`)?.classList.add('selected');
+
+        if (showProperties) {
+          showPropertyEditor(name);
+        }
+        
+        updateStats();
+      }
+
+      function showPropertyEditor(name) {
+        const editor = document.getElementById('propertyEditor');
+        const field = getCurrentPageFields()[name];
+        
+        editor.classList.add('show');
+        document.getElementById('propName').value = name;
+        document.getElementById('propType').value = field.type || 'text';
+        document.getElementById('propFontSize').value = field.fontSize || 10;
+        document.getElementById('propAnchor').value = field.anchor || 'left';
+        document.getElementById('propVAnchor').value = field.vAnchor || 'center';
+        document.getElementById('propSample').value = field.sampleValue || '';
+        document.getElementById('propBold').checked = field.bold || false;
+        document.getElementById('propJustify').checked = field.justify || false;
+
+        const isImage = field.type === 'image';
+        
+        if (isImage) {
+          document.getElementById('propBold').disabled = true;
+          document.getElementById('propJustify').disabled = true;
+          document.getElementById('propFontSize').disabled = true;
+          document.getElementById('propSample').placeholder = 'No aplicable para imágenes';
+        } else {
+          document.getElementById('propBold').disabled = false;
+          document.getElementById('propJustify').disabled = false;
+          document.getElementById('propFontSize').disabled = false;
+          document.getElementById('propSample').placeholder = 'Ej: Juan Pérez';
+        }
+
+        ['propType', 'propFontSize', 'propAnchor', 'propVAnchor', 'propSample', 'propBold', 'propJustify'].forEach(id => {
+          document.getElementById(id).onchange = () => updateFieldProperty(name);
+        });
+      }
+
+      function hidePropertyEditor() {
+        document.getElementById('propertyEditor').classList.remove('show');
+      }
+
+      function updateFieldProperty(name) {
+        const field = getCurrentPageFields()[name];
+        field.type = document.getElementById('propType').value;
+        field.fontSize = +document.getElementById('propFontSize').value;
+        field.anchor = document.getElementById('propAnchor').value;
+        field.vAnchor = document.getElementById('propVAnchor').value;
+        field.sampleValue = document.getElementById('propSample').value;
+        field.bold = document.getElementById('propBold').checked;
+        field.justify = document.getElementById('propJustify').checked;
+        
+        renderFields();
+        updateFieldsList();
+      }
+
+      function updateFieldsList() {
+        const panel = document.getElementById('fieldsPanel');
+        const fields = getCurrentPageFields();
+        const names = Object.keys(fields);
+
+        document.getElementById('fieldCount').textContent = names.length;
+
+        if (names.length === 0) {
+          panel.innerHTML = `
+            <div class="empty-state">
+              <i class="bi bi-file-text"></i>
+              <div class="empty-state-title">Sin campos</div>
+              <div class="empty-state-desc">Agrega campos usando las herramientas</div>
+            </div>
+          `;
+          return;
+        }
+
+        panel.innerHTML = names.map(name => {
+          const f = fields[name];
+          
+          const typeIcon = f.type === 'image' ? '🖊️' : f.type === 'number' ? '🔢' : f.type === 'date' ? '📅' : '📝';
+          
+          return `
+            <div class="field-card ${selectedField === name ? 'selected' : ''}" data-field="${name}">
+              <div class="field-name">${typeIcon} ${name}</div>
+              <div class="field-meta">
+                <div>Tipo: ${f.type}</div>
+                <div>Font: ${f.fontSize}px</div>
+                <div>X: ${f.x.toFixed(3)}</div>
+                <div>Y: ${f.y.toFixed(3)}</div>
+                <div>Ancho: ${(f.widthFrac * 100).toFixed(0)}%</div>
+                <div>Alto: ${(f.heightFrac * 100).toFixed(0)}%</div>
+              </div>
+              <div class="field-actions">
+                <button class="field-btn btn-edit" data-field="${name}">
+                  <i class="bi bi-pencil"></i> Editar
+                </button>
+                <button class="field-btn btn-duplicate" data-field="${name}">
+                  <i class="bi bi-files"></i> Duplicar
+                </button>
+                <button class="field-btn danger btn-delete" data-field="${name}">
+                  <i class="bi bi-trash"></i> Eliminar
+                </button>
+              </div>
+            </div>
+          `;
+        }).join('');
+
+        document.querySelectorAll('.field-card').forEach(card => {
+          card.onclick = (e) => {
+            if (e.target.closest('.field-btn')) return;
+            selectField(card.dataset.field, false);
+          };
+        });
+
+        document.querySelectorAll('.btn-edit').forEach(btn => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            selectField(btn.dataset.field, true);
+          };
+        });
+
+        document.querySelectorAll('.btn-duplicate').forEach(btn => {
+          btn.onclick = async (e) => {
+            e.stopPropagation();
+            await duplicateField(btn.dataset.field);
+          };
+        });
+
+        document.querySelectorAll('.btn-delete').forEach(btn => {
+          btn.onclick = (e) => {
+            e.stopPropagation();
+            deleteField(btn.dataset.field);
+          };
+        });
+      }
+
+      async function duplicateField(name) {
+        const newName = prompt('Nombre para el campo duplicado:', name + '_copy');
+        if (!newName) return;
+        
+        const fields = getCurrentPageFields();
+        if (fields[newName]) {
+          showToast('Ya existe un campo con ese nombre', 'warning');
+          return;
+        }
+        
+        fields[newName] = JSON.parse(JSON.stringify(fields[name]));
+        fields[newName].x += 0.05;
+        fields[newName].y -= 0.05;
+        
+        renderFields();
+        updateFieldsList();
+        showToast(`Campo "${newName}" duplicado`, 'success');
+      }
+
+      function deleteField(name) {
+        if (!confirm(`¿Eliminar campo "${name}"?`)) return;
+        
+        const fields = getCurrentPageFields();
+        delete fields[name];
+        
+        if (selectedField === name) {
+          selectedField = null;
+          hidePropertyEditor();
+        }
+        renderFields();
+        updateFieldsList();
+        showToast(`Campo "${name}" eliminado`, 'success');
+      }
+
+      function updateStats() {
+        const fields = getCurrentPageFields();
+        document.getElementById('statFields').textContent = Object.keys(fields).length;
+        document.getElementById('statSelected').textContent = selectedField || '-';
+        
+        if (selectedField && fields[selectedField]) {
+          const f = fields[selectedField];
+          document.getElementById('statPos').textContent = `${(f.x * 100).toFixed(1)}%, ${(f.y * 100).toFixed(1)}%`;
+          document.getElementById('statSize').textContent = `${(f.widthFrac * 100).toFixed(1)}% × ${(f.heightFrac * 100).toFixed(1)}%`;
+        } else {
+          document.getElementById('statPos').textContent = '-';
+          document.getElementById('statSize').textContent = '-';
+        }
+      }
+
+      function addPreset(preset) {
+        const presets = {
+          header: {
+            page: 1,
+            fields: {
+              fecha: { x: 0.07, y: 0.85, anchor: 'left', vAnchor: 'baseline', fontSize: 10, offsetX: -0.0012990540524581646, offsetY: 0.01996185504918694, widthFrac: 0.12, heightFrac: 0.02, type: 'text', bold: false, justify: false },
+              folio: { x: 0.20106626, y: 0.88271135, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.07786389498678373, offsetY: 0.006593928623631592, widthFrac: 0.15, heightFrac: 0.02, type: 'text', bold: true, justify: false }
+            }
+          },
+          client: {
+            page: 1,
+            fields: {
+              nombre: { x: 0.17, y: 0.78, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.009821032490115312, offsetY: 0.0064175027293054306, widthFrac: 0.25, heightFrac: 0.02, type: 'text', bold: false, justify: false },
+              empresa: { x: 0.78, y: 0.88, anchor: 'right', vAnchor: 'baseline', fontSize: 10, offsetX: 0.15795036479555413, offsetY: 0.006022886970487853, widthFrac: 0.2, heightFrac: 0.02, type: 'text', bold: false, justify: false },
+              estado: { x: 0.79, y: 0.85, anchor: 'right', vAnchor: 'baseline', fontSize: 10, offsetX: 0.14795036479555412, offsetY: 0.023011443485243945, widthFrac: 0.18, heightFrac: 0.02, type: 'text', bold: false, justify: false },
+              correo: { x: 0.79, y: 0.82, anchor: 'right', vAnchor: 'baseline', fontSize: 10, offsetX: 0.1477598269148531, offsetY: 0.03702670146556918, widthFrac: 0.18, heightFrac: 0.02, type: 'text', bold: false, justify: false },
+              numero: { x: 0.79, y: 0.79, anchor: 'right', vAnchor: 'baseline', fontSize: 10, offsetX: 0.14739032152426737, offsetY: 0.052045773940975745, widthFrac: 0.18, heightFrac: 0.02, type: 'text', bold: false, justify: false }
+            }
+          },
+          totals: {
+            page: 1,
+            fields: {
+              subtotal: { x: 0.88, y: 0.36, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.060458530838467126, offsetY: 0.1721536882125003, widthFrac: 0.15, heightFrac: 0.02, type: 'number', bold: false, justify: false },
+              descuento: { x: 0.88, y: 0.33, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.05832091536433739, offsetY: 0.18597699000600407, widthFrac: 0.15, heightFrac: 0.02, type: 'number', bold: false, justify: false },
+              impuestos: { x: 0.88, y: 0.3, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.057939840483968726, offsetY: 0.19994336729785648, widthFrac: 0.15, heightFrac: 0.02, type: 'number', bold: false, justify: false },
+              total: { x: 0.88, y: 0.27, anchor: 'left', vAnchor: 'center', fontSize: 12, offsetX: -0.05711134550733827, offsetY: 0.21413506398761334, widthFrac: 0.15, heightFrac: 0.02, type: 'number', bold: true, justify: false },
+              precio_neto_mxn_formatted: { x: 0.83537861, y: 0.4254446, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.014384002575038218, offsetY: 0.00940492476060191, widthFrac: 0.15, heightFrac: 0.02, type: 'text', bold: false, justify: false }
+            }
+          },
+          items: {
+            page: 1,
+            fields: {
+              item_modelo: { x: 0.06, y: 0.68, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: 0, offsetY: 0.012564979480164168, widthFrac: 0.35026957431399364, heightFrac: 0.036839945280437755, type: 'text', bold: false, justify: false },
+              item_descripcion: { x: 0.22, y: 0.68, anchor: 'left', vAnchor: 'baseline', fontSize: 10, offsetX: -0.16, offsetY: -0.020000000000000018, widthFrac: 0.35110646173654136, heightFrac: 0.10352941176470587, type: 'text', bold: false, justify: true },
+              item_precio: { x: 0.68, y: 0.68, anchor: 'center', vAnchor: 'center', fontSize: 10, offsetX: -0.14614084823186602, offsetY: 0.010156953921765813, widthFrac: 0.08269513942828387, heightFrac: 0.02, type: 'number', bold: false, justify: false },
+              item_cant: { x: 0.78, y: 0.68, anchor: 'left', vAnchor: 'baseline', fontSize: 10, offsetX: -0.10924333107147186, offsetY: 0.01286659642039986, widthFrac: 0.08, heightFrac: 0.02, type: 'number', bold: false, justify: false },
+              item_subtotal: { x: 0.88, y: 0.68, anchor: 'center', vAnchor: 'center', fontSize: 10, offsetX: 0.032021073148449375, offsetY: 0.012166188938617546, widthFrac: 0.1, heightFrac: 0.02, type: 'number', bold: false, justify: false }
+            }
+          },
+          condiciones: {
+            page: 4,
+            fields: {
+              tiempoEntrega: { x: 0.15, y: 0.7, anchor: 'left', vAnchor: 'top', fontSize: 11, offsetX: 0, offsetY: 0, widthFrac: 0.7, heightFrac: 0.08, sampleValue: '15-20 días hábiles', type: 'text', bold: false, justify: true },
+              formaPago: { x: 0.15, y: 0.55, anchor: 'left', vAnchor: 'top', fontSize: 11, offsetX: 0, offsetY: 0, widthFrac: 0.7, heightFrac: 0.1, sampleValue: '50% anticipo, 50% contra entrega', type: 'text', bold: false, justify: true },
+              firma: { x: 0.65, y: 0.15, anchor: 'left', vAnchor: 'baseline', fontSize: 10, offsetX: 0, offsetY: 0, widthFrac: 0.25, heightFrac: 0.1, sampleValue: '🖊️ [Firma Digital]', type: 'image', bold: false, justify: false }
+            }
+          }
+        };
+
+        let targetPage = currentPage;
+        
+        if (preset === 'all') {
+          Object.keys(presets).forEach(key => {
+            const presetData = presets[key];
+            const page = presetData.page;
+            
+            if (!calibration.pages[page]) {
+              calibration.pages[page] = { fields: {}, table: { startY: 0.61, lineHeight: 0.045 } };
+            }
+            
+            Object.keys(presetData.fields).forEach(fieldName => {
+              calibration.pages[page].fields[fieldName] = { ...presetData.fields[fieldName], sampleValue: presetData.fields[fieldName].sampleValue || '' };
+            });
+          });
+          
+          renderFields();
+          updateFieldsList();
+          showToast('Todos los presets agregados', 'success');
+          return;
+          
+        } else if (presets[preset]) {
+          const toAdd = presets[preset].fields;
+          targetPage = presets[preset].page;
+          
+          if (targetPage !== currentPage) {
+            currentPage = targetPage;
+            document.getElementById('pageSelector').value = currentPage;
+            renderPage(currentPage);
+          }
+
+          if (!calibration.pages[targetPage]) {
+            calibration.pages[targetPage] = { fields: {}, table: { startY: 0.61, lineHeight: 0.045 } };
+          }
+
+          Object.keys(toAdd).forEach(name => {
+            calibration.pages[targetPage].fields[name] = {
+              ...toAdd[name],
+              sampleValue: toAdd[name].sampleValue || ''
+            };
+          });
+
+          renderFields();
+          updateFieldsList();
+          showToast(`Preset "${preset}" agregado (${Object.keys(toAdd).length} campos)`, 'success');
+        }
+      }
+
+      async function loadCalibration() {
+        try {
+          const r = await fetch('/api/templates/' + encodeURIComponent(tpl) + '/calibration');
+          if (!r.ok) return;
+          const js = await r.json();
+          const c = js.calibration;
+          if (!c) return;
+
+          if (c.pages) {
+            calibration = { pages: {}, globalOffsetY: c.globalOffsetY || 0 };
+            
+            Object.keys(c.pages).forEach(pageNum => {
+              calibration.pages[pageNum] = {
+                fields: {},
+                table: c.pages[pageNum].table || { startY: 0.61, lineHeight: 0.045 }
+              };
+              
+              Object.keys(c.pages[pageNum].fields || {}).forEach(name => {
+                const f = c.pages[pageNum].fields[name];
+                calibration.pages[pageNum].fields[name] = {
+                  x: Number(f.x),
+                  y: Number(f.y),
+                  anchor: f.anchor || 'left',
+                  vAnchor: f.vAnchor || 'center',
+                  fontSize: Number(f.fontSize) || 10,
+                  offsetX: Number(f.offsetX || 0),
+                  offsetY: Number(f.offsetY || 0),
+                  widthFrac: Number(f.widthFrac || 0.15),
+                  heightFrac: Number(f.heightFrac || 0.02),
+                  sampleValue: f.sampleValue || '',
+                  type: f.type || 'text',
+                  bold: f.bold || false,
+                  justify: f.justify || false
+                };
+              });
+            });
+            
+            console.log('✅ Calibración multi-página cargada');
+            
+          } else if (c.fields) {
+            console.log('📦 Convirtiendo calibración antigua...');
+            calibration = {
+              pages: {
+                '1': {
+                  fields: {},
+                  table: c.table || { startY: 0.61, lineHeight: 0.045 }
+                }
+              },
+              globalOffsetY: c.globalOffsetY || 0
+            };
+            
+            Object.keys(c.fields).forEach(name => {
+              const f = c.fields[name];
+              calibration.pages['1'].fields[name] = {
+                x: Number(f.x),
+                y: Number(f.y),
+                anchor: f.anchor || 'left',
+                vAnchor: f.vAnchor || 'center',
+                fontSize: Number(f.fontSize) || 10,
+                offsetX: Number(f.offsetX || 0),
+                offsetY: Number(f.offsetY || 0),
+                widthFrac: Number(f.widthFrac || 0.15),
+                heightFrac: Number(f.heightFrac || 0.02),
+                sampleValue: f.sampleValue || '',
+                type: f.type || 'text',
+                bold: f.bold || false,
+                justify: f.justify || false
+              };
+            });
+          }
+
+          renderFields();
+          updateFieldsList();
+          showToast('Calibración cargada', 'success');
+        } catch (e) {
+          console.log('No hay calibración previa');
+        }
+      }
+
+      async function saveCalibration() {
+        try {
+          const payload = {
+            pages: calibration.pages,
+            globalOffsetY: calibration.globalOffsetY || 0
+          };
+
+          const r = await fetch('/save-calibration?template=' + encodeURIComponent(tpl), {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          const js = await r.json();
+          if (js.ok) {
+            showToast('Calibración guardada exitosamente', 'success');
+            return true;
+          } else {
+            throw new Error(js.error || 'Error desconocido');
+          }
+        } catch (e) {
+          showToast('Error guardando: ' + e.message, 'error');
+          return false;
+        }
+      }
+
+      async function previewPDF() {
+        try {
+          const data = {
+            template: tpl,
+            debug: true,
+            items: [
+              { modelo: 'PROD-001', descripcion: 'Producto de prueba', precio: '100.00', cant: '2', subtotal: '200.00' }
+            ],
+            tiempoEntrega: '15-20 días hábiles',
+            formaPago: '50% anticipo, 50% contra entrega'
+          };
+
+          Object.keys(calibration.pages).forEach(pageNum => {
+            Object.keys(calibration.pages[pageNum].fields).forEach(fname => {
+              if (!fname.startsWith('item_')) {
+                const field = calibration.pages[pageNum].fields[fname];
+                data[fname] = field.sampleValue || `[${fname}]`;
+              }
+            });
+          });
+
+          const r = await fetch('/preview', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+          });
+
+          if (!r.ok) throw new Error('Error en preview');
+
+          const blob = await r.blob();
+          const url = URL.createObjectURL(blob);
+          window.open(url, '_blank');
+          showToast('Vista previa generada', 'success');
+        } catch (e) {
+          showToast('Error generando preview: ' + e.message, 'error');
+        }
+      }
+
+      function exportJSON() {
+        const payload = {
+          pages: calibration.pages,
+          globalOffsetY: calibration.globalOffsetY || 0
+        };
+
+        const json = JSON.stringify(payload, null, 2);
+        const blob = new Blob([json], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = tpl + '.calibration.json';
+        a.click();
+        showToast('JSON exportado', 'success');
+      }
+
+      function setupMouseEvents() {
+        if (!previewLayer) return;
+
+        previewLayer.style.pointerEvents = 'none';
+
+        previewLayer.addEventListener('mousedown', (e) => {
+          const fieldBox = e.target.closest('.fieldBox');
+          if (!fieldBox) return;
+
+          e.stopPropagation();
+          const handle = e.target.closest('.handle');
+          const fieldName = fieldBox.dataset.name;
+
+          if (handle) {
+            resizeHandle = handle.classList[1];
+            draggedField = fieldName;
+            startPos = { x: e.clientX, y: e.clientY };
+            startFieldData = JSON.parse(JSON.stringify(getCurrentPageFields()[fieldName]));
+            e.preventDefault();
+          } else {
+            draggedField = fieldName;
+            startPos = { x: e.clientX, y: e.clientY };
+            startFieldData = JSON.parse(JSON.stringify(getCurrentPageFields()[fieldName]));
+            selectField(fieldName, false);
+            e.preventDefault();
+          }
+        }, true);
+
+        document.onmousemove = (e) => {
+          if (!draggedField) return;
+
+          const dx = e.clientX - startPos.x;
+          const dy = e.clientY - startPos.y;
+          const field = getCurrentPageFields()[draggedField];
+
+          if (resizeHandle) {
+            const dxFrac = dx / canvas.width / zoom;
+            const dyFrac = -dy / canvas.height / zoom;
+
+            if (resizeHandle === 'br') {
+              field.widthFrac = Math.max(0.05, startFieldData.widthFrac + dxFrac);
+              field.heightFrac = Math.max(0.01, startFieldData.heightFrac - dyFrac);
+            } else if (resizeHandle === 'tr') {
+              field.widthFrac = Math.max(0.05, startFieldData.widthFrac + dxFrac);
+              field.heightFrac = Math.max(0.01, startFieldData.heightFrac + dyFrac);
+              field.offsetY = startFieldData.offsetY + dyFrac / 2;
+            } else if (resizeHandle === 'bl') {
+              field.widthFrac = Math.max(0.05, startFieldData.widthFrac - dxFrac);
+              field.heightFrac = Math.max(0.01, startFieldData.heightFrac - dyFrac);
+              field.offsetX = startFieldData.offsetX + dxFrac / 2;
+            } else if (resizeHandle === 'tl') {
+              field.widthFrac = Math.max(0.05, startFieldData.widthFrac - dxFrac);
+              field.heightFrac = Math.max(0.01, startFieldData.heightFrac + dyFrac);
+              field.offsetX = startFieldData.offsetX + dxFrac / 2;
+              field.offsetY = startFieldData.offsetY + dyFrac / 2;
+            }
+          } else {
+            const dxFrac = dx / canvas.width / zoom;
+            const dyFrac = -dy / canvas.height / zoom;
+
+            field.offsetX = startFieldData.offsetX + dxFrac;
+            field.offsetY = startFieldData.offsetY + dyFrac;
+
+            if (snapEnabled) {
+              const snapGrid = 0.01;
+              const totalX = field.x + field.offsetX;
+              const totalY = field.y + field.offsetY;
+              const snappedX = Math.round(totalX / snapGrid) * snapGrid;
+              const snappedY = Math.round(totalY / snapGrid) * snapGrid;
+              field.offsetX = snappedX - field.x;
+              field.offsetY = snappedY - field.y;
+            }
+          }
+
+          renderFields();
+          updateStats();
+        };
+
+        document.onmouseup = () => {
+          if (draggedField) {
+            updateFieldsList();
+          }
+          draggedField = null;
+          resizeHandle = null;
+        };
+      }
+
+      document.onkeydown = (e) => {
+        if (e.ctrlKey && e.key === 's') {
+          e.preventDefault();
+          saveCalibration();
+        }
+        if (e.ctrlKey && e.key === 'p') {
+          e.preventDefault();
+          previewPDF();
+        }
+        if (e.key === 'Delete' && selectedField) {
+          deleteField(selectedField);
+        }
+        if (e.key === 'Escape') {
+          selectedField = null;
+          document.querySelectorAll('.fieldBox').forEach(b => b.classList.remove('selected'));
+          hidePropertyEditor();
+          updateStats();
+        }
+      };
+
+      async function logout() {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+          window.location.href = '/login.html';
+        } catch (e) {
+          window.location.href = '/login.html';
+        }
+      }
+
+      function init() {
+        canvas = document.getElementById('pdfCanvas');
+        overlay = document.getElementById('overlay');
+        previewLayer = document.getElementById('previewLayer');
+        
+        if (!canvas || !overlay || !previewLayer) {
+          console.error('Elementos del DOM no encontrados');
+          return;
+        }
+        
+        ctx = canvas.getContext('2d');
+        octx = overlay.getContext('2d');
+
+        document.getElementById('templateName').textContent = tpl;
+
+        setTimeout(() => {
+          loadPDF();
+          setupTools();
+          setupZoom();
+          setupMouseEvents();
+          loadCalibration();
+        }, 100);
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>

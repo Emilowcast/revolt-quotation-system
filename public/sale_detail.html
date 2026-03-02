@@ -1,0 +1,805 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de Venta</title>
+  <style>
+    :root {
+      --primary: #0b3d91;
+      --success: #10b981;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --bg: #f6f8fa;
+      --card: #ffffff;
+      --text: #111827;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --shadow: 0 4px 6px rgba(0,0,0,0.07);
+    }
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 20px;
+    }
+
+    .header {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    .header-left h1 {
+      font-size: 24px;
+      color: var(--primary);
+      margin-bottom: 5px;
+    }
+
+    .header-left .folio {
+      font-size: 14px;
+      color: var(--muted);
+    }
+
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      padding: 10px 20px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 14px;
+      font-weight: 500;
+      transition: all 0.2s;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .btn-primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn-primary:hover {
+      background: #0a2f6f;
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: var(--success);
+      color: white;
+    }
+
+    .btn-success:hover {
+      background: #059669;
+    }
+
+    .btn-secondary {
+      background: var(--muted);
+      color: white;
+    }
+
+    .btn-secondary:hover {
+      background: #4b5563;
+    }
+
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1fr 400px;
+      gap: 20px;
+    }
+
+    .main-content {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+
+    .card h2 {
+      font-size: 18px;
+      color: var(--primary);
+      margin-bottom: 15px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid var(--border);
+    }
+
+    .info-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+    }
+
+    .info-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .info-label {
+      font-size: 12px;
+      color: var(--muted);
+      text-transform: uppercase;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+    }
+
+    .info-value {
+      font-size: 15px;
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .status-badge {
+      display: inline-block;
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+
+    .status-pending {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    .status-paid {
+      background: #d1fae5;
+      color: #065f46;
+    }
+
+    .status-cancelled {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+
+    .items-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    .items-table th {
+      background: var(--bg);
+      padding: 12px;
+      text-align: left;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .items-table td {
+      padding: 12px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+
+    .items-table tr:last-child td {
+      border-bottom: none;
+    }
+
+    .total-row {
+      background: var(--bg);
+      font-weight: 600;
+      font-size: 16px;
+    }
+
+    /* Timeline / Historial */
+    .timeline {
+      position: relative;
+      padding-left: 30px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 8px;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border);
+    }
+
+    .timeline-item {
+      position: relative;
+      margin-bottom: 20px;
+      padding-bottom: 20px;
+    }
+
+    .timeline-item:last-child {
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: -26px;
+      top: 4px;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--primary);
+      z-index: 1;
+    }
+
+    .timeline-dot.created { border-color: var(--success); }
+    .timeline-dot.statuschanged { border-color: var(--warning); }
+    .timeline-dot.noteadded { border-color: var(--primary); }
+
+    .timeline-content {
+      background: var(--bg);
+      padding: 12px;
+      border-radius: 8px;
+    }
+
+    .timeline-type {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 4px;
+      margin-bottom: 6px;
+    }
+
+    .timeline-type.created { background: #d1fae5; color: #065f46; }
+    .timeline-type.statuschanged { background: #fef3c7; color: #92400e; }
+    .timeline-type.noteadded { background: #dbeafe; color: #1e40af; }
+
+    .timeline-description {
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .timeline-meta {
+      font-size: 12px;
+      color: var(--muted);
+      display: flex;
+      gap: 12px;
+    }
+
+    /* Formulario agregar nota */
+    .add-note-form {
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 2px solid var(--border);
+    }
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    .form-label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 6px;
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      font-size: 14px;
+      font-family: inherit;
+      transition: border-color 0.2s;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+
+    textarea.form-control {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    /* Estado selector */
+    .status-selector {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+    }
+
+    .status-option {
+      flex: 1;
+      padding: 12px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      text-align: center;
+      cursor: pointer;
+      font-weight: 500;
+      transition: all 0.2s;
+    }
+
+    .status-option:hover {
+      border-color: var(--primary);
+      background: var(--bg);
+    }
+
+    .status-option.active {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: white;
+    }
+
+    /* Toast notification */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: white;
+      padding: 16px 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .toast.success { border-left: 4px solid var(--success); }
+    .toast.error { border-left: 4px solid var(--danger); }
+    .toast.info { border-left: 4px solid var(--primary); }
+
+    /* Loading */
+    .loading {
+      text-align: center;
+      padding: 40px;
+      color: var(--muted);
+    }
+
+    .spinner {
+      display: inline-block;
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--border);
+      border-top-color: var(--primary);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .content-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .header {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .header-actions {
+        justify-content: stretch;
+      }
+
+      .btn {
+        flex: 1;
+        justify-content: center;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <div class="header">
+      <div class="header-left">
+        <h1>📦 Detalle de Venta</h1>
+        <div class="folio" id="saleTitle">Cargando...</div>
+      </div>
+      <div class="header-actions">
+        <button class="btn btn-secondary" onclick="window.location.href='/new_quote.html'">
+          ← Volver
+        </button>
+        <button class="btn btn-primary" onclick="downloadPDF()">
+          📄 Descargar PDF
+        </button>
+      </div>
+    </div>
+
+    <!-- Content Grid -->
+    <div class="content-grid">
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Información General -->
+        <div class="card">
+          <h2>📋 Información General</h2>
+          <div class="info-grid" id="saleInfo">
+            <div class="loading">
+              <div class="spinner"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cambiar Estado -->
+        <div class="card">
+          <h2>🔄 Cambiar Estado</h2>
+          <div class="status-selector">
+            <div class="status-option" data-status="pending" onclick="changeStatus('pending')">
+              ⏳ Pendiente
+            </div>
+            <div class="status-option" data-status="paid" onclick="changeStatus('paid')">
+              ✅ Pagado
+            </div>
+            <div class="status-option" data-status="cancelled" onclick="changeStatus('cancelled')">
+              ❌ Cancelado
+            </div>
+          </div>
+        </div>
+
+        <!-- Items -->
+        <div class="card">
+          <h2>📦 Items de la Venta</h2>
+          <table class="items-table" id="itemsTable">
+            <thead>
+              <tr>
+                <th>Producto</th>
+                <th>Descripción</th>
+                <th style="text-align: right;">Cantidad</th>
+                <th style="text-align: right;">Precio Unit.</th>
+                <th style="text-align: right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td colspan="5" class="loading">
+                  <div class="spinner"></div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Sidebar: Historial -->
+      <div class="sidebar">
+        <div class="card">
+          <h2>📝 Historial & Notas</h2>
+          
+          <!-- Timeline -->
+          <div class="timeline" id="timeline">
+            <div class="loading">
+              <div class="spinner"></div>
+            </div>
+          </div>
+
+          <!-- Formulario agregar nota -->
+          <div class="add-note-form">
+            <div class="form-group">
+              <label class="form-label">Agregar nota o comentario</label>
+              <textarea 
+                class="form-control" 
+                id="noteText" 
+                placeholder="Escribe un comentario, seguimiento o nota sobre esta venta..."
+              ></textarea>
+            </div>
+            <button class="btn btn-primary" onclick="addNote()" style="width: 100%;">
+              ➕ Agregar Nota
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentSale = null;
+    const saleId = new URLSearchParams(window.location.search).get('id');
+
+    // Toast notification
+    function showToast(message, type = 'info') {
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.innerHTML = `
+        <span>${type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️'}</span>
+        <span>${message}</span>
+      `;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Cargar venta
+    async function loadSale() {
+      try {
+        const res = await fetch(`/api/sales/${saleId}`);
+        if (!res.ok) throw new Error('Error al cargar venta');
+        
+        const js = await res.json();
+        currentSale = js.sale; // ✅ CORRECCIÓN: acceder a js.sale
+        renderSale();
+        loadActivities();
+      } catch (e) {
+        showToast('Error al cargar la venta: ' + e.message, 'error');
+      }
+    }
+
+    // Renderizar información de la venta
+    function renderSale() {
+      const s = currentSale;
+      
+      // Título
+      document.getElementById('saleTitle').textContent = `Venta ${s.folio} - ${s.client.name}`;
+      
+      // Información general
+      const statusMap = {
+        pending: '<span class="status-badge status-pending">⏳ Pendiente</span>',
+        paid: '<span class="status-badge status-paid">✅ Pagado</span>',
+        cancelled: '<span class="status-badge status-cancelled">❌ Cancelado</span>'
+      };
+
+      document.getElementById('saleInfo').innerHTML = `
+        <div class="info-item">
+          <div class="info-label">Folio</div>
+          <div class="info-value">${s.folio}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Estado</div>
+          <div class="info-value">${statusMap[s.status] || s.status}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Cliente</div>
+          <div class="info-value">${s.client.name}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Empresa</div>
+          <div class="info-value">${s.client.company || 'N/A'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Teléfono</div>
+          <div class="info-value">${s.client.phone || 'N/A'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Email</div>
+          <div class="info-value">${s.client.email || 'N/A'}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Fecha de Venta</div>
+          <div class="info-value">${new Date(s.createdAt).toLocaleDateString()}</div>
+        </div>
+        <div class="info-item">
+          <div class="info-label">Creado</div>
+          <div class="info-value">${new Date(s.createdAt).toLocaleString()}</div>
+        </div>
+        ${s.notes ? `
+          <div class="info-item" style="grid-column: 1 / -1;">
+            <div class="info-label">Notas</div>
+            <div class="info-value">${s.notes}</div>
+          </div>
+        ` : ''}
+      `;
+
+      // Marcar estado activo
+      document.querySelectorAll('.status-option').forEach(opt => {
+        opt.classList.toggle('active', opt.dataset.status === s.status);
+      });
+
+      // Items
+      renderItems();
+    }
+
+    // Renderizar items
+    function renderItems() {
+      const items = currentSale.items || [];
+      let total = 0;
+
+      const rows = items.map(item => {
+        const subtotal = item.qty * item.unitPrice; // ✅ CORRECCIÓN: usar qty
+        total += subtotal;
+        return `
+          <tr>
+            <td>${item.modelo || 'N/A'}</td>
+            <td>${item.descripcion || ''}</td>
+            <td style="text-align: right;">${item.qty}</td>
+            <td style="text-align: right;">$${item.unitPrice.toFixed(2)}</td>
+            <td style="text-align: right;">$${subtotal.toFixed(2)}</td>
+          </tr>
+        `;
+      }).join('');
+
+      document.querySelector('#itemsTable tbody').innerHTML = `
+        ${rows}
+        <tr class="total-row">
+          <td colspan="4" style="text-align: right;">TOTAL:</td>
+          <td style="text-align: right;">$${total.toFixed(2)}</td>
+        </tr>
+      `;
+    }
+
+    // Cargar historial de actividades
+    async function loadActivities() {
+      try {
+        const res = await fetch(`/api/sales/${saleId}/activities`);
+        if (!res.ok) throw new Error('Error al cargar historial');
+        
+        const js = await res.json();
+        const activities = js.activities || []; // ✅ CORRECCIÓN: acceder a js.activities
+        renderTimeline(activities);
+      } catch (e) {
+        document.getElementById('timeline').innerHTML = `
+          <p style="color: var(--muted); text-align: center;">
+            Error al cargar el historial
+          </p>
+        `;
+      }
+    }
+
+    // Renderizar timeline
+    function renderTimeline(activities) {
+      if (!activities.length) {
+        document.getElementById('timeline').innerHTML = `
+          <p style="color: var(--muted); text-align: center; padding: 20px;">
+            No hay actividades registradas aún
+          </p>
+        `;
+        return;
+      }
+
+      const typeLabels = {
+        'sale_created': 'Venta Creada',
+        'sale_status_changed': 'Cambio de Estado',
+        'note_added': 'Nota Agregada'
+      };
+
+      const html = activities.map(a => `
+        <div class="timeline-item">
+          <div class="timeline-dot ${a.type.replace('sale_','').replace('_','')}"></div>
+          <div class="timeline-content">
+            <span class="timeline-type ${a.type.replace('sale_','').replace('_','')}">${typeLabels[a.type] || a.type}</span>
+            <div class="timeline-description">${a.description}</div>
+            <div class="timeline-meta">
+              <span>🕐 ${new Date(a.createdAt).toLocaleString()}</span>
+              ${a.user ? `<span>👤 ${a.user.name}</span>` : ''}
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      document.getElementById('timeline').innerHTML = html;
+    }
+
+    // Cambiar estado
+    async function changeStatus(newStatus) {
+      if (!currentSale) return;
+      if (currentSale.status === newStatus) {
+        showToast('La venta ya tiene ese estado', 'info');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/sales/${saleId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status: newStatus })
+        });
+
+        if (!res.ok) throw new Error('Error al cambiar estado');
+
+        showToast('Estado actualizado correctamente', 'success');
+        await loadSale(); // Recargar todo
+      } catch (e) {
+        showToast('Error al cambiar estado: ' + e.message, 'error');
+      }
+    }
+
+    // Agregar nota
+    async function addNote() {
+      const noteText = document.getElementById('noteText').value.trim();
+      if (!noteText) {
+        showToast('Escribe una nota primero', 'error');
+        return;
+      }
+
+      try {
+        const res = await fetch(`/api/sales/${saleId}/activities`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'note_added',
+            description: noteText
+          })
+        });
+
+        if (!res.ok) throw new Error('Error al agregar nota');
+
+        document.getElementById('noteText').value = '';
+        showToast('Nota agregada correctamente', 'success');
+        await loadActivities();
+      } catch (e) {
+        showToast('Error al agregar nota: ' + e.message, 'error');
+      }
+    }
+
+    // Descargar PDF
+    async function downloadPDF() {
+      try {
+        showToast('Generando PDF...', 'info');
+        const res = await fetch(`/api/sales/${saleId}/pdf`);
+        if (!res.ok) throw new Error('Error al generar PDF');
+        
+        const blob = await res.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `venta_${currentSale.folio}.pdf`;
+        a.click();
+        window.URL.revokeObjectURL(url);
+        
+        showToast('PDF descargado correctamente', 'success');
+      } catch (e) {
+        showToast('Error al descargar PDF: ' + e.message, 'error');
+      }
+    }
+
+    // Init
+    if (!saleId) {
+      showToast('ID de venta no especificado', 'error');
+      setTimeout(() => window.location.href = '/new_quote.html', 2000);
+    } else {
+      loadSale();
+    }
+  </script>
+</body>
+</html>

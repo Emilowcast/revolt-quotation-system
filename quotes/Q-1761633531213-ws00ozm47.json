@@ -1,0 +1,36 @@
+{
+  "id": "Q-1761633531213-ws00ozm47",
+  "template": "plantillav2.pdf",
+  "fields": {
+    "folio": "COT-202510-2122",
+    "fecha": "2025-10-28",
+    "senor": "Emiliano Castro",
+    "cliente": "ACME",
+    "tipo": "Persona Moral",
+    "estado": "Guadalajara",
+    "numero": "7757512503",
+    "subtotal": "$987.00",
+    "descuento": "$50.00",
+    "impuestos": "$46.85",
+    "total": "$983.85",
+    "precio_neto_mxn": 17709.3,
+    "precio_neto_mxn_formatted": "17,709.30 MXN"
+  },
+  "items": [
+    {
+      "modelo": "REGULADOR AUTOMÁTICO DE VOLTAJE INDUSTRIAL AVR",
+      "descripcion": "Modelo: RM-042-220 Funcionamiento: Electromecánico Capacidad: 4 kVA Sistema: Bifásico sin Neutro Voltaje de Salida: 220 V Uso: Equipo CNC",
+      "precio": 987,
+      "cant": 1,
+      "subtotal": 987
+    }
+  ],
+  "subtotal": 987,
+  "descuento": 50,
+  "impuestos": 46.85,
+  "total": 983.85,
+  "precio_neto_mxn": 17709.3,
+  "precio_neto_mxn_formatted": "17,709.30 MXN",
+  "createdAt": "2025-10-28T06:38:51.213Z",
+  "updatedAt": "2025-10-28T06:38:51.213Z"
+}

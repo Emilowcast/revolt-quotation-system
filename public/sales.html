@@ -1,0 +1,1106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Ventas - REVOLT</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --revolt-red: #F62E41;
+      --revolt-dark: #1a1a1a;
+      --revolt-gray: #f8f9fa;
+    }
+
+    body {
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 30%, #d41f33 70%, #F62E41 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .main-container {
+      padding: 2rem;
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    .page-header {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(246, 46, 65, 0.3);
+      margin-bottom: 2rem;
+    }
+
+    .page-header h1 {
+      color: var(--revolt-dark);
+      margin: 0;
+      font-weight: 700;
+    }
+
+    .page-header p {
+      color: #666;
+      margin: 0.5rem 0 0 0;
+    }
+
+    .stats-card {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 12px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+      margin-bottom: 1.5rem;
+    }
+
+    .stats-card h3 {
+      font-size: 2rem;
+      font-weight: 700;
+      margin: 0;
+      color: var(--revolt-red);
+    }
+
+    .stats-card p {
+      color: #666;
+      margin: 0.5rem 0 0 0;
+      font-size: 0.9rem;
+    }
+
+    .sales-card {
+      background: white;
+      padding: 2rem;
+      border-radius: 15px;
+      box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    }
+
+    .btn-revolt {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border: none;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s;
+      box-shadow: 0 2px 4px rgba(246, 46, 65, 0.3);
+    }
+
+    .btn-revolt:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(246, 46, 65, 0.4);
+      color: white;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 1.5rem;
+    }
+
+    .search-box input {
+      padding: 0.8rem 1rem 0.8rem 2.5rem;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      width: 100%;
+      transition: all 0.3s;
+    }
+
+    .search-box input:focus {
+      border-color: var(--revolt-red);
+      box-shadow: 0 0 0 3px rgba(246, 46, 65, 0.1);
+      outline: none;
+    }
+
+    .search-box i {
+      position: absolute;
+      left: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #999;
+    }
+
+    .table-container {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .table {
+      margin: 0;
+    }
+
+    .table thead {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+    }
+
+    .table thead th {
+      border: none;
+      padding: 1rem;
+      font-weight: 600;
+    }
+
+    .table tbody tr {
+      transition: all 0.2s;
+    }
+
+    .table tbody tr:hover {
+      background-color: #f8f9fa;
+      transform: scale(1.01);
+    }
+
+    .badge-status {
+      padding: 0.4rem 0.8rem;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-completed {
+      background: #d4edda;
+      color: #155724;
+    }
+
+    .status-pending {
+      background: #fff3cd;
+      color: #856404;
+    }
+
+    .status-cancelled {
+      background: #f8d7da;
+      color: #721c24;
+    }
+
+    .status-in-progress {
+      background: #cfe2ff;
+      color: #084298;
+    }
+
+    .status-no-order {
+      background: #e9ecef;
+      color: #495057;
+    }
+
+    .btn-action {
+      padding: 0.4rem 0.8rem;
+      border-radius: 6px;
+      font-size: 0.85rem;
+      margin: 0 0.2rem;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+
+    .btn-action:hover {
+      transform: translateY(-2px);
+    }
+
+    /* ⭐ Asegurar que los botones no se muevan */
+    .actions-cell {
+      min-width: 280px;
+      white-space: nowrap;
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 3rem;
+      color: #999;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      margin-bottom: 1rem;
+    }
+
+    .pagination-controls {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 1.5rem;
+      padding: 1rem;
+      background: linear-gradient(to right, #f9fafb, #f3f4f6);
+      border-radius: 12px;
+    }
+
+    .pagination-btn {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .pagination-btn:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(246, 46, 65, 0.3);
+    }
+
+    .pagination-btn:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+
+    .pagination-info {
+      color: #666;
+      font-weight: 600;
+    }
+
+    .modal-header {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border-radius: 15px 15px 0 0;
+    }
+
+    .modal-content {
+      border-radius: 15px;
+      border: none;
+    }
+
+    .detail-row {
+      padding: 0.8rem 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+
+    .detail-row:last-child {
+      border-bottom: none;
+    }
+
+    .detail-label {
+      font-weight: 600;
+      color: #666;
+    }
+
+    .detail-value {
+      color: var(--revolt-dark);
+    }
+
+    .filter-buttons {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+      flex-wrap: wrap;
+    }
+
+    .filter-btn {
+      padding: 0.5rem 1rem;
+      border: 2px solid #e0e0e0;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+
+    .filter-btn:hover {
+      border-color: var(--revolt-red);
+      color: var(--revolt-red);
+    }
+
+    .filter-btn.active {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border-color: var(--revolt-red);
+    }
+  </style>
+</head>
+<body>
+  <div class="main-container">
+    <!-- Header -->
+    <div class="page-header">
+      <div class="d-flex justify-content-between align-items-center">
+        <div>
+          <h1><i class="bi bi-cash-stack"></i> Gestión de Ventas</h1>
+          <p>Administra las ventas y órdenes de producción</p>
+        </div>
+        <div>
+          <a href="dashboard.html" class="btn btn-outline-secondary">
+            <i class="bi bi-arrow-left"></i> Volver al Dashboard
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Stats Cards -->
+    <div class="row">
+      <div class="col-md-3">
+        <div class="stats-card">
+          <h3 id="totalSales">0</h3>
+          <p><i class="bi bi-receipt"></i> Total de Ventas</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <h3 id="totalAmount">$0</h3>
+          <p><i class="bi bi-currency-dollar"></i> Monto Total</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <h3 id="salesThisMonth">0</h3>
+          <p><i class="bi bi-calendar-month"></i> Ventas del Mes</p>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="stats-card">
+          <h3 id="pendingOrders">0</h3>
+          <p><i class="bi bi-hourglass-split"></i> Órdenes Pendientes</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sales Card -->
+    <div class="sales-card">
+      <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3><i class="bi bi-list-ul"></i> Lista de Ventas</h3>
+        <div>
+          <button class="btn btn-revolt" onclick="exportToExcel()">
+            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+          </button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filter-buttons">
+        <button class="filter-btn active" onclick="filterByOrderStatus('all')">
+          <i class="bi bi-list"></i> Todas
+        </button>
+        <button class="filter-btn" onclick="filterByOrderStatus('no_order')">
+          <i class="bi bi-dash-circle"></i> Sin Orden
+        </button>
+        <button class="filter-btn" onclick="filterByOrderStatus('pending')">
+          <i class="bi bi-hourglass-split"></i> Pendientes
+        </button>
+        <button class="filter-btn" onclick="filterByOrderStatus('in_progress')">
+          <i class="bi bi-arrow-repeat"></i> En Proceso
+        </button>
+        <button class="filter-btn" onclick="filterByOrderStatus('completed')">
+          <i class="bi bi-check-circle"></i> Completadas
+        </button>
+        <button class="filter-btn" onclick="filterByOrderStatus('cancelled')">
+          <i class="bi bi-x-circle"></i> Canceladas
+        </button>
+      </div>
+
+      <!-- Search -->
+      <div class="search-box">
+        <i class="bi bi-search"></i>
+        <input type="text" id="searchInput" placeholder="Buscar por folio, cliente, o fecha..." oninput="applyFilters()">
+      </div>
+
+      <!-- Loading -->
+      <div id="loadingSales" class="text-center p-5" style="display: none;">
+        <div class="spinner-border text-primary" role="status">
+          <span class="visually-hidden">Cargando...</span>
+        </div>
+        <p class="mt-3">Cargando ventas...</p>
+      </div>
+
+      <!-- Table -->
+      <div id="salesTableContainer" style="display: none;">
+        <div class="table-container">
+          <table class="table table-hover">
+            <thead>
+              <tr>
+                <th>Folio Venta</th>
+                <th>Cliente</th>
+                <th>Fecha</th>
+                <th>Total</th>
+                <th>Estado Orden</th>
+                <th class="text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="salesTableBody">
+              <!-- Rows populated by JS -->
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div id="paginationContainer"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Detalle de Venta -->
+  <div class="modal fade" id="saleDetailModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-info-circle"></i> Detalle de Venta</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body" id="saleDetailBody">
+          <!-- Content populated by JS -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cerrar</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Crear Orden de Producción -->
+  <div class="modal fade" id="createProductionOrderModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-gear"></i> Crear Orden de Producción</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="productionOrderForm">
+            <input type="hidden" id="poSaleId">
+            <div class="mb-3">
+              <label class="form-label">Fecha de Entrega Estimada</label>
+              <input type="date" class="form-control" id="poDeliveryDate" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Prioridad</label>
+              <select class="form-select" id="poPriority" required>
+                <option value="normal">Normal</option>
+                <option value="alta">Alta</option>
+                <option value="urgente">Urgente</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Notas</label>
+              <textarea class="form-control" id="poNotes" rows="3"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-revolt" onclick="submitProductionOrder()">
+            <i class="bi bi-check-circle"></i> Crear Orden
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Actualizar Estado de Orden -->
+  <div class="modal fade" id="updateOrderStatusModal" tabindex="-1">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title"><i class="bi bi-arrow-repeat"></i> Actualizar Estado de Orden</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <form id="updateOrderStatusForm">
+            <input type="hidden" id="updateOrderId">
+            <div class="mb-3">
+              <label class="form-label">Nuevo Estado</label>
+              <select class="form-select" id="newOrderStatus" required>
+                <option value="pending">Pendiente</option>
+                <option value="in_progress">En Proceso</option>
+                <option value="completed">Completada</option>
+                <option value="cancelled">Cancelada</option>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Notas (opcional)</label>
+              <textarea class="form-control" id="orderStatusNotes" rows="3"></textarea>
+            </div>
+          </form>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+          <button type="button" class="btn btn-revolt" onclick="submitOrderStatusUpdate()">
+            <i class="bi bi-check-circle"></i> Actualizar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
+    <div id="toast" class="toast" role="alert">
+      <div class="toast-header">
+        <strong class="me-auto">REVOLT</strong>
+        <button type="button" class="btn-close" data-bs-dismiss="toast"></button>
+      </div>
+      <div class="toast-body" id="toastMessage"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // ============================================
+    // VARIABLES GLOBALES
+    // ============================================
+    let sales = [];
+    let filteredSales = [];
+    let currentPage = 1;
+    let totalPages = 1;
+    let totalSalesCount = 0;
+    let currentOrderStatusFilter = 'all';
+
+    // ============================================
+    // INIT
+    // ============================================
+    document.addEventListener('DOMContentLoaded', () => {
+      loadSales();
+    });
+
+    // ============================================
+    // CARGAR VENTAS
+    // ============================================
+    async function loadSales(page = 1) {
+      const loadingSales = document.getElementById('loadingSales');
+      const salesTableContainer = document.getElementById('salesTableContainer');
+
+      loadingSales.style.display = 'block';
+      salesTableContainer.style.display = 'none';
+
+      try {
+        const limit = 50;
+        const response = await fetch(`/api/sales?page=${page}&limit=${limit}`, {
+          credentials: 'include'
+        });
+
+        if (!response.ok) throw new Error('Error al cargar ventas');
+
+        const data = await response.json();
+
+        if (!data.ok) throw new Error(data.error || 'Error en la respuesta');
+
+        sales = data.sales || [];
+        filteredSales = [...sales];
+
+        if (data.pagination) {
+          currentPage = data.pagination.page;
+          totalPages = data.pagination.totalPages;
+          totalSalesCount = data.pagination.total;
+        }
+
+        console.log('✅ Ventas cargadas:', {
+          ventas: sales.length,
+          pagina: currentPage,
+          total: totalSalesCount
+        });
+
+        loadingSales.style.display = 'none';
+        salesTableContainer.style.display = 'block';
+
+        applyFilters();
+        renderPagination();
+        updateStats();
+
+      } catch (e) {
+        console.error('❌ Error cargando ventas:', e);
+        showToast('Error cargando ventas: ' + e.message, 'error');
+        loadingSales.style.display = 'none';
+      }
+    }
+
+    // ============================================
+    // FILTRAR POR ESTADO DE ORDEN
+    // ============================================
+    function filterByOrderStatus(status) {
+      currentOrderStatusFilter = status;
+
+      document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.classList.remove('active');
+      });
+      event.target.classList.add('active');
+
+      applyFilters();
+    }
+
+    // ============================================
+    // APLICAR FILTROS
+    // ============================================
+    function applyFilters() {
+      const search = document.getElementById('searchInput').value.toLowerCase();
+
+      filteredSales = sales.filter(sale => {
+        const tieneOrdenes = sale.productionOrders && Array.isArray(sale.productionOrders) && sale.productionOrders.length > 0;
+        let ordenStatus = 'no_order';
+        
+        if (tieneOrdenes) {
+          ordenStatus = sale.productionOrders[0].status;
+        }
+
+        const statusMatch = currentOrderStatusFilter === 'all' || ordenStatus === currentOrderStatusFilter;
+
+        const searchMatch = !search || 
+          (sale.folio || '').toLowerCase().includes(search) ||
+          (sale.quote?.folio || '').toLowerCase().includes(search) ||
+          (sale.client?.name || sale.quote?.client?.name || '').toLowerCase().includes(search) ||
+          new Date(sale.date || sale.createdAt).toLocaleDateString('es-MX').includes(search);
+
+        return statusMatch && searchMatch;
+      });
+
+      renderSales();
+    }
+
+    // ============================================
+    // RENDERIZAR VENTAS
+    // ============================================
+    function renderSales() {
+      const tbody = document.getElementById('salesTableBody');
+
+      if (filteredSales.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="6">
+              <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <h3>No hay ventas</h3>
+                <p>Las ventas que generes aparecerán aquí</p>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      tbody.innerHTML = filteredSales.map(sale => {
+        const tieneOrdenes = sale.productionOrders && Array.isArray(sale.productionOrders) && sale.productionOrders.length > 0;
+        let ordenStatus = 'Sin orden';
+        let ordenClass = 'status-no-order';
+        let orderId = null;
+        let orderStatus = null;
+        
+        if (tieneOrdenes) {
+          const orden = sale.productionOrders[0];
+          orderId = orden.id;
+          orderStatus = orden.status;
+          if (orden.status === 'completed') {
+            ordenStatus = 'Completada';
+            ordenClass = 'status-completed';
+          } else if (orden.status === 'in_progress') {
+            ordenStatus = 'En Proceso';
+            ordenClass = 'status-in-progress';
+          } else if (orden.status === 'cancelled') {
+            ordenStatus = 'Cancelada';
+            ordenClass = 'status-cancelled';
+          } else {
+            ordenStatus = 'Pendiente';
+            ordenClass = 'status-pending';
+          }
+        }
+
+        // ⭐ BOTONES SIEMPRE EN EL MISMO ORDEN
+        let actionButtons = `
+          <button class="btn btn-sm btn-info btn-action" onclick="viewSaleDetail(${sale.id})">
+            <i class="bi bi-eye"></i> Ver
+          </button>
+        `;
+
+        if (!tieneOrdenes) {
+          actionButtons += `
+            <button class="btn btn-sm btn-success btn-action" onclick="openProductionOrderModal(${sale.id})">
+              <i class="bi bi-gear"></i> Crear Orden
+            </button>
+          `;
+        } else {
+          if (orderStatus !== 'completed' && orderStatus !== 'cancelled') {
+            actionButtons += `
+              <button class="btn btn-sm btn-warning btn-action" onclick="openUpdateOrderStatusModal(${orderId})">
+                <i class="bi bi-arrow-repeat"></i> Estado
+              </button>
+            `;
+          } else {
+            // Botón invisible para mantener espacio
+            actionButtons += `
+              <span style="display:inline-block; width:80px;"></span>
+            `;
+          }
+          
+          actionButtons += `
+            <button class="btn btn-sm btn-success btn-action" onclick="downloadOrderExcel(${orderId})">
+              <i class="bi bi-download"></i> Excel
+            </button>
+          `;
+        }
+
+        return `
+          <tr>
+            <td><strong>${sale.folio || 'N/A'}</strong></td>
+            <td>${sale.client?.name || sale.quote?.client?.name || 'N/A'}</td>
+            <td>${new Date(sale.date || sale.createdAt).toLocaleDateString('es-MX')}</td>
+            <td><strong>$${parseFloat(sale.total || 0).toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
+            <td><span class="badge-status ${ordenClass}">${ordenStatus}</span></td>
+            <td class="text-center actions-cell">
+              ${actionButtons}
+            </td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    // ============================================
+    // RENDERIZAR PAGINACIÓN
+    // ============================================
+    function renderPagination() {
+      const container = document.getElementById('paginationContainer');
+
+      container.innerHTML = `
+        <div class="pagination-controls">
+          <button class="pagination-btn" onclick="changePage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>
+            <i class="bi bi-chevron-left"></i> Anterior
+          </button>
+          <div class="pagination-info">
+            Página ${currentPage} de ${totalPages} (${totalSalesCount} ventas en total)
+          </div>
+          <button class="pagination-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
+            Siguiente <i class="bi bi-chevron-right"></i>
+          </button>
+        </div>
+      `;
+    }
+
+    // ============================================
+    // CAMBIAR PÁGINA
+    // ============================================
+    function changePage(page) {
+      if (page < 1 || page > totalPages) return;
+      loadSales(page);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    // ============================================
+    // ACTUALIZAR ESTADÍSTICAS
+    // ============================================
+    async function updateStats() {
+      try {
+        const response = await fetch('/api/sales/stats', { credentials: 'include' });
+        const data = await response.json();
+
+        if (data.ok) {
+          document.getElementById('totalSales').textContent = data.stats.total || 0;
+          document.getElementById('totalAmount').textContent = `$${parseFloat(data.stats.totalAmount || 0).toLocaleString('es-MX')}`;
+          document.getElementById('salesThisMonth').textContent = data.stats.thisMonth || 0;
+          document.getElementById('pendingOrders').textContent = data.stats.pendingOrders || 0;
+        }
+      } catch (e) {
+        console.error('Error cargando estadísticas:', e);
+      }
+    }
+
+    // ============================================
+    // VER DETALLE DE VENTA (SIN BOTÓN ESTADO)
+    // ============================================
+    async function viewSaleDetail(id) {
+      try {
+        const response = await fetch(`/api/sales/${id}`, { credentials: 'include' });
+        const data = await response.json();
+
+        if (!data.ok) throw new Error(data.error);
+
+        const sale = data.sale;
+        const modalBody = document.getElementById('saleDetailBody');
+
+        let ordenesHTML = '';
+        if (sale.productionOrders && sale.productionOrders.length > 0) {
+          ordenesHTML = `
+            <div class="alert alert-info mt-3">
+              <h6><i class="bi bi-gear"></i> <strong>Órdenes de Producción:</strong></h6>
+              ${sale.productionOrders.map(order => {
+                let orderStatusClass, orderStatusText;
+                if (order.status === 'completed') {
+                  orderStatusClass = 'status-completed';
+                  orderStatusText = 'Completada';
+                } else if (order.status === 'in_progress') {
+                  orderStatusClass = 'status-in-progress';
+                  orderStatusText = 'En Proceso';
+                } else if (order.status === 'cancelled') {
+                  orderStatusClass = 'status-cancelled';
+                  orderStatusText = 'Cancelada';
+                } else {
+                  orderStatusClass = 'status-pending';
+                  orderStatusText = 'Pendiente';
+                }
+
+                return `
+                  <div class="card mt-2">
+                    <div class="card-body">
+                      <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                          <strong>Orden: ${order.orderNumber || order.folio || 'N/A'}</strong><br>
+                          <small>Prioridad: <strong>${order.priority === 'urgente' ? 'Urgente' : order.priority === 'alta' ? 'Alta' : 'Normal'}</strong></small><br>
+                          <small>Entrega: ${new Date(order.dueDate || order.deliveryDate).toLocaleDateString('es-MX')}</small><br>
+                          <span class="badge-status ${orderStatusClass} mt-2">${orderStatusText}</span>
+                        </div>
+                        <div>
+                          <button class="btn btn-sm btn-success" onclick="downloadOrderExcel(${order.id})">
+                            <i class="bi bi-download"></i> Descargar Excel
+                          </button>
+                        </div>
+                      </div>
+                      ${order.notes ? `<small class="text-muted mt-2 d-block">Notas: ${order.notes}</small>` : ''}
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          `;
+        } else {
+          ordenesHTML = `
+            <div class="alert alert-warning mt-3">
+              <i class="bi bi-exclamation-triangle"></i> Esta venta aún no tiene órdenes de producción.
+              <button class="btn btn-sm btn-success mt-2" onclick="closeModalAndCreateOrder(${sale.id})">
+                <i class="bi bi-gear"></i> Crear Orden Ahora
+              </button>
+            </div>
+          `;
+        }
+
+        modalBody.innerHTML = `
+          <div class="detail-row">
+            <div class="row">
+              <div class="col-6 detail-label">Folio de Venta:</div>
+              <div class="col-6 detail-value"><strong>${sale.folio}</strong></div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="row">
+              <div class="col-6 detail-label">Cliente:</div>
+              <div class="col-6 detail-value">${sale.client?.name || sale.quote?.client?.name || 'N/A'}</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="row">
+              <div class="col-6 detail-label">Fecha de Venta:</div>
+              <div class="col-6 detail-value">${new Date(sale.date || sale.createdAt).toLocaleDateString('es-MX', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="row">
+              <div class="col-6 detail-label">Total:</div>
+              <div class="col-6 detail-value"><strong class="text-success">$${parseFloat(sale.total).toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></div>
+            </div>
+          </div>
+          <div class="detail-row">
+            <div class="row">
+              <div class="col-6 detail-label">Tipo de Pago:</div>
+              <div class="col-6 detail-value">${(sale.paymentType || 'total').toUpperCase()}</div>
+            </div>
+          </div>
+          ${sale.notes ? `
+            <div class="detail-row">
+              <div class="detail-label mb-2">Notas:</div>
+              <div class="detail-value">${sale.notes}</div>
+            </div>
+          ` : ''}
+          ${ordenesHTML}
+        `;
+
+        const modal = new bootstrap.Modal(document.getElementById('saleDetailModal'));
+        modal.show();
+
+      } catch (e) {
+        console.error('Error:', e);
+        showToast('Error al cargar detalle: ' + e.message, 'error');
+      }
+    }
+
+    // ============================================
+    // CERRAR MODAL Y ABRIR CREAR ORDEN
+    // ============================================
+    function closeModalAndCreateOrder(saleId) {
+      const modal = bootstrap.Modal.getInstance(document.getElementById('saleDetailModal'));
+      modal.hide();
+      setTimeout(() => openProductionOrderModal(saleId), 300);
+    }
+
+    // ============================================
+    // ABRIR MODAL CREAR ORDEN DE PRODUCCIÓN
+    // ============================================
+    function openProductionOrderModal(saleId) {
+      document.getElementById('poSaleId').value = saleId;
+      document.getElementById('productionOrderForm').reset();
+      
+      const today = new Date().toISOString().split('T')[0];
+      document.getElementById('poDeliveryDate').min = today;
+
+      const modal = new bootstrap.Modal(document.getElementById('createProductionOrderModal'));
+      modal.show();
+    }
+
+    // ============================================
+    // CREAR ORDEN DE PRODUCCIÓN
+    // ============================================
+    async function submitProductionOrder() {
+      const form = document.getElementById('productionOrderForm');
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const saleId = document.getElementById('poSaleId').value;
+      const deliveryDate = document.getElementById('poDeliveryDate').value;
+      const priority = document.getElementById('poPriority').value;
+      const notes = document.getElementById('poNotes').value;
+
+      try {
+        const response = await fetch('/api/production-orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({
+            saleId: parseInt(saleId),
+            deliveryDate,
+            priority,
+            notes
+          })
+        });
+
+        const data = await response.json();
+
+        if (!data.ok) throw new Error(data.error);
+
+        showToast('Orden de producción creada exitosamente', 'success');
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('createProductionOrderModal'));
+        modal.hide();
+
+        loadSales(currentPage);
+
+      } catch (e) {
+        console.error('Error:', e);
+        showToast('Error al crear orden: ' + e.message, 'error');
+      }
+    }
+
+    // ============================================
+    // DESCARGAR EXCEL DE ORDEN (COMO EN TU EJEMPLO)
+    // ============================================
+    async function downloadOrderExcel(orderId) {
+      try {
+        showToast('🔄 Descargando orden de producción...', 'info');
+
+        const response = await fetch(`/api/production-orders/${orderId}/download`, {
+          method: 'GET',
+          credentials: 'include'
+        });
+
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Error al descargar');
+        }
+
+        // El servidor responde con el archivo Excel
+        const blob = await response.blob();
+        
+        // Crear URL temporal para descarga
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ORDEN_PRODUCCION_${orderId}_${Date.now()}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        
+        // Limpiar
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(a);
+
+        showToast('✅ Excel descargado correctamente', 'success');
+
+      } catch (e) {
+        console.error('❌ Error:', e);
+        showToast('Error al descargar: ' + e.message, 'error');
+      }
+    }
+
+    // ============================================
+    // ABRIR MODAL ACTUALIZAR ESTADO DE ORDEN
+    // ============================================
+    function openUpdateOrderStatusModal(orderId) {
+      document.getElementById('updateOrderId').value = orderId;
+      document.getElementById('updateOrderStatusForm').reset();
+
+      const modal = new bootstrap.Modal(document.getElementById('updateOrderStatusModal'));
+      modal.show();
+    }
+
+    // ============================================
+    // ACTUALIZAR ESTADO DE ORDEN
+    // ============================================
+    async function submitOrderStatusUpdate() {
+      const form = document.getElementById('updateOrderStatusForm');
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      const orderId = document.getElementById('updateOrderId').value;
+      const newStatus = document.getElementById('newOrderStatus').value;
+      const notes = document.getElementById('orderStatusNotes').value;
+
+      try {
+        const response = await fetch(`/api/production-orders/${orderId}/status`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ status: newStatus, notes })
+        });
+
+        const data = await response.json();
+        if (!data.ok) throw new Error(data.error);
+
+        showToast('Estado actualizado exitosamente', 'success');
+        
+        const modal = bootstrap.Modal.getInstance(document.getElementById('updateOrderStatusModal'));
+        modal.hide();
+
+        const detailModal = bootstrap.Modal.getInstance(document.getElementById('saleDetailModal'));
+        if (detailModal) detailModal.hide();
+        
+        loadSales(currentPage);
+
+      } catch (e) {
+        console.error('Error:', e);
+        showToast('Error al actualizar: ' + e.message, 'error');
+      }
+    }
+
+    // ============================================
+    // EXPORTAR A EXCEL
+    // ============================================
+    async function exportToExcel() {
+      try {
+        const response = await fetch('/api/sales/export-excel', {
+          credentials: 'include'
+        });
+
+        if (!response.ok) throw new Error('Error al exportar');
+
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ventas_${new Date().toISOString().split('T')[0]}.xlsx`;
+        document.body.appendChild(a);
+        a.click();
+        window.URL.revokeObjectURL(url);
+        a.remove();
+
+        showToast('Archivo Excel generado exitosamente', 'success');
+
+      } catch (e) {
+        console.error('Error:', e);
+        showToast('Error al exportar: ' + e.message, 'error');
+      }
+    }
+
+    // ============================================
+    // TOAST
+    // ============================================
+    function showToast(message, type = 'info') {
+      const toastEl = document.getElementById('toast');
+      const toastBody = document.getElementById('toastMessage');
+      
+      toastBody.textContent = message;
+      toastEl.className = `toast ${type === 'error' ? 'bg-danger text-white' : type === 'success' ? 'bg-success text-white' : ''}`;
+      
+      const toast = new bootstrap.Toast(toastEl);
+      toast.show();
+    }
+  </script>
+</body>
+</html>

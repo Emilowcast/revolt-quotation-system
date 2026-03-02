@@ -1,0 +1,2989 @@
+// server.js - Sistema completo con Prisma + Ventas y Órdenes de Producción
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const bodyParser = require('body-parser');
+const multer = require('multer');
+const { PDFDocument, StandardFonts, rgb } = require('pdf-lib');
+const { PrismaClient } = require('@prisma/client');
+const ExcelJS = require('exceljs');
+const nodemailer = require('nodemailer');
+require('dotenv').config();
+
+const app = express();
+const prisma = new PrismaClient();
+
+// ============================================
+// EMAIL CONFIGURATION (Nodemailer)
+// ============================================
+const emailConfig = {
+  host: process.env.EMAIL_HOST || 'smtp.gmail.com',
+  port: parseInt(process.env.EMAIL_PORT) || 587,
+  secure: process.env.EMAIL_SECURE === 'true',
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD
+  }
+};
+
+// Crear transportador de Nodemailer
+let transporter = null;
+try {
+  if (process.env.EMAIL_USER && process.env.EMAIL_PASSWORD) {
+    transporter = nodemailer.createTransport(emailConfig);
+    console.log('✅ Nodemailer configurado correctamente');
+  } else {
+    console.warn('⚠️ EMAIL_USER o EMAIL_PASSWORD no configurados en .env');
+  }
+} catch (e) {
+  console.error('❌ Error configurando Nodemailer:', e.message);
+}
+
+app.use(express.static(path.join(__dirname, 'public')));
+app.use('/templates', express.static(path.join(__dirname, 'templates')));
+app.use(bodyParser.json({ limit: '30mb' }));
+app.use(bodyParser.urlencoded({ extended: true }));
+
+// ⭐ RUTA RAÍZ - Debe ir DESPUÉS de static pero ANTES de otras rutas
+app.get('/', (req, res) => {
+  res.redirect('/dashboard.html');
+});
+
+const TEMPLATES_DIR = path.join(__dirname, 'templates');
+const CALIB_DIR = path.join(TEMPLATES_DIR, 'calibrations');
+const ORDERS_DIR = path.join(__dirname, 'orders');
+
+if (!fs.existsSync(TEMPLATES_DIR)) fs.mkdirSync(TEMPLATES_DIR);
+if (!fs.existsSync(CALIB_DIR)) fs.mkdirSync(CALIB_DIR);
+if (!fs.existsSync(ORDERS_DIR)) fs.mkdirSync(ORDERS_DIR);
+
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => cb(null, TEMPLATES_DIR),
+  filename: (req, file, cb) => cb(null, path.basename(file.originalname))
+});
+const upload = multer({ storage });
+
+function safeName(name) { return path.basename(String(name || '')); }
+
+function loadCalibrationForTemplate(templateFilename) {
+  const safe = safeName(templateFilename);
+  const calibPath = path.join(CALIB_DIR, safe + '.json');
+  if (!fs.existsSync(calibPath)) return null;
+  try {
+    const raw = fs.readFileSync(calibPath, 'utf8');
+    const json = JSON.parse(raw);
+    json.fields = json.fields || {};
+    for (const k of Object.keys(json.fields)) {
+      const f = json.fields[k];
+      f.x = Number(f.x);
+      f.y = Number(f.y);
+      f.anchor = (typeof f.anchor === 'string') ? f.anchor : 'left';
+      f.vAnchor = (typeof f.vAnchor === 'string') ? f.vAnchor : 'baseline';
+      f.fontSize = Number(f.fontSize) || 10;
+      f.offsetX = (f.offsetX === undefined) ? 0 : Number(f.offsetX);
+      f.offsetY = (f.offsetY === undefined) ? 0 : Number(f.offsetY);
+      if (!isFinite(f.x) || !isFinite(f.y)) {
+        delete json.fields[k];
+      }
+    }
+    json.table = json.table || { startY: 0.61, lineHeight: 0.045 };
+    json.table.startY = Number(json.table.startY) || 0.61;
+    json.table.lineHeight = Number(json.table.lineHeight) || 0.045;
+    json.globalOffsetY = Number(json.globalOffsetY || 0);
+    return json;
+  } catch (e) {
+    console.error('Error leyendo calibración:', e.message);
+    return null;
+  }
+}
+
+// ============================================
+// TEMPLATES ENDPOINTS
+// ============================================
+
+app.get('/api/templates', (req, res) => {
+  const files = fs.readdirSync(TEMPLATES_DIR)
+    .filter(f => !fs.lstatSync(path.join(TEMPLATES_DIR, f)).isDirectory())
+    .filter(f => /\.(pdf|png|jpg|jpeg)$/i.test(f))
+    .map(f => ({ name: f, calibrated: fs.existsSync(path.join(CALIB_DIR, f + '.json')) }));
+  res.json({ ok: true, templates: files });
+});
+
+app.post('/api/templates/upload', upload.single('template'), (req, res) => {
+  if (!req.file) return res.status(400).json({ ok: false, error: 'No file' });
+  res.json({ ok: true, filename: req.file.filename, path: `/templates/${req.file.filename}` });
+});
+
+app.get('/api/templates/:name/calibration', (req, res) => {
+  const name = safeName(req.params.name);
+  const c = loadCalibrationForTemplate(name);
+  if (!c) return res.status(404).json({ ok: false, error: 'No calibration' });
+  res.json({ ok: true, calibration: c });
+});
+
+app.post('/save-calibration', (req, res) => {
+  try {
+    const templateName = safeName(req.query.template || req.body.templateName || req.body.template);
+    if (!templateName) return res.status(400).json({ ok: false, error: 'Falta nombre de plantilla' });
+    const payload = req.body || {};
+    payload.fields = payload.fields || {};
+    payload.table = payload.table || { startY: 0.61, lineHeight: 0.045 };
+    for (const k of Object.keys(payload.fields)) {
+      const f = payload.fields[k];
+      f.x = Number(f.x);
+      f.y = Number(f.y);
+      f.anchor = (typeof f.anchor === 'string') ? f.anchor : 'left';
+      f.vAnchor = (typeof f.vAnchor === 'string') ? f.vAnchor : 'baseline';
+      f.fontSize = Number(f.fontSize) || 10;
+      f.offsetX = (f.offsetX === undefined) ? 0 : Number(f.offsetX);
+      f.offsetY = (f.offsetY === undefined) ? 0 : Number(f.offsetY);
+    }
+    payload.globalOffsetY = (payload.globalOffsetY === undefined) ? 0 : Number(payload.globalOffsetY);
+    const outPath = path.join(CALIB_DIR, templateName + '.json');
+    fs.writeFileSync(outPath, JSON.stringify(payload, null, 2), 'utf8');
+    console.log('✅ Calibración guardada:', templateName);
+    res.json({ ok: true, path: `/templates/calibrations/${templateName}.json` });
+  } catch (e) {
+    console.error('❌ Error guardando calibración:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ============================================
+// CLIENTS API (Prisma)
+// ============================================
+
+app.get('/api/clients', async (req, res) => {
+  try {
+    const search = req.query.search || '';
+    const clients = await prisma.client.findMany({
+      where: search ? {
+        OR: [
+          { name: { contains: search, mode: 'insensitive' } },
+          { company: { contains: search, mode: 'insensitive' } },
+          { email: { contains: search, mode: 'insensitive' } }
+        ]
+      } : {},
+      orderBy: { createdAt: 'desc' },
+      take: 50
+    });
+    res.json({ ok: true, clients });
+  } catch (e) {
+    console.error('Error fetching clients:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.get('/api/clients/:id', async (req, res) => {
+  try {
+    const client = await prisma.client.findUnique({
+      where: { id: parseInt(req.params.id) }
+    });
+    if (!client) return res.status(404).json({ ok: false, error: 'Cliente no encontrado' });
+    res.json({ ok: true, client });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/api/clients', async (req, res) => {
+  try {
+    const { name, company, phone, email, address, estado, notes } = req.body;
+    if (!name) return res.status(400).json({ ok: false, error: 'El nombre es requerido' });
+    
+    const client = await prisma.client.create({
+      data: { name, company, phone, email, address, estado, notes }
+    });
+    
+    console.log('✅ Cliente creado:', client.id);
+    res.json({ ok: true, client });
+  } catch (e) {
+    console.error('❌ Error creando cliente:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.put('/api/clients/:id', async (req, res) => {
+  try {
+    const { name, company, phone, email, address, estado, notes } = req.body;
+    const client = await prisma.client.update({
+      where: { id: parseInt(req.params.id) },
+      data: { name, company, phone, email, address, estado, notes }
+    });
+    res.json({ ok: true, client });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.delete('/api/clients/:id', async (req, res) => {
+  try {
+    await prisma.client.delete({
+      where: { id: parseInt(req.params.id) }
+    });
+    res.json({ ok: true, message: 'Cliente eliminado' });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ============================================
+// PRODUCTS API (Prisma) - ORDEN CORREGIDO
+// ============================================
+
+app.get('/api/products', async (req, res) => {
+  try {
+    const search = req.query.search || '';
+    const products = await prisma.product.findMany({
+      where: search ? {
+        OR: [
+          { model: { contains: search, mode: 'insensitive' } },
+          { description: { contains: search, mode: 'insensitive' } }
+        ]
+      } : {},
+      orderBy: { model: 'asc' },
+      take: 100
+    });
+    res.json({ ok: true, products });
+  } catch (e) {
+    console.error('Error fetching products:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ⭐ IMPORTANTE: Rutas específicas ANTES de rutas con parámetros
+// Descargar template Excel - DEBE IR ANTES DE /:id
+app.get('/api/products/template', async (req, res) => {
+  try {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Productos');
+    
+    // Definir columnas
+    worksheet.columns = [
+      { header: 'MODELO', key: 'model', width: 20 },
+      { header: 'DESCRIPCIÓN', key: 'description', width: 40 },
+      { header: 'PRECIO', key: 'price', width: 15 },
+      { header: 'MONEDA', key: 'currency', width: 10 },
+      { header: 'FICHA', key: 'ficha', width: 30 }
+    ];
+    
+    // Estilo de encabezados
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = { 
+      type: 'pattern', 
+      pattern: 'solid', 
+      fgColor: { argb: 'FFF62E41' } 
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 25;
+    
+    // Agregar ejemplos
+    worksheet.addRow({
+      model: 'BCN-10KVA-2F-220V',
+      description: 'Regulador industrial 10kVA 2Φ 220V',
+      price: 8500.00,
+      currency: 'USD',
+      ficha: 'bcn_10kva.pdf'
+    });
+    
+    worksheet.addRow({
+      model: 'BSN-4KVA-2F-220V',
+      description: 'Regulador básico 4kVA 2Φ 220V',
+      price: 4500.00,
+      currency: 'USD',
+      ficha: 'bsn_4kva.pdf'
+    });
+    
+    worksheet.addRow({
+      model: 'UPS-1000VA',
+      description: 'UPS 1000VA',
+      price: 450.00,
+      currency: 'USD',
+      ficha: ''
+    });
+    
+    // Aplicar formato de moneda
+    worksheet.getColumn('price').numFmt = '"$"#,##0.00';
+    
+    // Agregar notas
+    worksheet.addRow([]);
+    worksheet.addRow(['NOTAS:']);
+    worksheet.addRow(['- MODELO y PRECIO son campos requeridos']);
+    worksheet.addRow(['- MONEDA por defecto es USD']);
+    worksheet.addRow(['- FICHA es opcional (nombre del archivo)']);
+    worksheet.addRow(['- No modifiques los encabezados de la primera fila']);
+    worksheet.addRow(['- Puedes agregar tantas filas como necesites']);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=template_productos.xlsx');
+    
+    await workbook.xlsx.write(res);
+    res.end();
+    
+  } catch (e) {
+    console.error('❌ Error generando template:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// GET producto por modelo (específico) - ANTES DE /:id
+app.get('/api/products/model/:model', async (req, res) => {
+  try {
+    const model = req.params.model;
+    
+    const product = await prisma.product.findUnique({
+      where: { model: model }
+    });
+    
+    if (!product) {
+      return res.status(404).json({ ok: false, error: 'Producto no encontrado' });
+    }
+    
+    res.json({ ok: true, product });
+  } catch (e) {
+    console.error('Error fetching product by model:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// GET producto por ID - DESPUÉS de rutas específicas
+app.get('/api/products/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ ok: false, error: 'ID inválido' });
+    }
+    
+    const product = await prisma.product.findUnique({
+      where: { id: id }
+    });
+    
+    if (!product) {
+      return res.status(404).json({ ok: false, error: 'Producto no encontrado' });
+    }
+    
+    res.json({ ok: true, product });
+  } catch (e) {
+    console.error('Error fetching product:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/api/products', async (req, res) => {
+  try {
+    const { model, description, price, currency, ficha } = req.body;
+    if (!model) return res.status(400).json({ ok: false, error: 'El modelo es requerido' });
+    if (!price) return res.status(400).json({ ok: false, error: 'El precio es requerido' });
+    
+    const product = await prisma.product.create({
+      data: { model, description, price: parseFloat(price), currency: currency || 'USD', ficha }
+    });
+    
+    console.log('✅ Producto creado:', product.id);
+    res.json({ ok: true, product });
+  } catch (e) {
+    console.error('❌ Error creando producto:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ ok: false, error: 'ID inválido' });
+    }
+    
+    const { model, description, price, currency, ficha } = req.body;
+    const product = await prisma.product.update({
+      where: { id: id },
+      data: { model, description, price: parseFloat(price), currency, ficha }
+    });
+    res.json({ ok: true, product });
+  } catch (e) {
+    console.error('Error updating product:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+    
+    if (isNaN(id)) {
+      return res.status(400).json({ ok: false, error: 'ID inválido' });
+    }
+    
+    await prisma.product.delete({
+      where: { id: id }
+    });
+    res.json({ ok: true, message: 'Producto eliminado' });
+  } catch (e) {
+    console.error('Error deleting product:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ============================================
+// PRODUCTS IMPORT FROM EXCEL
+// ============================================
+
+app.post('/api/products/import', upload.single('file'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ ok: false, error: 'No se proporcionó archivo' });
+    }
+
+    const workbook = new ExcelJS.Workbook();
+    await workbook.xlsx.readFile(req.file.path);
+    
+    const worksheet = workbook.worksheets[0];
+    if (!worksheet) {
+      return res.status(400).json({ ok: false, error: 'El archivo Excel está vacío' });
+    }
+
+    const products = [];
+    const errors = [];
+    
+    // Leer filas (empezando desde fila 2, asumiendo que fila 1 son encabezados)
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return; // Saltar encabezados
+      
+      const modelo = row.getCell(1).value?.toString().trim();
+      const descripcion = row.getCell(2).value?.toString().trim() || '';
+      const precioRaw = row.getCell(3).value;
+      const currency = row.getCell(4).value?.toString().trim() || 'USD';
+      const ficha = row.getCell(5).value?.toString().trim() || null;
+      
+      // Validación
+      if (!modelo) {
+        errors.push({ row: rowNumber, error: 'Modelo es requerido' });
+        return;
+      }
+      
+      const precio = parseFloat(precioRaw);
+      if (isNaN(precio) || precio < 0) {
+        errors.push({ row: rowNumber, error: 'Precio inválido', modelo });
+        return;
+      }
+      
+      products.push({
+        model: modelo,
+        description: descripcion,
+        price: precio,
+        currency,
+        ficha
+      });
+    });
+    
+    // Eliminar archivo temporal
+    fs.unlinkSync(req.file.path);
+    
+    if (errors.length > 0 && products.length === 0) {
+      return res.status(400).json({ 
+        ok: false, 
+        error: 'No se pudo importar ningún producto', 
+        errors 
+      });
+    }
+    
+    // Retornar preview para confirmación
+    res.json({ 
+      ok: true, 
+      preview: products, 
+      errors,
+      message: `${products.length} productos listos para importar${errors.length > 0 ? ` (${errors.length} errores encontrados)` : ''}`
+    });
+    
+  } catch (e) {
+    console.error('❌ Error importando productos:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Confirmar importación
+app.post('/api/products/import/confirm', async (req, res) => {
+  try {
+    const { products } = req.body;
+    
+    if (!products || !Array.isArray(products) || products.length === 0) {
+      return res.status(400).json({ ok: false, error: 'No hay productos para importar' });
+    }
+    
+    // ⭐ Función para sanitizar texto
+    function sanitizeForDB(text) {
+      if (!text) return text;
+      
+      const replacements = {
+        'Φ': 'F',
+        'φ': 'f',
+        'Ω': 'Ohm',
+        'μ': 'u',
+        '°': 'deg'
+      };
+      
+      let sanitized = String(text);
+      for (const [special, replacement] of Object.entries(replacements)) {
+        sanitized = sanitized.replace(new RegExp(special, 'g'), replacement);
+      }
+      
+      return sanitized;
+    }
+    
+    let created = 0;
+    let updated = 0;
+    const results = [];
+    
+    for (const product of products) {
+      try {
+        // ⭐ Sanitizar antes de guardar
+        const sanitizedProduct = {
+          model: sanitizeForDB(product.model),
+          description: sanitizeForDB(product.description),
+          price: product.price,
+          currency: product.currency,
+          ficha: product.ficha
+        };
+        
+        const existing = await prisma.product.findUnique({
+          where: { model: sanitizedProduct.model }
+        });
+        
+        if (existing) {
+          await prisma.product.update({
+            where: { model: sanitizedProduct.model },
+            data: {
+              description: sanitizedProduct.description,
+              price: sanitizedProduct.price,
+              currency: sanitizedProduct.currency,
+              ficha: sanitizedProduct.ficha
+            }
+          });
+          updated++;
+          results.push({ model: sanitizedProduct.model, action: 'updated' });
+        } else {
+          await prisma.product.create({
+            data: sanitizedProduct
+          });
+          created++;
+          results.push({ model: sanitizedProduct.model, action: 'created' });
+        }
+      } catch (err) {
+        results.push({ model: product.model, action: 'error', error: err.message });
+      }
+    }
+    
+    console.log(`✅ Importación completada: ${created} creados, ${updated} actualizados`);
+    
+    res.json({ 
+      ok: true, 
+      created, 
+      updated, 
+      results,
+      message: `Importación exitosa: ${created} productos creados, ${updated} actualizados`
+    });
+    
+  } catch (e) {
+    console.error('❌ Error confirmando importación:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Descargar template Excel
+app.get('/api/products/template', async (req, res) => {
+  try {
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Productos');
+    
+    // Definir columnas
+    worksheet.columns = [
+      { header: 'MODELO', key: 'model', width: 20 },
+      { header: 'DESCRIPCIÓN', key: 'description', width: 40 },
+      { header: 'PRECIO', key: 'price', width: 15 },
+      { header: 'MONEDA', key: 'currency', width: 10 },
+      { header: 'FICHA', key: 'ficha', width: 30 }
+    ];
+    
+    // Estilo de encabezados
+    const headerRow = worksheet.getRow(1);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = { 
+      type: 'pattern', 
+      pattern: 'solid', 
+      fgColor: { argb: 'FFF62E41' } 
+    };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 25;
+    
+    // Agregar ejemplos
+    worksheet.addRow({
+      model: 'RM-042-220',
+      description: 'Regulador 4 kVA',
+      price: 987.36,
+      currency: 'USD',
+      ficha: 'ficha_rm042.pdf'
+    });
+    
+    worksheet.addRow({
+      model: 'UPS-1000',
+      description: 'UPS 1000VA',
+      price: 450.00,
+      currency: 'USD',
+      ficha: ''
+    });
+    
+    // Aplicar formato de moneda
+    worksheet.getColumn('price').numFmt = '"$"#,##0.00';
+    
+    // Agregar notas
+    worksheet.addRow([]);
+    worksheet.addRow(['NOTAS:']);
+    worksheet.addRow(['- MODELO y PRECIO son campos requeridos']);
+    worksheet.addRow(['- MONEDA por defecto es USD']);
+    worksheet.addRow(['- FICHA es opcional (nombre del archivo)']);
+    
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', 'attachment; filename=template_productos.xlsx');
+    
+    await workbook.xlsx.write(res);
+    res.end();
+    
+  } catch (e) {
+    console.error('❌ Error generando template:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.put('/api/products/:id', async (req, res) => {
+  try {
+    const { model, description, price, currency, ficha } = req.body;
+    const product = await prisma.product.update({
+      where: { id: parseInt(req.params.id) },
+      data: { model, description, price: parseFloat(price), currency, ficha }
+    });
+    res.json({ ok: true, product });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.delete('/api/products/:id', async (req, res) => {
+  try {
+    await prisma.product.delete({
+      where: { id: parseInt(req.params.id) }
+    });
+    res.json({ ok: true, message: 'Producto eliminado' });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ============================================
+// QUOTES API (Prisma)
+// ============================================
+
+app.get('/api/quotes', async (req, res) => {
+  try {
+    const { search, status, dateFrom, dateTo } = req.query;
+    
+    const where = {};
+    
+    // Filtro de búsqueda
+    if (search) {
+      where.OR = [
+        { folio: { contains: search, mode: 'insensitive' } },
+        { client: { name: { contains: search, mode: 'insensitive' } } },
+        { client: { company: { contains: search, mode: 'insensitive' } } }
+      ];
+    }
+    
+    // Filtro de estado
+    if (status) where.status = status;
+    
+    // Filtro de fecha
+    if (dateFrom || dateTo) {
+      where.date = {};
+      if (dateFrom) where.date.gte = new Date(dateFrom);
+      if (dateTo) {
+        const toDate = new Date(dateTo);
+        toDate.setHours(23, 59, 59, 999);
+        where.date.lte = toDate;
+      }
+    }
+    
+    const quotes = await prisma.quote.findMany({
+      where,
+      include: { client: true, items: { include: { product: true } } },
+      orderBy: { createdAt: 'desc' },
+      take: 500
+    });
+    
+    res.json({ ok: true, quotes });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.get('/api/quotes/:id', async (req, res) => {
+  try {
+    const quote = await prisma.quote.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        client: true,
+        items: {
+          include: { product: true }
+        }
+      }
+    });
+    if (!quote) return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+    res.json({ ok: true, quote });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/api/quotes', async (req, res) => {
+  try {
+    const { folio, template, fields, items, subtotal, descuento, impuestos, total, precio_neto_mxn, exchangeRate } = req.body;
+    
+    if (!folio) return res.status(400).json({ ok: false, error: 'El folio es requerido' });
+    if (!items || items.length === 0) return res.status(400).json({ ok: false, error: 'Debe agregar al menos un item' });
+    
+    const existing = await prisma.quote.findUnique({ where: { folio } });
+    if (existing) return res.status(400).json({ ok: false, error: 'El folio ya existe' });
+    
+    let clientId = null;
+    if (fields && fields.nombre) {
+      const clientData = {
+        name: fields.nombre || fields.senor || 'Sin nombre',
+        company: fields.empresa || fields.cliente || null,
+        phone: fields.numero || null,
+        email: fields.correo || null,
+        estado: fields.estado || null
+      };
+      
+      const existingClient = await prisma.client.findFirst({
+        where: { name: clientData.name }
+      });
+      
+      if (existingClient) {
+        clientId = existingClient.id;
+      } else {
+        const newClient = await prisma.client.create({ data: clientData });
+        clientId = newClient.id;
+      }
+    }
+    
+    // Convertir valores a números antes de guardar
+    const subtotalNum = parseFloat(subtotal) || 0;
+    const descuentoNum = parseFloat(descuento) || 0;
+    const impuestosNum = parseFloat(impuestos) || 0;
+    const totalNum = parseFloat(total) || 0;
+    const netMxnNum = precio_neto_mxn ? parseFloat(precio_neto_mxn) : null;
+    const exchangeRateNum = exchangeRate ? parseFloat(exchangeRate) : null;
+    
+    console.log('💾 Guardando cotización con valores:', {
+      subtotal: subtotalNum,
+      descuento: descuentoNum,
+      impuestos: impuestosNum,
+      total: totalNum,
+      netMxn: netMxnNum
+    });
+    
+    const quote = await prisma.quote.create({
+      data: {
+        folio,
+        date: fields?.fecha ? new Date(fields.fecha) : new Date(),
+        clientId,
+        subtotal: subtotalNum,
+        discount: descuentoNum,
+        tax: impuestosNum,
+        total: totalNum,
+        netMxn: netMxnNum,
+        exchangeRate: exchangeRateNum,
+        template: template || null,
+        currency: 'USD',
+        status: 'vigente',
+        items: {
+          create: items.map(item => ({
+            modelo: item.modelo || '',
+            descripcion: item.descripcion || '',
+            unitPrice: parseFloat(item.precio) || 0,
+            qty: parseInt(item.cant) || 1,
+            subtotal: parseFloat(item.subtotal) || 0
+          }))
+        }
+      },
+      include: {
+        client: true,
+        items: true
+      }
+    });
+    
+    console.log('✅ Cotización creada:', quote.id);
+    res.json({ ok: true, quote, id: quote.id });
+  } catch (e) {
+    console.error('❌ Error creando cotización:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.put('/api/quotes/:id', async (req, res) => {
+  try {
+    const { folio, template, subtotal, descuento, impuestos, total, precio_neto_mxn, exchangeRate, status, items } = req.body;
+    
+    await prisma.quoteItem.deleteMany({
+      where: { quoteId: parseInt(req.params.id) }
+    });
+    
+    const quote = await prisma.quote.update({
+      where: { id: parseInt(req.params.id) },
+      data: {
+        folio,
+        template,
+        subtotal: parseFloat(subtotal) || 0,
+        discount: parseFloat(descuento) || 0,
+        tax: parseFloat(impuestos) || 0,
+        total: parseFloat(total) || 0,
+        netMxn: parseFloat(precio_neto_mxn) || null,
+        exchangeRate: parseFloat(exchangeRate) || null,
+        status: status || 'vigente',
+        items: items ? {
+          create: items.map(item => ({
+            modelo: item.modelo || '',
+            descripcion: item.descripcion || '',
+            unitPrice: parseFloat(item.precio) || 0,
+            qty: parseInt(item.cant) || 1,
+            subtotal: parseFloat(item.subtotal) || 0
+          }))
+        } : undefined
+      },
+      include: {
+        client: true,
+        items: true
+      }
+    });
+    
+    res.json({ ok: true, quote });
+  } catch (e) {
+    console.error('Error updating quote:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.delete('/api/quotes/:id', async (req, res) => {
+  try {
+    await prisma.quote.delete({
+      where: { id: parseInt(req.params.id) }
+    });
+    res.json({ ok: true, message: 'Cotización eliminada' });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ============================================
+// FUNCIONES HELPER PARA REGISTRAR ACTIVIDADES
+// ============================================
+
+async function logActivity(data) {
+  try {
+    const activity = await prisma.activity.create({
+      data: {
+        type: data.type,
+        description: data.description,
+        metadata: data.metadata || {},
+        quoteId: data.quoteId || null,
+        saleId: data.saleId || null,
+        userId: data.userId || null
+      }
+    });
+    console.log(`📝 Actividad registrada: ${data.type} - ${data.description}`);
+    return activity;
+  } catch (e) {
+    console.error('❌ Error registrando actividad:', e);
+    return null;
+  }
+}
+
+// Helper: Registrar creación de cotización
+async function logQuoteCreated(quote) {
+  return await logActivity({
+    type: 'quote_created',
+    description: `Cotización ${quote.folio} creada`,
+    quoteId: quote.id,
+    userId: quote.createdById,
+    metadata: {
+      folio: quote.folio,
+      total: quote.total,
+      client: quote.client?.name || 'Sin cliente'
+    }
+  });
+}
+
+// Helper: Registrar conversión a venta
+async function logQuoteConverted(quote, sale) {
+  return await logActivity({
+    type: 'quote_converted',
+    description: `Cotización ${quote.folio} convertida a venta ${sale.folio}`,
+    quoteId: quote.id,
+    userId: quote.createdById,
+    metadata: {
+      quoteFolio: quote.folio,
+      saleFolio: sale.folio,
+      total: sale.total
+    }
+  });
+}
+
+// Helper: Registrar cambio de estado de cotización
+async function logQuoteStatusChange(quote, oldStatus, newStatus) {
+  return await logActivity({
+    type: 'quote_status_changed',
+    description: `Estado de ${quote.folio} cambió de "${oldStatus}" a "${newStatus}"`,
+    quoteId: quote.id,
+    metadata: {
+      oldStatus,
+      newStatus
+    }
+  });
+}
+
+// Helper: Registrar cambio de estado de venta
+async function logSaleStatusChange(sale, field, oldValue, newValue) {
+  const fieldNames = {
+    status: 'Estado',
+    paymentStatus: 'Estado de pago',
+    deliveryStatus: 'Estado de entrega'
+  };
+  
+  return await logActivity({
+    type: 'sale_status_changed',
+    description: `${fieldNames[field]} de ${sale.folio} cambió de "${oldValue}" a "${newValue}"`,
+    saleId: sale.id,
+    metadata: {
+      field,
+      oldValue,
+      newValue
+    }
+  });
+}
+
+// ============================================
+// SALES API (Ventas y Órdenes de Producción)
+// ============================================
+
+// CONVERTIR COTIZACIÓN A VENTA
+app.post('/api/quotes/:id/convert-to-sale', async (req, res) => {
+  try {
+    const quoteId = parseInt(req.params.id);
+    
+    const quote = await prisma.quote.findUnique({
+      where: { id: quoteId },
+      include: {
+        client: true,
+        items: {
+          include: { product: true }
+        }
+      }
+    });
+    
+    if (!quote) {
+      return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+    }
+    
+    if (quote.status === 'convertida') {
+      return res.status(400).json({ ok: false, error: 'Esta cotización ya fue convertida a venta' });
+    }
+    
+    const year = new Date().getFullYear();
+    const month = String(new Date().getMonth() + 1).padStart(2, '0');
+    const salesCount = await prisma.sale.count();
+    const saleNumber = String(salesCount + 1).padStart(4, '0');
+    const saleFolio = `VTA-${year}${month}-${saleNumber}`;
+    
+    // Convertir explícitamente a números
+    const subtotalNum = parseFloat(quote.subtotal) || 0;
+    const discountNum = parseFloat(quote.discount) || 0;
+    const taxNum = parseFloat(quote.tax) || 0;
+    const totalNum = parseFloat(quote.total) || 0;
+    const netMxnNum = parseFloat(quote.netMxn) || null;
+    const exchangeRateNum = parseFloat(quote.exchangeRate) || null;
+    
+    console.log('💰 Valores convertidos para venta:', {
+      subtotal: subtotalNum,
+      discount: discountNum,
+      tax: taxNum,
+      total: totalNum,
+      netMxn: netMxnNum
+    });
+    
+    const sale = await prisma.sale.create({
+      data: {
+        folio: saleFolio,
+        quoteId: quote.id,
+        clientId: quote.clientId,
+        subtotal: subtotalNum,
+        discount: discountNum,
+        tax: taxNum,
+        total: totalNum,
+        netMxn: netMxnNum,
+        exchangeRate: exchangeRateNum,
+        currency: quote.currency,
+        status: 'pending',
+        paymentStatus: 'pendiente',
+        deliveryStatus: 'pendiente',
+        createdById: quote.createdById,
+        items: {
+          create: quote.items.map(item => ({
+            productId: item.productId,
+            modelo: item.modelo,
+            descripcion: item.descripcion,
+            unitPrice: parseFloat(item.unitPrice) || 0,
+            qty: parseInt(item.qty) || 1,
+            subtotal: parseFloat(item.subtotal) || 0
+          }))
+        }
+      },
+      include: {
+        client: true,
+        items: true
+      }
+    });
+    
+    await prisma.quote.update({
+      where: { id: quoteId },
+      data: { status: 'convertida' }
+    });
+
+    // 📝 Registrar actividad de conversión
+    await logQuoteConverted(quote, sale);
+    
+    const productionOrder = await createProductionOrder(sale);
+    
+    console.log('✅ Venta creada:', sale.folio);
+    console.log('✅ Orden de producción creada:', productionOrder.folio);
+    
+    res.json({
+      ok: true,
+      sale,
+      productionOrder,
+      message: `Cotización ${quote.folio} convertida a venta ${sale.folio}`
+    });
+    
+  } catch (e) {
+    console.error('❌ Error convirtiendo a venta:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Función auxiliar: Crear Orden de Producción
+async function createProductionOrder(sale) {
+  try {
+    const year = new Date().getFullYear();
+    const month = String(new Date().getMonth() + 1).padStart(2, '0');
+    const ordersCount = await prisma.productionOrder.count();
+    const orderNumber = String(ordersCount + 1).padStart(4, '0');
+    const orderFolio = `OP-${year}${month}-${orderNumber}`;
+    
+    const dueDate = new Date();
+    dueDate.setDate(dueDate.getDate() + 15);
+    
+    const productionOrder = await prisma.productionOrder.create({
+      data: {
+        folio: orderFolio,
+        saleId: sale.id,
+        status: 'pendiente',
+        priority: 'normal',
+        dueDate: dueDate
+      }
+    });
+    
+    const excelPath = await generateProductionOrderExcel(productionOrder, sale);
+    
+    const updatedOrder = await prisma.productionOrder.update({
+      where: { id: productionOrder.id },
+      data: { excelPath }
+    });
+    
+    return updatedOrder;
+    
+  } catch (e) {
+    console.error('❌ Error creando orden de producción:', e);
+    throw e;
+  }
+}
+
+// Función auxiliar: Generar Excel de Orden de Producción
+async function generateProductionOrderExcel(order, sale) {
+  try {
+    const fullSale = await prisma.sale.findUnique({
+      where: { id: sale.id },
+      include: {
+        client: true,
+        items: {
+          include: { product: true }
+        },
+        quote: true
+      }
+    });
+    
+    // 🔍 DEBUG: Verificar valores antes de escribir
+    console.log('📊 Valores para Excel:', {
+      subtotal: fullSale.subtotal,
+      discount: fullSale.discount,
+      tax: fullSale.tax,
+      total: fullSale.total,
+      netMxn: fullSale.netMxn,
+      itemsCount: fullSale.items.length
+    });
+    
+    const workbook = new ExcelJS.Workbook();
+    const worksheet = workbook.addWorksheet('Orden de Producción');
+    
+    worksheet.columns = [
+      { header: 'MODELO', key: 'modelo', width: 20 },
+      { header: 'DESCRIPCIÓN', key: 'descripcion', width: 40 },
+      { header: 'CANTIDAD', key: 'cantidad', width: 12 },
+      { header: 'PRECIO UNIT.', key: 'precio', width: 15 },
+      { header: 'SUBTOTAL', key: 'subtotal', width: 15 },
+      { header: 'NOTAS', key: 'notas', width: 30 }
+    ];
+    
+    worksheet.mergeCells('A1:F1');
+    const titleCell = worksheet.getCell('A1');
+    titleCell.value = `ORDEN DE PRODUCCIÓN - ${order.folio}`;
+    titleCell.font = { size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF62E41' } };
+    titleCell.alignment = { vertical: 'middle', horizontal: 'center' };
+    worksheet.getRow(1).height = 30;
+    
+    worksheet.addRow([]);
+    worksheet.addRow(['Folio Venta:', fullSale.folio, 'Fecha:', new Date().toLocaleDateString('es-MX')]);
+    worksheet.addRow(['Cliente:', fullSale.client?.name || 'N/A', 'Empresa:', fullSale.client?.company || 'N/A']);
+    worksheet.addRow(['Teléfono:', fullSale.client?.phone || 'N/A', 'Email:', fullSale.client?.email || 'N/A']);
+    worksheet.addRow(['Estado:', fullSale.client?.estado || 'N/A', 'Prioridad:', order.priority.toUpperCase()]);
+    worksheet.addRow(['Fecha Entrega:', order.dueDate ? order.dueDate.toLocaleDateString('es-MX') : 'Por definir']);
+    worksheet.addRow([]);
+    
+    for (let i = 3; i <= 8; i++) {
+      worksheet.getRow(i).font = { size: 10 };
+      worksheet.getCell(`A${i}`).font = { bold: true };
+      worksheet.getCell(`C${i}`).font = { bold: true };
+    }
+    
+    worksheet.addRow([]);
+    const headerRow = worksheet.addRow(['MODELO', 'DESCRIPCIÓN', 'CANTIDAD', 'PRECIO UNIT.', 'SUBTOTAL', 'NOTAS']);
+    headerRow.font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    headerRow.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF333333' } };
+    headerRow.alignment = { vertical: 'middle', horizontal: 'center' };
+    headerRow.height = 25;
+    
+    // Agregar items con conversión explícita a números
+    fullSale.items.forEach(item => {
+      const row = worksheet.addRow([
+        item.modelo,
+        item.descripcion || 'Sin descripción',
+        parseInt(item.qty) || 0,
+        parseFloat(item.unitPrice) || 0,
+        parseFloat(item.subtotal) || 0,
+        ''
+      ]);
+      row.alignment = { vertical: 'middle' };
+      
+      // Formato de moneda para precio y subtotal
+      row.getCell(4).numFmt = '"$"#,##0.00';
+      row.getCell(5).numFmt = '"$"#,##0.00';
+    });
+    
+    // Fila vacía
+    worksheet.addRow([]);
+    
+    // SUBTOTAL - convertir explícitamente a número
+    const subtotalValue = parseFloat(fullSale.subtotal) || 0;
+    const subtotalRow = worksheet.addRow(['', '', '', 'SUBTOTAL:', subtotalValue]);
+    subtotalRow.getCell(4).font = { bold: true };
+    subtotalRow.getCell(5).font = { bold: true };
+    subtotalRow.getCell(5).numFmt = '"$"#,##0.00';
+    subtotalRow.getCell(5).value = subtotalValue; // Asegurar que sea número
+    
+    // DESCUENTO
+    if (fullSale.discount > 0) {
+      const discountValue = parseFloat(fullSale.discount) || 0;
+      const discountRow = worksheet.addRow(['', '', '', 'DESCUENTO:', -discountValue]);
+      discountRow.getCell(4).font = { bold: true };
+      discountRow.getCell(5).font = { bold: true };
+      discountRow.getCell(5).numFmt = '"$"#,##0.00';
+      discountRow.getCell(5).value = -discountValue;
+    }
+    
+    // IMPUESTO
+    if (fullSale.tax > 0) {
+      const taxValue = parseFloat(fullSale.tax) || 0;
+      const taxRow = worksheet.addRow(['', '', '', 'IMPUESTO:', taxValue]);
+      taxRow.getCell(4).font = { bold: true };
+      taxRow.getCell(5).font = { bold: true };
+      taxRow.getCell(5).numFmt = '"$"#,##0.00';
+      taxRow.getCell(5).value = taxValue;
+    }
+    
+    // TOTAL - convertir explícitamente a número
+    const totalValue = parseFloat(fullSale.total) || 0;
+    const totalRow = worksheet.addRow(['', '', '', 'TOTAL:', totalValue]);
+    totalRow.getCell(4).font = { bold: true, size: 12 };
+    totalRow.getCell(5).font = { bold: true, size: 12 };
+    totalRow.getCell(5).numFmt = `"$"#,##0.00" ${fullSale.currency}"`;
+    totalRow.getCell(5).value = totalValue; // Asegurar que sea número
+    totalRow.getCell(5).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFFFF2CC' } };
+    
+    // TOTAL MXN
+    if (fullSale.netMxn) {
+      const mxnValue = parseFloat(fullSale.netMxn) || 0;
+      const mxnRow = worksheet.addRow(['', '', '', 'TOTAL MXN:', mxnValue]);
+      mxnRow.getCell(4).font = { bold: true };
+      mxnRow.getCell(5).font = { bold: true };
+      mxnRow.getCell(5).numFmt = '"$"#,##0.00" MXN"';
+      mxnRow.getCell(5).value = mxnValue;
+    }
+    
+    worksheet.addRow([]);
+    worksheet.addRow([]);
+    worksheet.mergeCells(`A${worksheet.lastRow.number + 1}:F${worksheet.lastRow.number + 1}`);
+    const notesCell = worksheet.getCell(`A${worksheet.lastRow.number}`);
+    notesCell.value = 'NOTAS DE PRODUCCIÓN:';
+    notesCell.font = { bold: true, size: 11 };
+    
+    worksheet.addRow([]);
+    worksheet.mergeCells(`A${worksheet.lastRow.number + 1}:F${worksheet.lastRow.number + 3}`);
+    const notesAreaCell = worksheet.getCell(`A${worksheet.lastRow.number}`);
+    notesAreaCell.value = order.notes || '(Sin notas adicionales)';
+    notesAreaCell.alignment = { vertical: 'top', wrapText: true };
+    notesAreaCell.border = {
+      top: { style: 'thin' },
+      left: { style: 'thin' },
+      bottom: { style: 'thin' },
+      right: { style: 'thin' }
+    };
+    
+    const filename = `${order.folio}_${new Date().getTime()}.xlsx`;
+    const filepath = path.join(ORDERS_DIR, filename);
+    await workbook.xlsx.writeFile(filepath);
+    
+    console.log('✅ Excel generado:', filename);
+    
+    return `/orders/${filename}`;
+    
+  } catch (e) {
+    console.error('❌ Error generando Excel:', e);
+    throw e;
+  }
+}
+
+// GET ALL SALES
+app.get('/api/sales', async (req, res) => {
+  try {
+    const { status, paymentStatus, search } = req.query;
+    
+    const where = {};
+    if (status) where.status = status;
+    if (paymentStatus) where.paymentStatus = paymentStatus;
+    if (search) {
+      where.OR = [
+        { folio: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+    
+    const sales = await prisma.sale.findMany({
+      where,
+      include: {
+        client: true,
+        quote: true,
+        items: {
+          include: { product: true }
+        },
+        productionOrders: true
+      },
+      orderBy: { createdAt: 'desc' },
+      take: 100
+    });
+    
+    res.json({ ok: true, sales });
+  } catch (e) {
+    console.error('Error fetching sales:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// GET SINGLE SALE
+app.get('/api/sales/:id', async (req, res) => {
+  try {
+    const sale = await prisma.sale.findUnique({
+      where: { id: parseInt(req.params.id) },
+      include: {
+        client: true,
+        quote: true,
+        items: {
+          include: { product: true }
+        },
+        productionOrders: true
+      }
+    });
+    
+    if (!sale) {
+      return res.status(404).json({ ok: false, error: 'Venta no encontrada' });
+    }
+    
+    res.json({ ok: true, sale });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// UPDATE SALE (simplificado para sale_detail.html)
+app.put('/api/sales/:id', async (req, res) => {
+  try {
+    const { status } = req.body;
+    
+    // Obtener estado anterior
+    const oldSale = await prisma.sale.findUnique({
+      where: { id: parseInt(req.params.id) }
+    });
+    
+    if (!oldSale) {
+      return res.status(404).json({ ok: false, error: 'Venta no encontrada' });
+    }
+    
+    const sale = await prisma.sale.update({
+      where: { id: parseInt(req.params.id) },
+      data: { status },
+      include: {
+        client: true,
+        items: {
+          include: { product: true }
+        },
+        productionOrders: true
+      }
+    });
+    
+    // 📝 Registrar cambio de estado
+    if (status && oldSale.status !== status) {
+      await logSaleStatusChange(sale, 'status', oldSale.status, status);
+    }
+    
+    res.json({ ok: true, sale });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// UPDATE SALE STATUS (legacy - mantener por compatibilidad)
+app.put('/api/sales/:id/status', async (req, res) => {
+  try {
+    const { status, paymentStatus, deliveryStatus } = req.body;
+    
+    // Obtener estado anterior
+    const oldSale = await prisma.sale.findUnique({
+      where: { id: parseInt(req.params.id) }
+    });
+    
+    const updateData = {};
+    if (status) updateData.status = status;
+    if (paymentStatus) updateData.paymentStatus = paymentStatus;
+    if (deliveryStatus) updateData.deliveryStatus = deliveryStatus;
+    
+    const sale = await prisma.sale.update({
+      where: { id: parseInt(req.params.id) },
+      data: updateData,
+      include: {
+        client: true,
+        items: true,
+        productionOrders: true
+      }
+    });
+    
+    // 📝 Registrar cambios de estado
+    if (status && oldSale.status !== status) {
+      await logSaleStatusChange(sale, 'status', oldSale.status, status);
+    }
+    if (paymentStatus && oldSale.paymentStatus !== paymentStatus) {
+      await logSaleStatusChange(sale, 'paymentStatus', oldSale.paymentStatus, paymentStatus);
+    }
+    if (deliveryStatus && oldSale.deliveryStatus !== deliveryStatus) {
+      await logSaleStatusChange(sale, 'deliveryStatus', oldSale.deliveryStatus, deliveryStatus);
+    }
+    
+    res.json({ ok: true, sale });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// GET PRODUCTION ORDERS
+app.get('/api/production-orders', async (req, res) => {
+  try {
+    const { status, priority } = req.query;
+    
+    const where = {};
+    if (status) where.status = status;
+    if (priority) where.priority = priority;
+    
+    const orders = await prisma.productionOrder.findMany({
+      where,
+      include: {
+        sale: {
+          include: {
+            client: true,
+            items: true
+          }
+        }
+      },
+      orderBy: [
+        { priority: 'desc' },
+        { dueDate: 'asc' }
+      ],
+      take: 100
+    });
+    
+    res.json({ ok: true, orders });
+  } catch (e) {
+    console.error('Error fetching production orders:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// UPDATE PRODUCTION ORDER
+app.put('/api/production-orders/:id', async (req, res) => {
+  try {
+    const { status, priority, dueDate, startDate, notes } = req.body;
+    
+    const updateData = {};
+    if (status) {
+      updateData.status = status;
+      if (status === 'completada') {
+        updateData.completedAt = new Date();
+      }
+    }
+    if (priority) updateData.priority = priority;
+    if (dueDate) updateData.dueDate = new Date(dueDate);
+    if (startDate) updateData.startDate = new Date(startDate);
+    if (notes !== undefined) updateData.notes = notes;
+    
+    const order = await prisma.productionOrder.update({
+      where: { id: parseInt(req.params.id) },
+      data: updateData,
+      include: {
+        sale: {
+          include: {
+            client: true,
+            items: true
+          }
+        }
+      }
+    });
+    
+    res.json({ ok: true, order });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// DOWNLOAD PRODUCTION ORDER EXCEL
+app.get('/api/production-orders/:id/download', async (req, res) => {
+  try {
+    const order = await prisma.productionOrder.findUnique({
+      where: { id: parseInt(req.params.id) }
+    });
+    
+    if (!order || !order.excelPath) {
+      return res.status(404).json({ ok: false, error: 'Archivo no encontrado' });
+    }
+    
+    const filepath = path.join(__dirname, order.excelPath);
+    
+    if (!fs.existsSync(filepath)) {
+      return res.status(404).json({ ok: false, error: 'Archivo no encontrado en el servidor' });
+    }
+    
+    res.download(filepath, `${order.folio}.xlsx`);
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Servir archivos de órdenes
+app.use('/orders', express.static(path.join(__dirname, 'orders')));
+
+// ============================================
+// EMAIL & WHATSAPP ENDPOINTS
+// ============================================
+
+// GET EMAIL DATA (para abrir Gmail/Outlook con datos prellenados)
+app.get('/api/quotes/:id/email-data', async (req, res) => {
+  try {
+    const quoteId = parseInt(req.params.id);
+    
+    const quote = await prisma.quote.findUnique({
+      where: { id: quoteId },
+      include: {
+        client: true,
+        items: true
+      }
+    });
+    
+    if (!quote) {
+      return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+    }
+    
+    // Plantilla de email
+    const emailSubject = `Cotización ${quote.folio} - ${quote.client?.company || quote.client?.name || 'Cliente'}`;
+    
+    const emailBody = `Estimado/a ${quote.client?.name || 'Cliente'},
+
+Adjunto encontrará la cotización ${quote.folio} con los detalles de los productos/servicios solicitados.
+
+Resumen de la cotización:
+- Subtotal: $${quote.subtotal?.toFixed(2)} ${quote.currency}
+- Total: $${quote.total?.toFixed(2)} ${quote.currency}
+${quote.netMxn ? `• Total MXN: $${quote.netMxn?.toFixed(2)} MXN` : ''}
+
+Productos/Servicios incluidos:
+${quote.items.map((item, i) => `${i + 1}. ${item.modelo} - ${item.descripcion || 'Sin descripción'} (${item.qty} x $${item.unitPrice?.toFixed(2)})`).join('\n')}
+
+Quedamos atentos a cualquier duda o comentario.
+
+Saludos cordiales,
+[Tu Nombre]
+[Tu Empresa]`;
+
+    res.json({
+      ok: true,
+      data: {
+        to: quote.client?.email || '',
+        subject: emailSubject,
+        body: emailBody,
+        pdfUrl: `/api/quotes/${quoteId}/pdf-download`
+      }
+    });
+    
+  } catch (e) {
+    console.error('Error generating email data:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// GET WHATSAPP DATA (para abrir WhatsApp Web)
+app.get('/api/quotes/:id/whatsapp-data', async (req, res) => {
+  try {
+    const quoteId = parseInt(req.params.id);
+    
+    const quote = await prisma.quote.findUnique({
+      where: { id: quoteId },
+      include: {
+        client: true,
+        items: true
+      }
+    });
+    
+    if (!quote) {
+      return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+    }
+    
+    // Formatear número de teléfono (eliminar caracteres no numéricos)
+    let phoneNumber = quote.client?.phone || '';
+    phoneNumber = phoneNumber.replace(/\D/g, '');
+    
+    // Si el número no tiene código de país, asumir México (+52)
+    if (phoneNumber.length === 10) {
+      phoneNumber = '52' + phoneNumber;
+    }
+    
+    // Mensaje de WhatsApp
+    const whatsappMessage = `Hola ${quote.client?.name || 'Cliente'}, 
+
+Te envío la cotización *${quote.folio}* con los detalles solicitados.
+
+📋 *Resumen:*
+- Subtotal: $${quote.subtotal?.toFixed(2)} ${quote.currency}
+- Total: $${quote.total?.toFixed(2)} ${quote.currency}
+${quote.netMxn ? `• Total MXN: $${quote.netMxn?.toFixed(2)} MXN` : ''}
+
+📦 *Productos/Servicios:*
+${quote.items.map((item, i) => `${i + 1}. ${item.modelo} - ${item.descripcion || 'Sin descripción'}\n   Cantidad: ${item.qty} | Precio: $${item.unitPrice?.toFixed(2)}`).join('\n\n')}
+
+Adjunto encontrarás el PDF con todos los detalles. ¿Tienes alguna pregunta?`;
+
+    res.json({
+      ok: true,
+      data: {
+        phone: phoneNumber,
+        message: whatsappMessage,
+        pdfUrl: `/api/quotes/${quoteId}/pdf-download`
+      }
+    });
+    
+  } catch (e) {
+    console.error('Error generating WhatsApp data:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// DOWNLOAD PDF (para adjuntar en email o compartir)
+app.get('/api/quotes/:id/pdf-download', async (req, res) => {
+  try {
+    const quoteId = parseInt(req.params.id);
+    
+    const quote = await prisma.quote.findUnique({
+      where: { id: quoteId },
+      include: {
+        client: true,
+        items: true
+      }
+    });
+    
+    if (!quote) {
+      return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+    }
+    
+    const template = quote.template || 'default-template.pdf';
+    
+    const pdfData = {
+      folio: quote.folio,
+      fecha: quote.date ? new Date(quote.date).toLocaleDateString('es-MX') : new Date().toLocaleDateString('es-MX'),
+      nombre: quote.client?.name || '',
+      empresa: quote.client?.company || '',
+      correo: quote.client?.email || '',
+      numero: quote.client?.phone || '',
+      estado: quote.client?.estado || '',
+      subtotal: quote.subtotal?.toFixed(2) || '0.00',
+      descuento: quote.discount?.toFixed(2) || '0.00',
+      impuestos: quote.tax?.toFixed(2) || '0.00',
+      total: quote.total?.toFixed(2) || '0.00',
+      items: quote.items.map(item => ({
+        modelo: item.modelo,
+        descripcion: item.descripcion,
+        precio: item.unitPrice?.toFixed(2) || '0.00',
+        cant: String(item.qty),
+        subtotal: item.subtotal?.toFixed(2) || '0.00'
+      }))
+    };
+    
+    const pdfBuf = await generatePdfBuffer(template, pdfData);
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=cotizacion_${quote.folio}.pdf`);
+    res.send(Buffer.from(pdfBuf));
+    
+  } catch (e) {
+    console.error('Error generating PDF:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// REGISTRAR ENVÍO EN HISTORIAL
+app.post('/api/quotes/:id/log-send', async (req, res) => {
+  try {
+    const quoteId = parseInt(req.params.id);
+    const { method, recipient } = req.body; // method: 'email' | 'whatsapp'
+    
+    const quote = await prisma.quote.findUnique({
+      where: { id: quoteId }
+    });
+    
+    if (!quote) {
+      return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+    }
+    
+    const description = method === 'email' 
+      ? `Cotización enviada por email a ${recipient}`
+      : `Cotización enviada por WhatsApp a ${recipient}`;
+    
+    const activity = await logActivity({
+      type: 'quote_sent',
+      description,
+      quoteId,
+      metadata: {
+        method,
+        recipient,
+        folio: quote.folio
+      }
+    });
+    
+    res.json({ ok: true, activity });
+    
+  } catch (e) {
+    console.error('Error logging send:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ============================================
+// SEND EMAIL DIRECTLY (Nodemailer)
+// ============================================
+// ============================================
+// SEND EMAIL DIRECTLY (Nodemailer)
+// ============================================
+app.post('/api/quotes/:id/send-email', async (req, res) => {
+  try {
+    if (!transporter) {
+      return res.status(500).json({ 
+        ok: false, 
+        error: 'Servicio de email no configurado. Revisa EMAIL_USER y EMAIL_PASSWORD en .env' 
+      });
+    }
+
+    const quoteId = parseInt(req.params.id);
+    const { customMessage } = req.body;
+    
+    const quote = await prisma.quote.findUnique({
+      where: { id: quoteId },
+      include: {
+        client: true,
+        items: true
+      }
+    });
+    
+    if (!quote) {
+      return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+    }
+
+    if (!quote.client?.email) {
+      return res.status(400).json({ ok: false, error: 'El cliente no tiene email registrado' });
+    }
+
+    // ✅ USAR EL TEMPLATE DE LA COTIZACIÓN (crucial)
+    const template = quote.template || 'default-template.pdf';
+    
+    console.log('🔍 DEBUGGING EMAIL SEND:');
+    console.log('  - Quote ID:', quoteId);
+    console.log('  - Template original:', quote.template);
+    console.log('  - Template a usar:', template);
+    console.log('  - Cliente email:', quote.client.email);
+
+    // ✅ VERIFICAR QUE EXISTE EL TEMPLATE
+    const templatePath = path.join(TEMPLATES_DIR, template);
+    if (!fs.existsSync(templatePath)) {
+      console.error('❌ Template no encontrado:', templatePath);
+      return res.status(404).json({ 
+        ok: false, 
+        error: `Template "${template}" no encontrado en el servidor` 
+      });
+    }
+    console.log('  ✅ Template existe:', templatePath);
+
+    // ✅ VERIFICAR QUE EXISTE LA CALIBRACIÓN
+    const calibPath = path.join(CALIB_DIR, template + '.json');
+    if (fs.existsSync(calibPath)) {
+      console.log('  ✅ Calibración encontrada:', calibPath);
+      const calibContent = fs.readFileSync(calibPath, 'utf8');
+      const calib = JSON.parse(calibContent);
+      console.log('  ✅ Campos en calibración:', Object.keys(calib.fields || {}).length);
+    } else {
+      console.warn('  ⚠️ Calibración NO encontrada:', calibPath);
+    }
+
+    // Preparar datos para el PDF
+    const pdfData = {
+      folio: quote.folio,
+      fecha: quote.date ? new Date(quote.date).toLocaleDateString('es-MX') : new Date().toLocaleDateString('es-MX'),
+      nombre: quote.client?.name || '',
+      empresa: quote.client?.company || '',
+      correo: quote.client?.email || '',
+      numero: quote.client?.phone || '',
+      estado: quote.client?.estado || '',
+      subtotal: quote.subtotal?.toFixed(2) || '0.00',
+      descuento: quote.discount?.toFixed(2) || '0.00',
+      impuestos: quote.tax?.toFixed(2) || '0.00',
+      total: quote.total?.toFixed(2) || '0.00',
+      precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
+      items: quote.items.map(item => ({
+        modelo: item.modelo,
+        descripcion: item.descripcion,
+        precio: item.unitPrice?.toFixed(2) || '0.00',
+        cant: String(item.qty),
+        subtotal: item.subtotal?.toFixed(2) || '0.00'
+      }))
+    };
+
+    console.log('📦 Datos para PDF:', {
+      folio: pdfData.folio,
+      itemsCount: pdfData.items.length,
+      total: pdfData.total
+    });
+
+    // ✅ GENERAR PDF CON LA CALIBRACIÓN CORRECTA
+    console.log('🔄 Generando PDF...');
+    const pdfBuffer = await generatePdfBuffer(template, pdfData);
+    console.log('✅ PDF generado, tamaño:', pdfBuffer.length, 'bytes');
+
+    // Plantilla HTML profesional para el email
+    const emailHTML = `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body { font-family: Arial, sans-serif; line-height: 1.6; color: #333; background: #f4f4f4; margin: 0; padding: 0; }
+    .container { max-width: 600px; margin: 20px auto; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 8px rgba(0,0,0,0.1); }
+    .header { background: linear-gradient(135deg, #F62E41, #D22634); color: white; padding: 30px; text-align: center; }
+    .header h1 { margin: 0; font-size: 24px; }
+    .header p { margin: 10px 0 0 0; opacity: 0.9; }
+    .content { padding: 30px; }
+    .greeting { font-size: 16px; margin-bottom: 20px; }
+    .message { margin-bottom: 20px; line-height: 1.8; }
+    .quote-info { background: #f8f9fa; border-left: 4px solid #F62E41; padding: 15px; margin: 20px 0; border-radius: 4px; }
+    .quote-info h3 { margin: 0 0 10px 0; color: #F62E41; }
+    .info-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e9ecef; }
+    .info-row:last-child { border-bottom: none; }
+    .info-label { font-weight: 600; color: #6c757d; }
+    .info-value { font-weight: 700; color: #333; }
+    .items-table { width: 100%; border-collapse: collapse; margin: 20px 0; }
+    .items-table th { background: #f8f9fa; padding: 12px; text-align: left; font-size: 12px; font-weight: 600; color: #6c757d; text-transform: uppercase; border-bottom: 2px solid #dee2e6; }
+    .items-table td { padding: 12px; border-bottom: 1px solid #e9ecef; }
+    .items-table tr:last-child td { border-bottom: none; }
+    .cta { text-align: center; margin: 30px 0; }
+    .cta-button { display: inline-block; padding: 15px 30px; background: linear-gradient(135deg, #F62E41, #D22634); color: white; text-decoration: none; border-radius: 6px; font-weight: 600; box-shadow: 0 4px 12px rgba(246,46,65,0.3); }
+    .footer { background: #f8f9fa; padding: 20px; text-align: center; font-size: 13px; color: #6c757d; border-top: 1px solid #e9ecef; }
+    .footer p { margin: 5px 0; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>📋 Cotización ${quote.folio}</h1>
+      <p>${process.env.EMAIL_FROM_NAME || 'Tu Empresa'}</p>
+    </div>
+    
+    <div class="content">
+      <div class="greeting">
+        Estimado/a <strong>${quote.client.name}</strong>,
+      </div>
+      
+      <div class="message">
+        ${customMessage || `
+        Adjunto encontrará la cotización <strong>${quote.folio}</strong> con los detalles de los productos/servicios solicitados.
+        <br><br>
+        Quedamos atentos a cualquier duda o comentario que pueda tener.
+        `}
+      </div>
+      
+      <div class="quote-info">
+        <h3>📊 Resumen de la Cotización</h3>
+        <div class="info-row">
+          <span class="info-label">Folio:</span>
+          <span class="info-value">${quote.folio}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Fecha:</span>
+          <span class="info-value">${new Date(quote.date).toLocaleDateString('es-MX')}</span>
+        </div>
+        <div class="info-row">
+          <span class="info-label">Subtotal:</span>
+          <span class="info-value">$${quote.subtotal?.toFixed(2)} ${quote.currency}</span>
+        </div>
+        ${quote.discount > 0 ? `
+        <div class="info-row">
+          <span class="info-label">Descuento:</span>
+          <span class="info-value">-$${quote.discount?.toFixed(2)} ${quote.currency}</span>
+        </div>
+        ` : ''}
+        ${quote.tax > 0 ? `
+        <div class="info-row">
+          <span class="info-label">Impuestos:</span>
+          <span class="info-value">$${quote.tax?.toFixed(2)} ${quote.currency}</span>
+        </div>
+        ` : ''}
+        <div class="info-row">
+          <span class="info-label">TOTAL:</span>
+          <span class="info-value" style="font-size: 18px; color: #F62E41;">$${quote.total?.toFixed(2)} ${quote.currency}</span>
+        </div>
+        ${quote.netMxn ? `
+        <div class="info-row">
+          <span class="info-label">Total MXN:</span>
+          <span class="info-value">$${quote.netMxn?.toFixed(2)} MXN</span>
+        </div>
+        ` : ''}
+      </div>
+      
+      <h3 style="margin-top: 30px; color: #333;">📦 Productos/Servicios</h3>
+      <table class="items-table">
+        <thead>
+          <tr>
+            <th>Modelo</th>
+            <th>Descripción</th>
+            <th style="text-align: right;">Cant.</th>
+            <th style="text-align: right;">P. Unit.</th>
+            <th style="text-align: right;">Subtotal</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${quote.items.map(item => `
+            <tr>
+              <td><strong>${item.modelo}</strong></td>
+              <td>${item.descripcion || 'Sin descripción'}</td>
+              <td style="text-align: right;">${item.qty}</td>
+              <td style="text-align: right;">$${item.unitPrice?.toFixed(2)}</td>
+              <td style="text-align: right;"><strong>$${item.subtotal?.toFixed(2)}</strong></td>
+            </tr>
+          `).join('')}
+        </tbody>
+      </table>
+      
+      <div class="cta">
+        <p style="margin-bottom: 15px;">El PDF con todos los detalles está adjunto a este correo.</p>
+      </div>
+    </div>
+    
+    <div class="footer">
+      <p><strong>${process.env.EMAIL_FROM_NAME || 'Tu Empresa'}</strong></p>
+      <p>${process.env.EMAIL_FROM_ADDRESS || ''}</p>
+      <p>Este es un correo automático del Sistema de Gestión de Cotizaciones</p>
+    </div>
+  </div>
+</body>
+</html>
+    `;
+
+    // Configurar email
+    const mailOptions = {
+      from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,
+      to: quote.client.email,
+      subject: `Cotización ${quote.folio} - ${quote.client.company || quote.client.name}`,
+      html: emailHTML,
+      attachments: [
+        {
+          filename: `cotizacion_${quote.folio}.pdf`,
+          content: pdfBuffer
+        }
+      ]
+    };
+
+    // Enviar email
+    console.log('📧 Enviando email a:', quote.client.email);
+    const info = await transporter.sendMail(mailOptions);
+    
+    console.log('✅ Email enviado exitosamente:', info.messageId);
+
+    // Registrar envío en historial
+    await logActivity({
+      type: 'quote_sent',
+      description: `Cotización enviada por email (directo) a ${quote.client.email}`,
+      quoteId,
+      metadata: {
+        method: 'email_direct',
+        recipient: quote.client.email,
+        folio: quote.folio,
+        messageId: info.messageId,
+        status: 'sent',
+        template: template
+      }
+    });
+
+    res.json({ 
+      ok: true, 
+      message: 'Email enviado correctamente',
+      messageId: info.messageId,
+      recipient: quote.client.email,
+      template: template
+    });
+    
+  } catch (e) {
+    console.error('❌ Error enviando email:', e);
+    console.error('Stack:', e.stack);
+    
+    // Registrar error en historial
+    try {
+      await logActivity({
+        type: 'quote_sent',
+        description: `Error enviando cotización por email: ${e.message}`,
+        quoteId: parseInt(req.params.id),
+        metadata: {
+          method: 'email_direct',
+          status: 'error',
+          error: e.message
+        }
+      });
+    } catch (logError) {
+      console.error('Error logging activity:', logError);
+    }
+    
+    res.status(500).json({ 
+      ok: false, 
+      error: 'Error enviando email: ' + e.message 
+    });
+  }
+});
+
+// TEST EMAIL CONFIGURATION
+app.get('/api/email/test', async (req, res) => {
+  try {
+    if (!transporter) {
+      return res.status(500).json({ 
+        ok: false, 
+        error: 'Email no configurado. Revisa EMAIL_USER y EMAIL_PASSWORD en .env' 
+      });
+    }
+
+    // Verificar configuración
+    await transporter.verify();
+    
+    res.json({ 
+      ok: true, 
+      message: 'Configuración de email correcta',
+      config: {
+        host: emailConfig.host,
+        port: emailConfig.port,
+        user: emailConfig.auth.user,
+        from: process.env.EMAIL_FROM_ADDRESS
+      }
+    });
+  } catch (e) {
+    res.status(500).json({ 
+      ok: false, 
+      error: 'Error en configuración de email: ' + e.message,
+      details: e.toString()
+    });
+  }
+});
+
+// ============================================
+// ACTIVITIES API (Historial y Seguimiento)
+// ============================================
+
+// GET ACTIVITIES FOR QUOTE
+app.get('/api/quotes/:id/activities', async (req, res) => {
+  try {
+    const quoteId = parseInt(req.params.id);
+    
+    const activities = await prisma.activity.findMany({
+      where: { quoteId },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    res.json({ ok: true, activities });
+  } catch (e) {
+    console.error('Error fetching quote activities:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ADD NOTE TO QUOTE
+app.post('/api/quotes/:id/notes', async (req, res) => {
+  try {
+    const quoteId = parseInt(req.params.id);
+    const { note, userId } = req.body;
+    
+    if (!note || note.trim() === '') {
+      return res.status(400).json({ ok: false, error: 'La nota no puede estar vacía' });
+    }
+    
+    // Verificar que la cotización existe
+    const quote = await prisma.quote.findUnique({
+      where: { id: quoteId }
+    });
+    
+    if (!quote) {
+      return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+    }
+    
+    // Crear actividad
+    const activity = await logActivity({
+      type: 'note_added',
+      description: note,
+      quoteId,
+      userId,
+      metadata: {
+        folio: quote.folio
+      }
+    });
+    
+    res.json({ ok: true, activity });
+  } catch (e) {
+    console.error('Error adding note to quote:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// GET ACTIVITIES FOR SALE
+app.get('/api/sales/:id/activities', async (req, res) => {
+  try {
+    const saleId = parseInt(req.params.id);
+    
+    const activities = await prisma.activity.findMany({
+      where: { saleId },
+      include: {
+        user: {
+          select: { id: true, name: true, email: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
+    
+    res.json({ ok: true, activities });
+  } catch (e) {
+    console.error('Error fetching sale activities:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ADD NOTE/ACTIVITY TO SALE (actualizado para recibir "type" y "description")
+app.post('/api/sales/:id/activities', async (req, res) => {
+  try {
+    const saleId = parseInt(req.params.id);
+    const { type, description, userId } = req.body;
+    
+    if (!description || description.trim() === '') {
+      return res.status(400).json({ ok: false, error: 'La descripción no puede estar vacía' });
+    }
+    
+    // Verificar que la venta existe
+    const sale = await prisma.sale.findUnique({
+      where: { id: saleId }
+    });
+    
+    if (!sale) {
+      return res.status(404).json({ ok: false, error: 'Venta no encontrada' });
+    }
+    
+    // Crear actividad
+    const activity = await logActivity({
+      type: type || 'note_added',
+      description,
+      saleId,
+      userId,
+      metadata: {
+        folio: sale.folio
+      }
+    });
+    
+    res.json({ ok: true, activity });
+  } catch (e) {
+    console.error('Error adding activity to sale:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// GET ALL ACTIVITIES (TIMELINE GLOBAL)
+app.get('/api/activities', async (req, res) => {
+  try {
+    const { type, limit = 50 } = req.query;
+    
+    const where = {};
+    if (type) where.type = type;
+    
+    const activities = await prisma.activity.findMany({
+      where,
+      include: {
+        user: {
+          select: { id: true, name: true, email: true }
+        },
+        quote: {
+          select: { id: true, folio: true }
+        },
+        sale: {
+          select: { id: true, folio: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
+      take: parseInt(limit)
+    });
+    
+    res.json({ ok: true, activities });
+  } catch (e) {
+    console.error('Error fetching activities:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// GENERATE PDF FOR SALE
+app.get('/api/sales/:id/pdf', async (req, res) => {
+  try {
+    const saleId = parseInt(req.params.id);
+    
+    const sale = await prisma.sale.findUnique({
+      where: { id: saleId },
+      include: {
+        client: true,
+        items: {
+          include: { product: true }
+        },
+        quote: true
+      }
+    });
+    
+    if (!sale) {
+      return res.status(404).json({ ok: false, error: 'Venta no encontrada' });
+    }
+    
+    // Usar la plantilla de la cotización original si existe
+    const template = sale.quote?.template || 'default-template.pdf';
+    
+    // Preparar datos para el PDF (formato esperado por generatePdfBuffer)
+    const pdfData = {
+      folio: sale.folio,
+      fecha: sale.createdAt.toLocaleDateString('es-MX'),
+      nombre: sale.client?.name || '',
+      empresa: sale.client?.company || '',
+      correo: sale.client?.email || '',
+      numero: sale.client?.phone || '',
+      estado: sale.client?.estado || '',
+      subtotal: sale.subtotal?.toFixed(2) || '0.00',
+      descuento: sale.discount?.toFixed(2) || '0.00',
+      impuestos: sale.tax?.toFixed(2) || '0.00',
+      total: sale.total?.toFixed(2) || '0.00',
+      items: sale.items.map(item => ({
+        modelo: item.modelo,
+        descripcion: item.descripcion,
+        precio: item.unitPrice?.toFixed(2) || '0.00',
+        cant: String(item.qty),
+        subtotal: item.subtotal?.toFixed(2) || '0.00'
+      }))
+    };
+    
+    const pdfBuf = await generatePdfBuffer(template, pdfData);
+    
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename=venta_${sale.folio}.pdf`);
+    res.send(Buffer.from(pdfBuf));
+    
+  } catch (e) {
+    console.error('Error generating sale PDF:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ============================================
+// PDF GENERATION
+// ============================================
+
+function mergeFieldsTopLevel(data) {
+  if (!data || typeof data !== 'object') return data;
+  if (data.fields && typeof data.fields === 'object') {
+    for (const k of Object.keys(data.fields)) {
+      if (data[k] === undefined) data[k] = data.fields[k];
+    }
+  }
+  return data;
+}
+
+async function generatePdfBuffer(templateFilename, data = {}, options = {}) {
+  const safe = safeName(templateFilename);
+  const templatePath = path.join(TEMPLATES_DIR, safe);
+  if (!fs.existsSync(templatePath)) throw new Error('Plantilla no encontrada: ' + safe);
+
+  // Función de sanitización (ya existente)
+  function sanitizeText(text) {
+    if (!text) return text;
+    
+    const replacements = {
+      'Φ': 'F', 'φ': 'f', 'Ω': 'Ohm', 'μ': 'u', 'α': 'a', 'β': 'b',
+      'γ': 'g', 'Δ': 'D', '°': 'deg', '±': '+/-', '×': 'x', '÷': '/',
+      '≤': '<=', '≥': '>=', '≠': '!=', '™': '(TM)', '©': '(C)', '®': '(R)',
+      '€': 'EUR', '£': 'GBP', '¥': 'YEN',
+    };
+    
+    let sanitized = String(text);
+    for (const [special, replacement] of Object.entries(replacements)) {
+      sanitized = sanitized.replace(new RegExp(special, 'g'), replacement);
+    }
+    sanitized = sanitized.replace(/[^\x20-\x7E\xA0-\xFF]/g, '');
+    return sanitized;
+  }
+
+  // ⭐ FUNCIÓN MEJORADA: Formatear valores monetarios
+  function formatMoney(value, currency = 'USD') {
+    if (!value && value !== 0) return '';
+    
+    const valueStr = String(value);
+    
+    // Si ya tiene formato completo, no modificar
+    if (valueStr.includes('USD') || valueStr.includes('MXN')) {
+      return sanitizeText(valueStr);
+    }
+    
+    // Eliminar símbolos existentes y texto
+    const cleanValue = valueStr.replace(/[^0-9.\-]/g, '');
+    
+    // Convertir a número
+    const numValue = parseFloat(cleanValue);
+    
+    if (isNaN(numValue)) return sanitizeText(valueStr);
+    
+    // Formatear con comas y 2 decimales
+    const formatted = Math.abs(numValue).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
+    
+    // Agregar símbolo según moneda
+    const symbol = '$';
+    const sign = numValue < 0 ? '-' : '';
+    
+    return sanitizeText(`${sign}${symbol}${formatted} ${currency}`);
+  }
+
+  // ⭐ Primero hacer merge de fields
+  data = mergeFieldsTopLevel(data || {});
+  
+  // ⭐ LISTA COMPLETA DE CAMPOS MONETARIOS
+  const moneyFields = [
+    'subtotal',
+    'descuento',
+    'impuestos',
+    'total',
+    'precio',
+    'price',
+    'unitPrice',
+    'amount',
+    'monto',
+    'discount',
+    'tax',
+    'impuesto'
+  ];
+  
+  // Obtener moneda (default USD)
+  const currency = data.currency || 'USD';
+  
+  console.log('💰 Formateando campos monetarios con', currency);
+  
+  // ⭐ Sanitizar y formatear TODOS los campos (incluyendo los que vienen de fields)
+  Object.keys(data).forEach(key => {
+    const value = data[key];
+    
+    // Skip si es objeto, array o null/undefined
+    if (!value || typeof value === 'object') return;
+    
+    const valueStr = String(value);
+    
+    // Si es un campo monetario, formatear con moneda
+    if (moneyFields.includes(key.toLowerCase())) {
+      data[key] = formatMoney(valueStr, currency);
+      console.log(`  ✓ ${key}: ${data[key]}`);
+    } else {
+      data[key] = sanitizeText(valueStr);
+    }
+  });
+  
+  // ⭐ IMPORTANTE: También formatear dentro de data.fields si existe
+  if (data.fields && typeof data.fields === 'object') {
+    Object.keys(data.fields).forEach(key => {
+      const value = data.fields[key];
+      
+      if (!value || typeof value === 'object') return;
+      
+      const valueStr = String(value);
+      
+      if (moneyFields.includes(key.toLowerCase())) {
+        data.fields[key] = formatMoney(valueStr, currency);
+        // También actualizar en data directamente
+        data[key] = data.fields[key];
+        console.log(`  ✓ fields.${key}: ${data.fields[key]}`);
+      } else {
+        data.fields[key] = sanitizeText(valueStr);
+      }
+    });
+  }
+  
+  // ⭐ Sanitizar y formatear items
+  if (data.items && Array.isArray(data.items)) {
+    data.items = data.items.map(item => {
+      const formattedItem = {
+        ...item,
+        modelo: sanitizeText(item.modelo),
+        descripcion: sanitizeText(item.descripcion),
+      };
+      
+      // Formatear todos los campos monetarios del item
+      if (item.precio) formattedItem.precio = formatMoney(item.precio, currency);
+      if (item.unitPrice) formattedItem.unitPrice = formatMoney(item.unitPrice, currency);
+      if (item.subtotal) formattedItem.subtotal = formatMoney(item.subtotal, currency);
+      if (item.price) formattedItem.price = formatMoney(item.price, currency);
+      
+      return formattedItem;
+    });
+  }
+
+  // ⭐ CASOS ESPECIALES: precio_neto_mxn
+  if (data.precio_neto_mxn && !String(data.precio_neto_mxn).includes('MXN')) {
+    data.precio_neto_mxn = formatMoney(data.precio_neto_mxn, 'MXN');
+    console.log(`  ✓ precio_neto_mxn: ${data.precio_neto_mxn}`);
+  }
+  
+  if (data.precio_neto_mxn_formatted && !String(data.precio_neto_mxn_formatted).includes('MXN')) {
+    data.precio_neto_mxn_formatted = formatMoney(data.precio_neto_mxn_formatted, 'MXN');
+    console.log(`  ✓ precio_neto_mxn_formatted: ${data.precio_neto_mxn_formatted}`);
+  }
+
+  console.log('✅ Formateo completado\n');
+
+  data = mergeFieldsTopLevel(data || {});
+
+  const existingPdfBytes = fs.readFileSync(templatePath);
+  const pdfDoc = await PDFDocument.load(existingPdfBytes);
+  const pages = pdfDoc.getPages();
+  const page = pages[0];
+  const { width, height } = page.getSize();
+  
+  // ✅ CARGAR FUENTES (Normal y Bold)
+  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+  // ✅ CARGAR CALIBRACIÓN DESDE ARCHIVO
+  const calib = loadCalibrationForTemplate(safe) || {};
+  const globalOffsetY = Number(calib.globalOffsetY || 0);
+
+  console.log('📐 Calibración cargada:', {
+    template: safe,
+    hasCalibration: !!calib.fields,
+    fieldsCount: calib.fields ? Object.keys(calib.fields).length : 0,
+    globalOffsetY: globalOffsetY,
+    tableConfig: calib.table
+  });
+
+  // Copiar valores a campos duplicados
+  if (calib && calib.fields) {
+    Object.keys(calib.fields).forEach(fieldName => {
+      const copyMatch = fieldName.match(/^(.+)_(copy|2|3|4|5|bis|alt)$/);
+      if (copyMatch) {
+        const originalFieldName = copyMatch[1];
+        if (!data[fieldName] && data[originalFieldName]) {
+          data[fieldName] = data[originalFieldName];
+          console.log(`✅ Copiado: ${originalFieldName} -> ${fieldName} = "${data[originalFieldName]}"`);
+        }
+      }
+    });
+  }
+
+  // ✅ FUNCIÓN PARA DIVIDIR TEXTO EN LÍNEAS CON JUSTIFICACIÓN
+  function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
+    if (!text) return [];
+    
+    const words = String(text).split(' ');
+    const lines = [];
+    let currentLine = '';
+
+    for (const word of words) {
+      const testLine = currentLine ? currentLine + ' ' + word : word;
+      const testWidth = fontToUse.widthOfTextAtSize(testLine, fontSize);
+      
+      if (testWidth <= maxWidthPts) {
+        currentLine = testLine;
+      } else {
+        if (currentLine) {
+          lines.push(currentLine);
+          currentLine = word;
+        } else {
+          // Palabra muy larga, forzar división
+          lines.push(word);
+          currentLine = '';
+        }
+      }
+    }
+    
+    if (currentLine) {
+      lines.push(currentLine);
+    }
+    
+    return lines;
+  }
+
+  // ✅ FUNCIÓN PARA DIBUJAR TEXTO JUSTIFICADO
+  function drawJustifiedLine(line, xStart, yDraw, maxWidthPts, fontSize, fontToUse) {
+    const words = line.split(' ');
+    
+    if (words.length === 1) {
+      // Una sola palabra, dibujar normal
+      page.drawText(line, { x: xStart, y: yDraw, size: fontSize, font: fontToUse });
+      return;
+    }
+    
+    // Calcular ancho total del texto sin espacios
+    let totalTextWidth = 0;
+    words.forEach(word => {
+      totalTextWidth += fontToUse.widthOfTextAtSize(word, fontSize);
+    });
+    
+    // Calcular espacio entre palabras
+    const totalSpaces = words.length - 1;
+    const spaceWidth = (maxWidthPts - totalTextWidth) / totalSpaces;
+    
+    // Dibujar cada palabra con el espacio calculado
+    let currentX = xStart;
+    words.forEach((word, index) => {
+      page.drawText(word, { x: Math.round(currentX), y: yDraw, size: fontSize, font: fontToUse });
+      currentX += fontToUse.widthOfTextAtSize(word, fontSize);
+      if (index < words.length - 1) {
+        currentX += spaceWidth;
+      }
+    });
+  }
+
+  function drawTextWithAnchor(text, coord, optionsLocal = {}) {
+    if (!coord || typeof coord.x !== 'number' || typeof coord.y !== 'number') return;
+    
+    const anchor = coord.anchor || 'left';
+    const vAnchor = coord.vAnchor || 'baseline';
+    const fontSize = Number(coord.fontSize) || 10;
+    const isBold = coord.bold === true || coord.bold === 'true'; // ✅ DETECTAR NEGRITAS
+    const isJustified = coord.justify === true || coord.justify === 'true'; // ✅ DETECTAR JUSTIFICADO
+    
+    // ✅ SELECCIONAR FUENTE (Normal o Bold)
+    const fontToUse = isBold ? fontBold : font;
+    
+    // ✅ APLICAR OFFSETS CORRECTAMENTE
+    const xPercWithOffset = coord.x + (Number(coord.offsetX) || 0);
+    const yPercWithOffset = coord.y + (Number(coord.offsetY) || 0) + globalOffsetY;
+    
+    const xPts = width * xPercWithOffset;
+    const yPts = height * yPercWithOffset;
+
+    const textStr = (text === undefined || text === null) ? '' : String(text);
+    
+    // ✅ OBTENER DIMENSIONES DEL CAMPO
+    const fieldWidthFrac = Number(coord.widthFrac) || 0;
+    const fieldHeightFrac = Number(coord.heightFrac) || 0;
+    const maxWidthPts = width * fieldWidthFrac;
+    const maxHeightPts = height * fieldHeightFrac;
+    
+    // ✅ SI EL CAMPO TIENE DIMENSIONES, APLICAR WRAPPING
+    let lines = [];
+    if (fieldWidthFrac > 0 && textStr.length > 0) {
+      lines = wrapText(textStr, maxWidthPts, fontSize, fontToUse, isJustified);
+      console.log(`📝 Wrapping "${textStr.substring(0, 30)}..." → ${lines.length} líneas (maxWidth: ${maxWidthPts.toFixed(0)}pts) ${isBold ? '**BOLD**' : ''} ${isJustified ? '[JUSTIFIED]' : ''}`);
+    } else {
+      lines = [textStr];
+    }
+
+    // ✅ CALCULAR ALTURA DE LÍNEA
+    const lineHeightPts = fontSize * 1.2;
+    const totalTextHeight = lines.length * lineHeightPts;
+    
+    // ✅ LIMITAR LÍNEAS SI EXCEDEN LA ALTURA DEL CAMPO
+    let maxLines = lines.length;
+    if (fieldHeightFrac > 0) {
+      maxLines = Math.floor(maxHeightPts / lineHeightPts);
+      if (maxLines < 1) maxLines = 1;
+      if (lines.length > maxLines) {
+        console.warn(`⚠️ Texto truncado: ${lines.length} líneas → ${maxLines} líneas (altura máxima)`);
+        lines = lines.slice(0, maxLines);
+        if (lines[lines.length - 1]) {
+          lines[lines.length - 1] = lines[lines.length - 1].substring(0, lines[lines.length - 1].length - 3) + '...';
+        }
+      }
+    }
+
+    // ✅ DIBUJAR CADA LÍNEA
+    lines.forEach((line, index) => {
+      let textWidth = 0;
+      try { 
+        textWidth = fontToUse.widthOfTextAtSize(line, fontSize);
+      } catch (e) { 
+        textWidth = 0; 
+      }
+
+      // Calcular posición X según anchor
+      let xDraw;
+      if (anchor === 'center') {
+        xDraw = Math.round(xPts - (textWidth / 2));
+      } else if (anchor === 'right') {
+        xDraw = Math.round(xPts - textWidth);
+      } else {
+        xDraw = Math.round(xPts);
+      }
+
+      // Calcular posición Y según vAnchor y línea
+      let yDraw;
+      const lineOffset = index * lineHeightPts;
+      
+      if (vAnchor === 'top') {
+        yDraw = Math.round(yPts - fontSize * 0.8 - lineOffset);
+      } else if (vAnchor === 'baseline') {
+        yDraw = Math.round(yPts - lineOffset);
+      } else if (vAnchor === 'center') {
+        const blockOffsetY = (totalTextHeight / 2) - (fontSize * 0.35);
+        yDraw = Math.round(yPts - blockOffsetY - lineOffset);
+      } else {
+        yDraw = Math.round(yPts - lineOffset);
+      }
+
+      if (yDraw < 0) yDraw = 0;
+
+      // ✅ DIBUJAR LÍNEA (JUSTIFICADA O NORMAL)
+      const isLastLine = index === lines.length - 1;
+      
+      if (isJustified && !isLastLine && fieldWidthFrac > 0) {
+        // Texto justificado (excepto última línea)
+        drawJustifiedLine(line, xDraw, yDraw, maxWidthPts, fontSize, fontToUse);
+      } else {
+        // Texto normal
+        if (xDraw < 0) xDraw = 0;
+        page.drawText(line, { x: xDraw, y: yDraw, size: fontSize, font: fontToUse });
+      }
+    });
+
+    // ✅ DEBUG: Dibujar rectángulo del campo
+    if (optionsLocal.debug && fieldWidthFrac > 0 && fieldHeightFrac > 0) {
+      const rawX = width * coord.x;
+      const rawY = height * coord.y;
+      
+      page.drawRectangle({ 
+        x: Math.round(xPts), 
+        y: Math.round(yPts - maxHeightPts), 
+        width: Math.round(maxWidthPts), 
+        height: Math.round(maxHeightPts),
+        borderColor: rgb(0, 0, 1),
+        borderWidth: 1
+      });
+      
+      page.drawRectangle({ 
+        x: Math.round(rawX - 3), 
+        y: Math.round(rawY - 3), 
+        width: 6, 
+        height: 6, 
+        color: rgb(1, 0, 0) 
+      });
+      
+      if (optionsLocal.label) {
+        const lblSize = Math.max(6, Math.min(8, fontSize * 0.7));
+        try { 
+          page.drawText(optionsLocal.label, { 
+            x: Math.round(rawX + 6), 
+            y: Math.round(rawY - 3), 
+            size: lblSize, 
+            font: font // Siempre normal para labels
+          }); 
+        } catch(e){}
+      }
+    }
+  }
+
+  // ... (resto del código continúa igual - procesar items, dibujar campos, etc.)
+  
+  // Procesar items
+  let items = [];
+  if (data.items) {
+    try { 
+      items = typeof data.items === 'string' ? JSON.parse(data.items) : data.items; 
+    } catch (e) { 
+      items = []; 
+    }
+  }
+
+  const drawn = new Set();
+
+  // ✅ DIBUJAR CAMPOS DESDE CALIBRACIÓN
+  if (calib && calib.fields) {
+    console.log('📝 Dibujando campos desde calibración...');
+    
+    for (const fname of Object.keys(calib.fields)) {
+      if (fname.startsWith('item_')) continue;
+      
+      const coord = calib.fields[fname];
+      const value = (data && (data[fname] !== undefined)) ? data[fname] : '';
+      
+      const fieldConfig = {
+        x: Number(coord.x),
+        y: Number(coord.y),
+        anchor: coord.anchor || 'left',
+        vAnchor: coord.vAnchor || 'baseline',
+        fontSize: Number(coord.fontSize) || 10,
+        offsetX: Number(coord.offsetX) || 0,
+        offsetY: Number(coord.offsetY) || 0,
+        widthFrac: Number(coord.widthFrac) || 0,
+        heightFrac: Number(coord.heightFrac) || 0,
+        bold: coord.bold || false, // ✅ NEGRITAS
+        justify: coord.justify || false // ✅ JUSTIFICADO
+      };
+      
+      const boldLabel = fieldConfig.bold ? ' [BOLD]' : '';
+      const justifyLabel = fieldConfig.justify ? ' [JUSTIFY]' : '';
+      console.log(`  - ${fname}: "${value}" @ (${fieldConfig.x.toFixed(3)}, ${fieldConfig.y.toFixed(3)}) fontSize:${fieldConfig.fontSize}px${boldLabel}${justifyLabel}`);
+      
+      drawTextWithAnchor(value, fieldConfig, { debug: options.debug, label: fname });
+      drawn.add(fname);
+    }
+  } else {
+    console.warn('⚠️ No se encontró calibración, usando valores por defecto');
+  }
+
+  // Valores por defecto
+  const defaults = {
+    folio: { x: 0.72, y: 0.88, anchor: 'left', vAnchor: 'baseline', fontSize: 10, widthFrac: 0.15, heightFrac: 0.02 },
+    fecha: { x: 0.83, y: 0.88, anchor: 'left', vAnchor: 'baseline', fontSize: 10, widthFrac: 0.12, heightFrac: 0.02 },
+    nombre: { x: 0.08, y: 0.80, anchor: 'left', vAnchor: 'baseline', fontSize: 12, widthFrac: 0.25, heightFrac: 0.02 },
+    empresa: { x: 0.08, y: 0.77, anchor: 'left', vAnchor: 'baseline', fontSize: 10, widthFrac: 0.20, heightFrac: 0.02 },
+    correo: { x: 0.08, y: 0.74, anchor: 'left', vAnchor: 'baseline', fontSize: 10, widthFrac: 0.18, heightFrac: 0.02 },
+    numero: { x: 0.08, y: 0.71, anchor: 'left', vAnchor: 'baseline', fontSize: 10, widthFrac: 0.18, heightFrac: 0.02 },
+    estado: { x: 0.08, y: 0.68, anchor: 'left', vAnchor: 'baseline', fontSize: 10, widthFrac: 0.18, heightFrac: 0.02 },
+    subtotal: { x: 0.88, y: 0.36, anchor: 'right', vAnchor: 'baseline', fontSize: 10, widthFrac: 0.15, heightFrac: 0.02 },
+    descuento: { x: 0.88, y: 0.33, anchor: 'right', vAnchor: 'baseline', fontSize: 10, widthFrac: 0.15, heightFrac: 0.02 },
+    impuestos: { x: 0.88, y: 0.30, anchor: 'right', vAnchor: 'baseline', fontSize: 10, widthFrac: 0.15, heightFrac: 0.02 },
+    total: { x: 0.88, y: 0.27, anchor: 'right', vAnchor: 'baseline', fontSize: 12, widthFrac: 0.15, heightFrac: 0.02, bold: true }, // ✅ Total en negritas
+  };
+
+  for (const k of Object.keys(defaults)) {
+    if (drawn.has(k)) continue;
+    const def = defaults[k];
+    const val = (data && (data[k] !== undefined)) ? data[k] : '';
+    drawTextWithAnchor(val, def, { debug: options.debug, label: k });
+    drawn.add(k);
+  }
+
+  // DIBUJAR ITEMS (igual que antes pero con bold y justify)
+  let modeloX = 0.05, descripcionX = 0.28, precioX = 0.68, cantX = 0.78, subtotalX = 0.88;
+  let tableStartY = 0.61, lineHeight = 0.045;
+  let itemFontSize = 9;
+
+  if (calib && calib.fields) {
+    if (calib.fields['item_modelo']) {
+      modeloX = Number(calib.fields['item_modelo'].x);
+      itemFontSize = Number(calib.fields['item_modelo'].fontSize) || 9;
+    }
+    if (calib.fields['item_descripcion']) {
+      descripcionX = Number(calib.fields['item_descripcion'].x);
+    }
+    if (calib.fields['item_precio']) {
+      precioX = Number(calib.fields['item_precio'].x);
+    }
+    if (calib.fields['item_cant']) {
+      cantX = Number(calib.fields['item_cant'].x);
+    }
+    if (calib.fields['item_subtotal']) {
+      subtotalX = Number(calib.fields['item_subtotal'].x);
+    }
+    if (calib.table) {
+      tableStartY = Number(calib.table.startY) || tableStartY;
+      lineHeight = Number(calib.table.lineHeight) || lineHeight;
+    }
+  }
+
+  console.log('📦 Dibujando items:', items.length);
+
+  for (let i = 0; i < items.length; i++) {
+    const yPerc = tableStartY - i * lineHeight;
+    if (yPerc <= 0) continue;
+
+    // Construir configs para cada columna de item (incluyendo bold y justify)
+    const baseCoordModelo = { 
+      x: modeloX, 
+      y: yPerc, 
+      anchor: (calib?.fields?.['item_modelo']?.anchor) || 'left', 
+      vAnchor: (calib?.fields?.['item_modelo']?.vAnchor) || 'center', 
+      fontSize: Number(calib?.fields?.['item_modelo']?.fontSize) || itemFontSize,
+      offsetX: (calib?.fields?.['item_modelo']?.offsetX) || 0, 
+      offsetY: (calib?.fields?.['item_modelo']?.offsetY) || 0,
+      widthFrac: Number(calib?.fields?.['item_modelo']?.widthFrac) || 0,
+      heightFrac: Number(calib?.fields?.['item_modelo']?.heightFrac) || 0,
+      bold: (calib?.fields?.['item_modelo']?.bold) || false,
+      justify: (calib?.fields?.['item_modelo']?.justify) || false
+    };
+    
+    const baseCoordDesc = { 
+      x: descripcionX, 
+      y: yPerc, 
+      anchor: (calib?.fields?.['item_descripcion']?.anchor) || 'left', 
+      vAnchor: (calib?.fields?.['item_descripcion']?.vAnchor) || 'baseline', 
+      fontSize: Number(calib?.fields?.['item_descripcion']?.fontSize) || itemFontSize,
+      offsetX: (calib?.fields?.['item_descripcion']?.offsetX) || 0, 
+      offsetY: (calib?.fields?.['item_descripcion']?.offsetY) || 0,
+      widthFrac: Number(calib?.fields?.['item_descripcion']?.widthFrac) || 0,
+      heightFrac: Number(calib?.fields?.['item_descripcion']?.heightFrac) || 0,
+      bold: (calib?.fields?.['item_descripcion']?.bold) || false,
+      justify: (calib?.fields?.['item_descripcion']?.justify) || false // ✅ Justificado para descripciones
+    };
+    
+    const baseCoordPrecio = { 
+      x: precioX, 
+      y: yPerc, 
+      anchor: (calib?.fields?.['item_precio']?.anchor) || 'center', 
+      vAnchor: (calib?.fields?.['item_precio']?.vAnchor) || 'center', 
+      fontSize: Number(calib?.fields?.['item_precio']?.fontSize) || itemFontSize,
+      offsetX: (calib?.fields?.['item_precio']?.offsetX) || 0, 
+      offsetY: (calib?.fields?.['item_precio']?.offsetY) || 0,
+      widthFrac: Number(calib?.fields?.['item_precio']?.widthFrac) || 0,
+      heightFrac: Number(calib?.fields?.['item_precio']?.heightFrac) || 0,
+      bold: (calib?.fields?.['item_precio']?.bold) || false,
+      justify: false
+    };
+    
+    const baseCoordCant = { 
+      x: cantX, 
+      y: yPerc, 
+      anchor: (calib?.fields?.['item_cant']?.anchor) || 'left', 
+      vAnchor: (calib?.fields?.['item_cant']?.vAnchor) || 'baseline', 
+      fontSize: Number(calib?.fields?.['item_cant']?.fontSize) || itemFontSize,
+      offsetX: (calib?.fields?.['item_cant']?.offsetX) || 0, 
+      offsetY: (calib?.fields?.['item_cant']?.offsetY) || 0,
+      widthFrac: Number(calib?.fields?.['item_cant']?.widthFrac) || 0,
+      heightFrac: Number(calib?.fields?.['item_cant']?.heightFrac) || 0,
+      bold: (calib?.fields?.['item_cant']?.bold) || false,
+      justify: false
+    };
+    
+    const baseCoordSubtotal = { 
+      x: subtotalX, 
+      y: yPerc, 
+      anchor: (calib?.fields?.['item_subtotal']?.anchor) || 'center', 
+      vAnchor: (calib?.fields?.['item_subtotal']?.vAnchor) || 'center', 
+      fontSize: Number(calib?.fields?.['item_subtotal']?.fontSize) || itemFontSize,
+      offsetX: (calib?.fields?.['item_subtotal']?.offsetX) || 0, 
+      offsetY: (calib?.fields?.['item_subtotal']?.offsetY) || 0,
+      widthFrac: Number(calib?.fields?.['item_subtotal']?.widthFrac) || 0,
+      heightFrac: Number(calib?.fields?.['item_subtotal']?.heightFrac) || 0,
+      bold: (calib?.fields?.['item_subtotal']?.bold) || false,
+      justify: false
+    };
+
+    // ⭐ Los valores ya vienen formateados con USD desde data.items
+      drawTextWithAnchor(items[i].modelo || '', baseCoordModelo, { debug: options.debug, label: 'item_modelo' });
+      drawTextWithAnchor(items[i].descripcion || '', baseCoordDesc, { debug: options.debug, label: 'item_descripcion' });
+      drawTextWithAnchor(items[i].precio || '', baseCoordPrecio, { debug: options.debug, label: 'item_precio' });
+      drawTextWithAnchor(items[i].cant || '1', baseCoordCant, { debug: options.debug, label: 'item_cant' });
+      drawTextWithAnchor(items[i].subtotal || '', baseCoordSubtotal, { debug: options.debug, label: 'item_subtotal' });
+    }
+
+  const pdfBytes = await pdfDoc.save();
+  return pdfBytes;
+}
+
+app.post('/preview', async (req, res) => {
+  try {
+    const templateName = safeName(req.body.template);
+    if (!templateName) return res.status(400).send('Falta template en body');
+    const debug = Boolean(req.body.debug);
+    const pdfBuf = await generatePdfBuffer(templateName, req.body, { debug });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'inline; filename=preview.pdf');
+    res.send(Buffer.from(pdfBuf));
+  } catch (e) {
+    console.error('❌ Error en /preview', e);
+    res.status(500).send('Error generando preview: ' + e.message);
+  }
+});
+
+app.post('/generate', async (req, res) => {
+  try {
+    const templateName = safeName(req.body.template);
+    if (!templateName) return res.status(400).send('Falta template en body');
+    const debug = Boolean(req.body.debug);
+    const pdfBuf = await generatePdfBuffer(templateName, req.body, { debug });
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', 'attachment; filename=cotizacion_generada.pdf');
+    res.send(Buffer.from(pdfBuf));
+  } catch (e) {
+    console.error('❌ Error en /generate', e);
+    res.status(500).send('Error generando PDF: ' + e.message);
+  }
+});
+
+// ============================================
+// SERVER START
+// ============================================
+
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, async () => {
+  console.log(`🚀 Server corriendo en http://localhost:${PORT}`);
+  console.log('📊 Conectado a PostgreSQL con Prisma');
+  
+  try {
+    const clientCount = await prisma.client.count();
+    const productCount = await prisma.product.count();
+    
+    if (clientCount === 0) {
+      await prisma.client.createMany({
+        data: [
+          { name: 'Juan Pérez', company: 'Acme Corp', phone: '555-0001', email: 'juan@acme.com', estado: 'CDMX' },
+          { name: 'María García', company: 'Tech Solutions', phone: '555-0002', email: 'maria@tech.com', estado: 'Jalisco' },
+          { name: 'Carlos López', company: 'Industrias XYZ', phone: '555-0003', email: 'carlos@xyz.com', estado: 'Nuevo León' }
+        ]
+      });
+      console.log('✅ Clientes de demo creados');
+    }
+    
+    if (productCount === 0) {
+      await prisma.product.createMany({
+        data: [
+          { model: 'RM-042-220', description: 'Regulador 4 kVA', price: 987.36, currency: 'USD' },
+          { model: 'RM-100-240', description: 'Regulador 10 kVA', price: 1850.00, currency: 'USD' },
+          { model: 'UPS-500', description: 'UPS 500VA', price: 450.00, currency: 'USD' },
+          { model: 'UPS-1000', description: 'UPS 1000VA', price: 780.00, currency: 'USD' },
+          { model: 'ESTABILIZADOR-5KVA', description: 'Estabilizador 5 kVA', price: 1200.00, currency: 'USD' }
+        ]
+      });
+      console.log('✅ Productos de demo creados');
+    }
+    
+    console.log(`📦 Clientes: ${clientCount === 0 ? 3 : clientCount}`);
+    console.log(`📦 Productos: ${productCount === 0 ? 5 : productCount}`);
+  } catch (e) {
+    console.error('⚠️ Error en seed inicial:', e.message);
+  }
+});
+
+process.on('SIGINT', async () => {
+  await prisma.$disconnect();
+  process.exit(0);
+});
+
+// DEBUG: Verificar calibración
+app.get('/api/debug/calibration/:template', (req, res) => {
+  try {
+    const templateName = req.params.template;
+    const safe = safeName(templateName);
+    
+    console.log('🔍 DEBUG CALIBRACIÓN:');
+    console.log('  Template solicitado:', templateName);
+    console.log('  Template safe:', safe);
+    
+    const templatePath = path.join(TEMPLATES_DIR, safe);
+    const calibPath = path.join(CALIB_DIR, safe + '.json');
+    
+    console.log('  Template path:', templatePath);
+    console.log('  Calibración path:', calibPath);
+    console.log('  Template existe:', fs.existsSync(templatePath));
+    console.log('  Calibración existe:', fs.existsSync(calibPath));
+    
+    if (!fs.existsSync(calibPath)) {
+      return res.json({
+        ok: false,
+        error: 'Calibración no encontrada',
+        paths: {
+          template: templatePath,
+          calibration: calibPath,
+          templateExists: fs.existsSync(templatePath),
+          calibrationExists: false
+        }
+      });
+    }
+    
+    const calib = loadCalibrationForTemplate(safe);
+    
+    res.json({
+      ok: true,
+      template: safe,
+      calibration: calib,
+      paths: {
+        template: templatePath,
+        calibration: calibPath,
+        templateExists: fs.existsSync(templatePath),
+        calibrationExists: fs.existsSync(calibPath)
+      },
+      fieldsCount: Object.keys(calib.fields || {}).length
+    });
+    
+  } catch (e) {
+    res.status(500).json({
+      ok: false,
+      error: e.message,
+      stack: e.stack
+    });
+  }
+});

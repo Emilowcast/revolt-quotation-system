@@ -1,0 +1,1890 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Detalle de Cotización - REVOLT SGAC</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --revolt-red: #F62E41;
+      --revolt-dark: #1a1a1a;
+    }
+
+    body {
+      /* 🎨 OPCIÓN 2: Degradado de negro a rojo intenso */
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 30%, #d41f33 70%, #F62E41 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar {
+      background: var(--revolt-dark) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .navbar-brand {
+      font-weight: bold;
+      color: var(--revolt-red) !important;
+      font-size: 1.5rem;
+    }
+
+    .nav-link {
+      color: rgba(255,255,255,0.8) !important;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-link:hover {
+      color: var(--revolt-red) !important;
+    }
+
+    .container-main {
+      max-width: 1600px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    /* ⭐ HEADER WITH ACTIONS */
+    .page-header-actions {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(246, 46, 65, 0.3);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .page-header-info h1 {
+      color: var(--revolt-red);
+      font-weight: bold;
+      font-size: 2rem;
+      margin: 0 0 5px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .page-header-info p {
+      color: #666;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .actions-toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ⭐ GRID LAYOUT */
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 450px;
+      gap: 30px;
+      align-items: start;
+    }
+
+    /* ⭐ CARDS */
+    .detail-card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .card-header-custom {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid #f0f0f0;
+    }
+
+    .card-icon-custom {
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      color: white;
+      box-shadow: 0 4px 12px rgba(246, 46, 65, 0.3);
+    }
+
+    .card-title-custom {
+      flex: 1;
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--revolt-dark);
+      margin: 0;
+    }
+
+    /* ⭐ INFO ROWS */
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.2s;
+    }
+
+    .info-row:hover {
+      background: #f8f9fa;
+    }
+
+    .info-row:last-child {
+      border-bottom: none;
+    }
+
+    .info-label {
+      font-weight: 600;
+      color: #666;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .info-value {
+      font-weight: 600;
+      color: var(--revolt-dark);
+      font-size: 1rem;
+      text-align: right;
+    }
+
+    /* ⭐ BADGES */
+    .badge-custom {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 8px 14px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.3px;
+    }
+
+    .badge-vigente {
+      background: linear-gradient(to right, #d1fae5, #a7f3d0);
+      color: #065f46;
+    }
+
+    .badge-convertida {
+      background: linear-gradient(to right, #dbeafe, #bfdbfe);
+      color: #1e40af;
+    }
+
+    .badge-vencida {
+      background: linear-gradient(to right, #fef3c7, #fde68a);
+      color: #92400e;
+    }
+
+    /* ⭐ TABLE */
+    .table-modern {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-top: 20px;
+    }
+
+    .table-modern thead {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+    }
+
+    .table-modern thead th {
+      border: none;
+      font-weight: 600;
+      padding: 14px 12px;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+
+    .table-modern tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.2s;
+    }
+
+    .table-modern tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    .table-modern tbody td {
+      padding: 12px;
+      vertical-align: middle;
+    }
+
+    /* ⭐ TOTALS */
+    .totals-section {
+      background: linear-gradient(135deg, #fff5f7, #ffffff);
+      border: 2px solid #fecaca;
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 25px;
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      font-size: 1rem;
+    }
+
+    .totals-row:last-child {
+      margin-bottom: 0;
+      padding-top: 15px;
+      border-top: 3px solid var(--revolt-red);
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .totals-label {
+      color: #666;
+      font-weight: 600;
+    }
+
+    .totals-value {
+      font-weight: 700;
+      color: var(--revolt-dark);
+    }
+
+    .totals-value.highlight {
+      color: var(--revolt-red);
+      font-size: 1.5rem;
+    }
+
+    /* ⭐ TIMELINE */
+    .timeline {
+      position: relative;
+      padding-left: 35px;
+    }
+
+    .timeline::before {
+      content: '';
+      position: absolute;
+      left: 13px;
+      top: 0;
+      bottom: 0;
+      width: 3px;
+      background: linear-gradient(180deg, var(--revolt-red), #f299a9);
+      border-radius: 2px;
+    }
+
+    .timeline-item {
+      position: relative;
+      padding-bottom: 30px;
+    }
+
+    .timeline-item:last-child {
+      padding-bottom: 0;
+    }
+
+    .timeline-dot {
+      position: absolute;
+      left: -22px;
+      top: 5px;
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      background: white;
+      border: 3px solid var(--revolt-red);
+      z-index: 2;
+      box-shadow: 0 2px 8px rgba(246, 46, 65, 0.3);
+    }
+
+    .timeline-dot.created {
+      background: #10b981;
+      border-color: #10b981;
+    }
+
+    .timeline-dot.note {
+      background: #3b82f6;
+      border-color: #3b82f6;
+    }
+
+    .timeline-dot.converted {
+      background: #f59e0b;
+      border-color: #f59e0b;
+    }
+
+    .timeline-dot.sent {
+      background: #8b5cf6;
+      border-color: #8b5cf6;
+    }
+
+    .timeline-content {
+      background: white;
+      padding: 18px;
+      border-radius: 12px;
+      border: 2px solid #f0f0f0;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: all 0.3s;
+    }
+
+    .timeline-content:hover {
+      border-color: var(--revolt-red);
+      box-shadow: 0 4px 15px rgba(246, 46, 65, 0.15);
+      transform: translateX(2px);
+    }
+
+    .timeline-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+      letter-spacing: 0.5px;
+    }
+
+    .timeline-type.created {
+      background: linear-gradient(135deg, #10b981, #059669);
+    }
+
+    .timeline-type.note {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+    }
+
+    .timeline-type.converted {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+    }
+
+    .timeline-type.sent {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    }
+
+    .timeline-description {
+      font-size: 0.95rem;
+      color: var(--revolt-dark);
+      margin-bottom: 10px;
+      line-height: 1.5;
+    }
+
+    .timeline-meta {
+      font-size: 0.85rem;
+      color: #999;
+      display: flex;
+      gap: 15px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    /* ⭐ EMPTY STATE */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-state i {
+      font-size: 4rem;
+      color: #d1d5db;
+      margin-bottom: 15px;
+      display: block;
+    }
+
+    .empty-state h4 {
+      color: var(--revolt-dark);
+      font-size: 1.2rem;
+      margin-bottom: 8px;
+      font-weight: 600;
+    }
+
+    .empty-state p {
+      color: #666;
+      margin: 0;
+    }
+
+    /* ⭐ BOTONES */
+    .btn-revolt {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(246, 46, 65, 0.3);
+    }
+
+    .btn-revolt:hover:not(:disabled) {
+      background: linear-gradient(135deg, #d41f33, #b81b2a);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(246, 46, 65, 0.4);
+    }
+
+    .btn-revolt:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary-custom {
+      background: white;
+      color: var(--revolt-dark);
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 9px 18px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-secondary-custom:hover {
+      background: #f8f9fa;
+      border-color: var(--revolt-red);
+      color: var(--revolt-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-success:hover:not(:disabled) {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-info {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-info:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    .btn-purple {
+      background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+    }
+
+    .btn-purple:hover {
+      background: linear-gradient(135deg, #7c3aed, #6d28d9);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(139, 92, 246, 0.4);
+    }
+
+    /* ⭐ DROPDOWN */
+    .dropdown-custom {
+      position: relative;
+      display: inline-block;
+    }
+
+    .dropdown-menu-custom {
+      display: none;
+      position: absolute;
+      top: 100%;
+      right: 0;
+      background: white;
+      min-width: 250px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      border-radius: 12px;
+      z-index: 1000;
+      margin-top: 8px;
+      border: 2px solid #f0f0f0;
+      overflow: hidden;
+    }
+
+    .dropdown-custom.show .dropdown-menu-custom {
+      display: block;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .dropdown-item-custom {
+      padding: 14px 18px;
+      cursor: pointer;
+      border-bottom: 1px solid #f0f0f0;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      transition: all 0.2s;
+      color: var(--revolt-dark);
+      font-weight: 500;
+    }
+
+    .dropdown-item-custom:last-child {
+      border-bottom: none;
+    }
+
+    .dropdown-item-custom:hover {
+      background: linear-gradient(to right, #fff5f7, #ffffff);
+      color: var(--revolt-red);
+    }
+
+    /* ⭐ MODALES */
+    .custom-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .custom-modal-overlay.show {
+      display: flex;
+    }
+
+    .custom-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 650px;
+      width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .custom-modal-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 2px solid #f0f0f0;
+    }
+
+    .custom-modal-header h3 {
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--revolt-dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .btn-close-custom {
+      background: none;
+      border: none;
+      font-size: 1.8rem;
+      cursor: pointer;
+      color: #999;
+      padding: 0;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      border-radius: 50%;
+      transition: all 0.2s;
+    }
+
+    .btn-close-custom:hover {
+      background: #f8f9fa;
+      color: var(--revolt-dark);
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    .form-group label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.95rem;
+      color: var(--revolt-dark);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .form-group input,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: var(--revolt-red);
+      box-shadow: 0 0 0 0.25rem rgba(246, 46, 65, 0.15);
+    }
+
+    .form-group textarea {
+      resize: vertical;
+      min-height: 120px;
+    }
+
+    .form-group input[readonly] {
+      background: #f8f9fa;
+      cursor: not-allowed;
+    }
+
+    .form-group small {
+      display: block;
+      margin-top: 6px;
+      color: #666;
+      font-size: 0.85rem;
+    }
+
+    .info-box-custom {
+      background: linear-gradient(to right, #f0f9ff, #e0f2fe);
+      border: 2px solid #bae6fd;
+      border-radius: 12px;
+      padding: 18px;
+      margin-top: 20px;
+    }
+
+    .info-box-custom strong {
+      color: #0369a1;
+      font-size: 0.95rem;
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .info-box-custom ul {
+      margin: 0;
+      padding-left: 25px;
+      color: #075985;
+    }
+
+    .info-box-custom li {
+      margin-bottom: 6px;
+      line-height: 1.5;
+    }
+
+    /* ⭐ LOADING SPINNER */
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ⭐ TOAST */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .toast {
+      min-width: 350px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-left: 5px solid var(--revolt-red);
+      background: white;
+      padding: 18px 22px;
+      margin-bottom: 12px;
+      animation: slideIn 0.3s ease;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .toast.success {
+      border-left-color: #10b981;
+    }
+
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+
+    .toast.info {
+      border-left-color: #3b82f6;
+    }
+
+    .toast.warning {
+      border-left-color: #f59e0b;
+    }
+
+    /* ⭐ PREVIEW MODAL */
+    .preview-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.8);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .preview-modal.show {
+      display: flex;
+    }
+
+    .preview-modal-content {
+      background: white;
+      border-radius: 16px;
+      width: 95%;
+      max-width: 1400px;
+      height: 90vh;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .preview-header {
+      padding: 20px 25px;
+      border-bottom: 2px solid #f0f0f0;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      border-radius: 16px 16px 0 0;
+    }
+
+    .preview-header h3 {
+      margin: 0;
+      font-size: 1.3rem;
+      color: var(--revolt-red);
+      font-weight: bold;
+    }
+
+    .preview-iframe-container {
+      flex: 1;
+      background: #525659;
+      overflow: hidden;
+    }
+
+    .preview-iframe-container iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+
+    .preview-footer {
+      padding: 20px 25px;
+      border-top: 2px solid #f0f0f0;
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+      background: white;
+      border-radius: 0 0 16px 16px;
+    }
+
+    @media (max-width: 1200px) {
+      .detail-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .page-header-actions {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .actions-toolbar {
+        width: 100%;
+        justify-content: flex-start;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .page-header-info h1 {
+        font-size: 1.5rem;
+      }
+
+      .detail-card {
+        padding: 20px;
+      }
+
+      .table-modern {
+        font-size: 0.85rem;
+      }
+
+      .table-modern thead th,
+      .table-modern tbody td {
+        padding: 10px 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard.html">
+        <i class="bi bi-lightning-charge-fill"></i> REVOLT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard.html">
+              <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link active" href="/quotes_history.html">
+              <i class="bi bi-clock-history"></i> Historial
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/new_quote.html">
+              <i class="bi bi-file-earmark-plus"></i> Nueva Cotización
+            </a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="window.history.back()">
+              <i class="bi bi-arrow-left"></i> Volver
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container-main">
+    <!-- Header with Actions -->
+    <div class="page-header-actions">
+      <div class="page-header-info">
+        <h1 id="pageTitle">
+          <i class="bi bi-file-earmark-text"></i>
+          Detalle de Cotización
+        </h1>
+        <p id="pageSubtitle">Cargando...</p>
+      </div>
+
+      <div class="actions-toolbar">
+        <button class="btn-secondary-custom" onclick="window.location.href='/quotes_history.html'">
+          <i class="bi bi-arrow-left"></i>
+          Volver
+        </button>
+        
+        <button class="btn-info" id="btnPreviewPDF">
+          <i class="bi bi-eye"></i>
+          Vista Previa
+        </button>
+
+        <button class="btn-purple" onclick="editQuote()">
+          <i class="bi bi-pencil"></i>
+          Editar
+        </button>
+
+        <!-- Dropdown Email -->
+        <div class="dropdown-custom" id="emailDropdown">
+          <button class="btn-success" id="btnEmailMenu">
+            <i class="bi bi-envelope"></i>
+            Enviar Email
+            <i class="bi bi-chevron-down" style="font-size:0.8rem;"></i>
+          </button>
+          <div class="dropdown-menu-custom">
+            <div class="dropdown-item-custom" onclick="sendEmailDirect()">
+              <i class="bi bi-send-fill"></i>
+              Envío Directo (Automático)
+            </div>
+            <div class="dropdown-item-custom" onclick="sendEmailManual()">
+              <i class="bi bi-google"></i>
+              Abrir Gmail (Manual)
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-success" id="btnSendWhatsApp">
+          <i class="bi bi-whatsapp"></i>
+          WhatsApp
+        </button>
+
+        <button class="btn-revolt" id="btnAddNote">
+          <i class="bi bi-journal-plus"></i>
+          Agregar Nota
+        </button>
+      </div>
+    </div>
+
+    <!-- Grid Layout -->
+    <div class="detail-grid">
+      <!-- Columna Principal -->
+      <div>
+        <!-- Información General -->
+        <div class="detail-card">
+          <div class="card-header-custom">
+            <div class="card-icon-custom">
+              <i class="bi bi-info-circle"></i>
+            </div>
+            <h3 class="card-title-custom">Información General</h3>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-hash"></i>
+              Folio
+            </span>
+            <span class="info-value" id="infoFolio">-</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-calendar-event"></i>
+              Fecha
+            </span>
+            <span class="info-value" id="infoFecha">-</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-tag"></i>
+              Estado
+            </span>
+            <span id="infoEstado">-</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-currency-dollar"></i>
+              Total
+            </span>
+            <span class="info-value" id="infoTotal">-</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-cash-coin"></i>
+              Total MXN
+            </span>
+            <span class="info-value" id="infoTotalMXN">-</span>
+          </div>
+        </div>
+
+        <!-- Condiciones Comerciales -->
+        <div class="detail-card" id="cardCondiciones" style="display:none;">
+          <div class="card-header-custom">
+            <div class="card-icon-custom">
+              <i class="bi bi-clipboard-check"></i>
+            </div>
+            <h3 class="card-title-custom">Condiciones Comerciales</h3>
+          </div>
+
+          <div class="info-row" id="rowTiempoEntrega" style="display:none;">
+            <span class="info-label">
+              <i class="bi bi-clock-history"></i>
+              Tiempo de Entrega
+            </span>
+            <span class="info-value" id="infoTiempoEntrega">-</span>
+          </div>
+
+          <div class="info-row" id="rowFormaPago" style="display:none;">
+            <span class="info-label">
+              <i class="bi bi-credit-card"></i>
+              Forma de Pago
+            </span>
+            <span class="info-value" id="infoFormaPago">-</span>
+          </div>
+
+          <div id="noCondiciones" style="display:none;padding:25px;text-align:center;">
+            <i class="bi bi-exclamation-circle" style="font-size:2rem;color:#d1d5db;margin-bottom:10px;display:block;"></i>
+            <p style="color:#666;margin:0;">Sin condiciones comerciales especificadas</p>
+          </div>
+        </div>
+
+        <!-- Cliente -->
+        <div class="detail-card">
+          <div class="card-header-custom">
+            <div class="card-icon-custom">
+              <i class="bi bi-person"></i>
+            </div>
+            <h3 class="card-title-custom">Cliente</h3>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-person-badge"></i>
+              Nombre
+            </span>
+            <span class="info-value" id="clientNombre">-</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-building"></i>
+              Empresa
+            </span>
+            <span class="info-value" id="clientEmpresa">-</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-envelope"></i>
+              Email
+            </span>
+            <span class="info-value" id="clientEmail">-</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-telephone"></i>
+              Teléfono
+            </span>
+            <span class="info-value" id="clientTelefono">-</span>
+          </div>
+
+          <div class="info-row">
+            <span class="info-label">
+              <i class="bi bi-geo-alt"></i>
+              Estado
+            </span>
+            <span class="info-value" id="clientEstado">-</span>
+          </div>
+        </div>
+
+        <!-- Productos/Servicios -->
+        <div class="detail-card">
+          <div class="card-header-custom">
+            <div class="card-icon-custom">
+              <i class="bi bi-box-seam"></i>
+            </div>
+            <h3 class="card-title-custom">Productos/Servicios</h3>
+          </div>
+
+          <table class="table-modern">
+            <thead>
+              <tr>
+                <th style="width:20%;">Modelo</th>
+                <th style="width:35%;">Descripción</th>
+                <th style="width:15%;text-align:right;">Precio</th>
+                <th style="width:10%;text-align:right;">Cant.</th>
+                <th style="width:20%;text-align:right;">Subtotal</th>
+              </tr>
+            </thead>
+            <tbody id="itemsBody"></tbody>
+          </table>
+
+          <div class="totals-section">
+            <div class="totals-row">
+              <span class="totals-label">Subtotal:</span>
+              <span class="totals-value" id="displaySubtotal">$0.00</span>
+            </div>
+            
+            <div class="totals-row">
+              <span class="totals-label">Descuento:</span>
+              <span class="totals-value" id="displayDiscount">-$0.00</span>
+            </div>
+            
+            <div class="totals-row">
+              <span class="totals-label">Impuesto:</span>
+              <span class="totals-value" id="displayTax">$0.00</span>
+            </div>
+            
+            <div class="totals-row">
+              <span class="totals-label">TOTAL:</span>
+              <span class="totals-value highlight" id="displayTotal">$0.00</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Sidebar -->
+      <div>
+        <!-- Timeline -->
+        <div class="detail-card">
+          <div class="card-header-custom">
+            <div class="card-icon-custom">
+              <i class="bi bi-clock-history"></i>
+            </div>
+            <h3 class="card-title-custom">Historial</h3>
+          </div>
+
+          <div id="timelineContainer">
+            <div class="empty-state">
+              <i class="bi bi-hourglass-split"></i>
+              <h4>Cargando actividades...</h4>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Agregar Nota -->
+  <div id="noteModal" class="custom-modal-overlay">
+    <div class="custom-modal">
+      <div class="custom-modal-header">
+        <h3>
+          <i class="bi bi-journal-plus"></i>
+          Agregar Nota
+        </h3>
+        <button class="btn-close-custom" onclick="closeNoteModal()">×</button>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="bi bi-pencil"></i>
+          Escribe tu nota
+        </label>
+        <textarea id="noteInput" placeholder="Ej: Cliente solicitó modificaciones en la cotización..."></textarea>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:25px;">
+        <button class="btn-secondary-custom" onclick="closeNoteModal()" style="flex:1;">
+          <i class="bi bi-x-lg"></i>
+          Cancelar
+        </button>
+        <button class="btn-revolt" id="btnSaveNote" style="flex:1;">
+          <i class="bi bi-check-lg"></i>
+          Guardar Nota
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Enviar Email -->
+  <div id="emailModal" class="custom-modal-overlay">
+    <div class="custom-modal">
+      <div class="custom-modal-header">
+        <h3>
+          <i class="bi bi-envelope"></i>
+          Enviar Cotización por Email
+        </h3>
+        <button class="btn-close-custom" onclick="closeEmailModal()">×</button>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="bi bi-person-check"></i>
+          Para (destinatario principal):
+        </label>
+        <input type="email" id="emailTo" readonly placeholder="correo@cliente.com" />
+        <small>
+          <i class="bi bi-info-circle"></i>
+          Este es el email del cliente registrado
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="bi bi-paperclip"></i>
+          CC - Con Copia (opcional):
+        </label>
+        <input type="text" id="emailCC" placeholder="gerente@empresa.com, compras@empresa.com" />
+        <small>
+          <i class="bi bi-lightbulb"></i>
+          Separa múltiples correos con comas
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="bi bi-lock"></i>
+          CCO - Copia Oculta (opcional):
+        </label>
+        <input type="text" id="emailBCC" placeholder="vendedor@revolt.com" />
+        <small>
+          <i class="bi bi-shield-check"></i>
+          Estos destinatarios no serán visibles para otros
+        </small>
+      </div>
+
+      <div class="form-group">
+        <label>
+          <i class="bi bi-chat-text"></i>
+          Mensaje personalizado (opcional):
+        </label>
+        <textarea id="emailMessage" rows="4" placeholder="Estimado cliente, adjunto la cotización solicitada..."></textarea>
+        <small>
+          <i class="bi bi-info-circle"></i>
+          Si está vacío, se usará el mensaje predeterminado
+        </small>
+      </div>
+
+      <div class="info-box-custom">
+        <strong>
+          <i class="bi bi-file-pdf"></i>
+          Se adjuntará:
+        </strong>
+        <ul>
+          <li>PDF de la cotización con todos los detalles</li>
+          <li>Condiciones comerciales incluidas</li>
+        </ul>
+      </div>
+
+      <div style="display:flex;gap:12px;margin-top:25px;">
+        <button class="btn-secondary-custom" onclick="closeEmailModal()">
+          <i class="bi bi-x-lg"></i>
+          Cancelar
+        </button>
+        <button class="btn-success" id="btnConfirmSendEmail" style="flex:1;">
+          <i class="bi bi-send" id="sendEmailIcon"></i>
+          <span id="sendEmailText">Enviar Email</span>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Vista Previa PDF -->
+  <div id="previewModal" class="preview-modal">
+    <div class="preview-modal-content">
+      <div class="preview-header">
+        <h3>
+          <i class="bi bi-eye"></i>
+          Vista Previa - Cotización <span id="previewFolio">-</span>
+        </h3>
+        <div style="display:flex;gap:10px;">
+          <button class="btn-info" onclick="toggleFullscreen()">
+            <i class="bi bi-fullscreen"></i>
+            Pantalla Completa
+          </button>
+          <button class="btn-close-custom" onclick="closePreviewModal()" style="width:auto;padding:0 15px;">
+            ×
+          </button>
+        </div>
+      </div>
+
+      <div class="preview-iframe-container">
+        <iframe id="previewPDFFrame" src=""></iframe>
+      </div>
+
+      <div class="preview-footer">
+        <button class="btn-secondary-custom" onclick="closePreviewModal()">
+          <i class="bi bi-x-lg"></i>
+          Cerrar
+        </button>
+        <button class="btn-info" onclick="downloadPDFFromPreview()">
+          <i class="bi bi-download"></i>
+          Descargar PDF
+        </button>
+        <button class="btn-success" onclick="openEmailModalFromPreview()">
+          <i class="bi bi-envelope"></i>
+          Enviar por Email
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    (async function(){
+      const fmt = n => '$' + Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+
+      function showToast(msg, type='success'){
+        const toastContainer = document.querySelector('.toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+        toast.innerHTML = `<strong>${icons[type]}</strong> ${msg}`;
+        toastContainer.appendChild(toast);
+        setTimeout(()=>toast.remove(),3500);
+      }
+
+      const params = new URLSearchParams(location.search);
+      const quoteId = params.get('id');
+
+      if(!quoteId) {
+        document.body.innerHTML = '<div style="text-align:center;padding:40px;"><h2>❌ Error: ID de cotización no especificado</h2><a href="/quotes_history.html">Volver</a></div>';
+        return;
+      }
+
+      let currentQuote = null;
+
+      // ⭐ DROPDOWN TOGGLE
+      document.getElementById('btnEmailMenu').onclick = (e) => {
+        e.stopPropagation();
+        document.getElementById('emailDropdown').classList.toggle('show');
+      };
+
+      document.addEventListener('click', () => {
+        document.getElementById('emailDropdown').classList.remove('show');
+      });
+
+      // ⭐ CARGAR COTIZACIÓN
+      async function loadQuote(){
+        try {
+          const r = await fetch(`/api/quotes/${quoteId}`);
+          if(!r.ok) throw new Error('Cotización no encontrada');
+
+          const js = await r.json();
+          currentQuote = js.quote;
+
+          document.getElementById('pageTitle').innerHTML = `<i class="bi bi-file-earmark-text"></i> Cotización ${currentQuote.folio}`;
+          document.getElementById('pageSubtitle').textContent = `Creada el ${new Date(currentQuote.createdAt).toLocaleDateString('es-MX', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+          })}`;
+
+          document.getElementById('infoFolio').textContent = currentQuote.folio;
+          document.getElementById('infoFecha').textContent = new Date(currentQuote.date).toLocaleDateString('es-MX');
+
+          const statusBadge = document.createElement('span');
+          statusBadge.className = `badge-custom badge-${currentQuote.status}`;
+          statusBadge.innerHTML = `<i class="bi bi-${currentQuote.status==='vigente'?'check-circle':currentQuote.status==='convertida'?'arrow-repeat':'clock'}"></i> ${currentQuote.status.toUpperCase()}`;
+          document.getElementById('infoEstado').innerHTML = '';
+          document.getElementById('infoEstado').appendChild(statusBadge);
+
+          document.getElementById('infoTotal').textContent = fmt(currentQuote.total) + ' ' + currentQuote.currency;
+          document.getElementById('infoTotalMXN').textContent = currentQuote.netMxn ? fmt(currentQuote.netMxn) + ' MXN' : 'N/A';
+
+          if(currentQuote.client) {
+            document.getElementById('clientNombre').textContent = currentQuote.client.name || 'N/A';
+            document.getElementById('clientEmpresa').textContent = currentQuote.client.company || 'N/A';
+            document.getElementById('clientEmail').textContent = currentQuote.client.email || 'N/A';
+            document.getElementById('clientTelefono').textContent = currentQuote.client.phone || 'N/A';
+            document.getElementById('clientEstado').textContent = currentQuote.client.estado || 'N/A';
+          }
+
+          const itemsBody = document.getElementById('itemsBody');
+          itemsBody.innerHTML = '';
+          currentQuote.items.forEach(item => {
+            const tr = document.createElement('tr');
+            tr.innerHTML = `
+              <td><strong>${item.modelo}</strong></td>
+              <td>${item.descripcion || 'Sin descripción'}</td>
+              <td style="text-align:right;font-weight:600;">${fmt(item.unitPrice)}</td>
+              <td style="text-align:right;font-weight:600;">${item.qty}</td>
+              <td style="text-align:right;font-weight:600;color:var(--revolt-red);">${fmt(item.subtotal)}</td>
+            `;
+            itemsBody.appendChild(tr);
+          });
+
+          let hayCondiciones = false;
+
+          if(currentQuote.tiempoEntrega) {
+            document.getElementById('infoTiempoEntrega').textContent = currentQuote.tiempoEntrega;
+            document.getElementById('rowTiempoEntrega').style.display = 'flex';
+            hayCondiciones = true;
+          }
+
+          if(currentQuote.formaPago) {
+            document.getElementById('infoFormaPago').textContent = currentQuote.formaPago;
+            document.getElementById('rowFormaPago').style.display = 'flex';
+            hayCondiciones = true;
+          }
+
+          if(hayCondiciones) {
+            document.getElementById('cardCondiciones').style.display = 'block';
+          } else {
+            document.getElementById('cardCondiciones').style.display = 'block';
+            document.getElementById('noCondiciones').style.display = 'block';
+          }
+
+          document.getElementById('displaySubtotal').textContent = fmt(currentQuote.subtotal);
+          document.getElementById('displayDiscount').textContent = '-' + fmt(currentQuote.discount);
+          document.getElementById('displayTax').textContent = fmt(currentQuote.tax);
+          document.getElementById('displayTotal').textContent = fmt(currentQuote.total);
+
+        } catch(e) {
+          showToast('Error cargando cotización: ' + e.message, 'error');
+        }
+      }
+
+      // ⭐ CARGAR ACTIVIDADES
+      async function loadActivities(){
+        try {
+          const r = await fetch(`/api/quotes/${quoteId}/activities`);
+          if(!r.ok) throw new Error('Error cargando actividades');
+
+          const js = await r.json();
+          const activities = js.activities || [];
+
+          const container = document.getElementById('timelineContainer');
+
+          if(activities.length === 0) {
+            container.innerHTML = `
+              <div class="empty-state">
+                <i class="bi bi-inbox"></i>
+                <h4>Sin actividades</h4>
+                <p>Las actividades aparecerán aquí</p>
+              </div>
+            `;
+            return;
+          }
+
+          const typeLabels = {
+            'quote_created': 'Creada',
+            'quote_converted': 'Convertida',
+            'quote_status_changed': 'Estado',
+            'quote_sent': 'Enviada',
+            'note_added': 'Nota'
+          };
+
+          const typeClasses = {
+            'quote_created': 'created',
+            'quote_converted': 'converted',
+            'quote_status_changed': 'status',
+            'quote_sent': 'sent',
+            'note_added': 'note'
+          };
+
+          container.innerHTML = `
+            <div class="timeline">
+              ${activities.map(a => `
+                <div class="timeline-item">
+                  <div class="timeline-dot ${typeClasses[a.type] || ''}"></div>
+                  <div class="timeline-content">
+                    <span class="timeline-type ${typeClasses[a.type] || ''}">
+                      <i class="bi bi-${a.type==='quote_created'?'plus-circle':a.type==='note_added'?'journal-text':a.type==='quote_sent'?'send':a.type==='quote_converted'?'arrow-repeat':'tag'}"></i>
+                      ${typeLabels[a.type] || a.type}
+                    </span>
+                    <div class="timeline-description">${a.description}</div>
+                    <div class="timeline-meta">
+                      <span><i class="bi bi-clock"></i> ${new Date(a.createdAt).toLocaleString('es-MX')}</span>
+                      ${a.user ? `<span><i class="bi bi-person"></i> ${a.user.name}</span>` : ''}
+                    </div>
+                  </div>
+                </div>
+              `).join('')}
+            </div>
+          `;
+
+        } catch(e) {
+          showToast('Error cargando actividades: ' + e.message, 'error');
+        }
+      }
+
+      // ⭐ ENVIAR EMAIL DIRECTO
+      window.sendEmailDirect = () => {
+        if(!currentQuote?.client?.email) {
+          showToast('El cliente no tiene email registrado', 'warning');
+          return;
+        }
+
+        document.getElementById('emailTo').value = currentQuote.client.email;
+        document.getElementById('emailCC').value = '';
+        document.getElementById('emailBCC').value = '';
+        document.getElementById('emailMessage').value = '';
+        document.getElementById('emailModal').classList.add('show');
+      };
+
+      window.closeEmailModal = () => {
+        document.getElementById('emailModal').classList.remove('show');
+      };
+
+      // ⭐ CONFIRMAR ENVÍO EMAIL
+      document.getElementById('btnConfirmSendEmail').onclick = async () => {
+        const btn = document.getElementById('btnConfirmSendEmail');
+        const icon = document.getElementById('sendEmailIcon');
+        const text = document.getElementById('sendEmailText');
+
+        const emailTo = document.getElementById('emailTo').value.trim();
+        const emailCC = document.getElementById('emailCC').value.trim();
+        const emailBCC = document.getElementById('emailBCC').value.trim();
+        const customMessage = document.getElementById('emailMessage').value.trim();
+
+        if (!emailTo) {
+          showToast('Debe haber un destinatario principal', 'error');
+          return;
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+        if (!emailRegex.test(emailTo)) {
+          showToast('Email principal inválido', 'error');
+          return;
+        }
+
+        if (emailCC) {
+          const ccEmails = emailCC.split(',').map(e => e.trim()).filter(e => e);
+          for (const email of ccEmails) {
+            if (!emailRegex.test(email)) {
+              showToast(`Email CC inválido: ${email}`, 'error');
+              return;
+            }
+          }
+        }
+
+        if (emailBCC) {
+          const bccEmails = emailBCC.split(',').map(e => e.trim()).filter(e => e);
+          for (const email of bccEmails) {
+            if (!emailRegex.test(email)) {
+              showToast(`Email CCO inválido: ${email}`, 'error');
+              return;
+            }
+          }
+        }
+
+        let confirmMsg = `¿Enviar cotización ${currentQuote.folio} por email?\n\nPara: ${emailTo}`;
+        if (emailCC) confirmMsg += `\nCC: ${emailCC}`;
+        if (emailBCC) confirmMsg += `\nCCO: ${emailBCC}`;
+
+        if (!confirm(confirmMsg)) {
+          return;
+        }
+
+        btn.disabled = true;
+        icon.className = 'loading-spinner';
+        text.textContent = 'Enviando...';
+
+        try {
+          const payload = {
+            customMessage: customMessage || undefined,
+            cc: emailCC || undefined,
+            bcc: emailBCC || undefined
+          };
+
+          const r = await fetch(`/api/quotes/${quoteId}/send-email`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+
+          if (!r.ok) {
+            const error = await r.json();
+            throw new Error(error.error || 'Error enviando email');
+          }
+
+          let successMsg = `Email enviado a ${emailTo}`;
+          if (emailCC) successMsg += ` (CC: ${emailCC})`;
+          if (emailBCC) successMsg += ` (CCO: ${emailBCC})`;
+
+          showToast(successMsg, 'success');
+          closeEmailModal();
+          await loadActivities();
+
+        } catch (e) {
+          showToast('Error: ' + e.message, 'error');
+        }
+
+        btn.disabled = false;
+        icon.className = 'bi bi-send';
+        text.textContent = 'Enviar Email';
+      };
+
+      // ⭐ ENVIAR EMAIL MANUAL (GMAIL)
+      window.sendEmailManual = async () => {
+        try {
+          showToast('Preparando email...', 'info');
+
+          const r = await fetch(`/api/quotes/${quoteId}/email-data`);
+          if(!r.ok) throw new Error('Error obteniendo datos del email');
+
+          const js = await r.json();
+          const { to, subject, body, pdfUrl } = js.data;
+
+          if(!to) {
+            showToast('El cliente no tiene email registrado', 'warning');
+            return;
+          }
+
+          const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(to)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+          window.open(gmailUrl, '_blank');
+
+          await fetch(`/api/quotes/${quoteId}/log-send`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+              method: 'email',
+              recipient: to
+            })
+          });
+
+          showToast('Gmail abierto. Descarga el PDF y adjúntalo manualmente.', 'success');
+
+          setTimeout(() => {
+            window.open(pdfUrl, '_blank');
+          }, 500);
+
+          await loadActivities();
+
+        } catch(e) {
+          showToast('Error: ' + e.message, 'error');
+        }
+      };
+
+      // ⭐ WHATSAPP
+      document.getElementById('btnSendWhatsApp').onclick = async () => {
+        try {
+          showToast('Preparando WhatsApp...', 'info');
+
+          const r = await fetch(`/api/quotes/${quoteId}/whatsapp-data`);
+          if(!r.ok) throw new Error('Error obteniendo datos de WhatsApp');
+
+          const js = await r.json();
+          const { phone, message, pdfUrl } = js.data;
+
+          if(!phone) {
+            showToast('El cliente no tiene teléfono registrado', 'warning');
+            return;
+          }
+
+          const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(message)}`;
+
+          window.open(whatsappUrl, '_blank');
+
+          await fetch(`/api/quotes/${quoteId}/log-send`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({
+              method: 'whatsapp',
+              recipient: phone
+            })
+          });
+
+          showToast('WhatsApp abierto. Descarga el PDF y envíalo manualmente.', 'success');
+
+          setTimeout(() => {
+            window.open(pdfUrl, '_blank');
+          }, 500);
+
+          await loadActivities();
+
+        } catch(e) {
+          showToast('Error: ' + e.message, 'error');
+        }
+      };
+
+      // ⭐ AGREGAR NOTA
+      document.getElementById('btnAddNote').onclick = () => {
+        document.getElementById('noteModal').classList.add('show');
+        document.getElementById('noteInput').value = '';
+        document.getElementById('noteInput').focus();
+      };
+
+      window.closeNoteModal = () => {
+        document.getElementById('noteModal').classList.remove('show');
+      };
+
+      document.getElementById('btnSaveNote').onclick = async () => {
+        const note = document.getElementById('noteInput').value.trim();
+
+        if(!note) {
+          showToast('La nota no puede estar vacía', 'warning');
+          return;
+        }
+
+        try {
+          const r = await fetch(`/api/quotes/${quoteId}/notes`, {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({ note })
+          });
+
+          if(!r.ok) throw new Error('Error guardando nota');
+
+          showToast('Nota agregada correctamente', 'success');
+          closeNoteModal();
+          await loadActivities();
+
+        } catch(e) {
+          showToast('Error guardando nota: ' + e.message, 'error');
+        }
+      };
+
+      // ⭐ EDITAR COTIZACIÓN
+      window.editQuote = () => {
+        if(!quoteId) {
+          showToast('Error: No se encontró el ID de la cotización', 'error');
+          return;
+        }
+        window.location.href = `/quote_edit.html?id=${quoteId}`;
+      };
+
+      // ⭐ VISTA PREVIA PDF
+      window.openPreviewModal = async () => {
+        if (!currentQuote) {
+          showToast('No hay cotización cargada', 'error');
+          return;
+        }
+
+        try {
+          const pdfUrl = `/api/quotes/${currentQuote.id}/pdf-preview`;
+
+          document.getElementById('previewPDFFrame').src = '';
+
+          setTimeout(() => {
+            document.getElementById('previewPDFFrame').src = pdfUrl;
+            document.getElementById('previewFolio').textContent = currentQuote.folio;
+            document.getElementById('previewModal').classList.add('show');
+            showToast('Vista previa cargada', 'success');
+          }, 100);
+
+        } catch (e) {
+          showToast('Error cargando vista previa: ' + e.message, 'error');
+        }
+      };
+
+      window.closePreviewModal = () => {
+        document.getElementById('previewModal').classList.remove('show');
+        document.getElementById('previewPDFFrame').src = '';
+
+        if (document.fullscreenElement) {
+          document.exitFullscreen();
+        }
+      };
+
+      window.toggleFullscreen = () => {
+        const modal = document.querySelector('.preview-modal-content');
+
+        if (!document.fullscreenElement) {
+          if (modal.requestFullscreen) {
+            modal.requestFullscreen();
+          }
+          showToast('Pantalla completa activada (ESC para salir)', 'info');
+        } else {
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          }
+          showToast('Pantalla completa desactivada', 'info');
+        }
+      };
+
+      window.downloadPDFFromPreview = () => {
+        if (!currentQuote) {
+          showToast('No hay cotización cargada', 'error');
+          return;
+        }
+
+        const downloadUrl = `/api/quotes/${currentQuote.id}/pdf-download`;
+        window.open(downloadUrl, '_blank');
+        showToast('Descargando PDF...', 'success');
+      };
+
+      window.openEmailModalFromPreview = () => {
+        closePreviewModal();
+        setTimeout(() => {
+          sendEmailDirect();
+        }, 300);
+      };
+
+      document.getElementById('btnPreviewPDF').onclick = openPreviewModal;
+
+      // ⭐ CERRAR MODALES CON ESC
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (document.getElementById('previewModal').classList.contains('show')) {
+            if (document.fullscreenElement) {
+              toggleFullscreen();
+            } else {
+              closePreviewModal();
+            }
+          }
+          if (document.getElementById('emailModal').classList.contains('show')) {
+            closeEmailModal();
+          }
+          if (document.getElementById('noteModal').classList.contains('show')) {
+            closeNoteModal();
+          }
+        }
+      });
+
+      // ⭐ INICIALIZAR
+      await loadQuote();
+      await loadActivities();
+      showToast('Cotización cargada', 'info');
+
+    })();
+  </script>
+</body>
+</html>

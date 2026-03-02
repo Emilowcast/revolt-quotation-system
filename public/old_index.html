@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Plantillas - REVOLT SGAC</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --revolt-red: #F62E41;
+      --revolt-dark: #1a1a1a;
+    }
+
+    body {
+      /* 🎨 OPCIÓN 2: Degradado de negro a rojo intenso */
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 30%, #d41f33 70%, #F62E41 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar {
+      background: var(--revolt-dark) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .navbar-brand {
+      font-weight: bold;
+      color: var(--revolt-red) !important;
+      font-size: 1.5rem;
+    }
+
+    .nav-link {
+      color: rgba(255,255,255,0.8) !important;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-link:hover {
+      color: var(--revolt-red) !important;
+    }
+
+    .nav-link.active {
+      color: var(--revolt-red) !important;
+      font-weight: 600;
+    }
+
+    .container-main {
+      max-width: 1400px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    /* ⭐ HEADER DE LA PÁGINA */
+    .page-header-secondary {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(246, 46, 65, 0.3);
+      margin-bottom: 30px;
+    }
+
+    .page-header-secondary h1 {
+      color: var(--revolt-red);
+      font-weight: bold;
+      font-size: 2rem;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .page-header-secondary p {
+      color: #666;
+      margin: 8px 0 0 0;
+      font-size: 0.95rem;
+    }
+
+    /* ⭐ SECCIÓN DE PLANTILLAS */
+    .templates-section {
+      background: white;
+      padding: 30px;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .section-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 25px;
+      padding-bottom: 20px;
+      border-bottom: 3px solid #f0f0f0;
+    }
+
+    .section-title {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 0;
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: var(--revolt-dark);
+    }
+
+    .section-title i {
+      color: var(--revolt-red);
+      font-size: 1.7rem;
+    }
+
+    .section-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    /* ⭐ TARJETAS DE PLANTILLAS */
+    .templates-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .template-card {
+      background: linear-gradient(to bottom, #fff, #fafafa);
+      border: 2px solid #e5e7eb;
+      border-radius: 15px;
+      padding: 20px;
+      transition: all 0.3s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .template-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 5px;
+      background: linear-gradient(90deg, var(--revolt-red), #d41f33);
+    }
+
+    .template-card:hover {
+      border-color: var(--revolt-red);
+      box-shadow: 0 8px 25px rgba(246, 46, 65, 0.2);
+      transform: translateY(-5px);
+    }
+
+    .template-header {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 15px;
+    }
+
+    .template-icon {
+      width: 60px;
+      height: 60px;
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+      font-weight: bold;
+      box-shadow: 0 4px 12px rgba(246, 46, 65, 0.3);
+    }
+
+    .template-info {
+      flex: 1;
+    }
+
+    .template-name {
+      font-size: 1.1rem;
+      font-weight: bold;
+      color: var(--revolt-dark);
+      margin: 0 0 5px 0;
+      word-break: break-word;
+    }
+
+    .template-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .template-status.calibrated {
+      background: linear-gradient(to right, #d1fae5, #a7f3d0);
+      color: #065f46;
+    }
+
+    .template-status.not-calibrated {
+      background: linear-gradient(to right, #fee2e2, #fecaca);
+      color: #991b1b;
+    }
+
+    .template-meta {
+      display: flex;
+      gap: 15px;
+      margin: 15px 0;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+    }
+
+    .template-meta-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      color: #666;
+    }
+
+    .template-meta-item i {
+      color: var(--revolt-red);
+    }
+
+    .template-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    /* ⭐ BOTONES */
+    .btn-revolt {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(246, 46, 65, 0.3);
+    }
+
+    .btn-revolt:hover {
+      background: linear-gradient(135deg, #d41f33, #b81b2a);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(246, 46, 65, 0.4);
+    }
+
+    .btn-revolt-outline {
+      background: white;
+      color: var(--revolt-dark);
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-revolt-outline:hover {
+      background: #f8f9fa;
+      border-color: var(--revolt-red);
+      color: var(--revolt-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-success {
+      background: linear-gradient(135deg, #10b981, #059669);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+    }
+
+    .btn-success:hover {
+      background: linear-gradient(135deg, #059669, #047857);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+    }
+
+    .btn-danger {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-danger:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-info {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 18px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+    }
+
+    .btn-info:hover {
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(59, 130, 246, 0.4);
+    }
+
+    /* ⭐ ESTADO VACÍO */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+    }
+
+    .empty-state i {
+      font-size: 5rem;
+      color: #d1d5db;
+      margin-bottom: 20px;
+    }
+
+    .empty-state h3 {
+      color: #6b7280;
+      font-size: 1.5rem;
+      margin-bottom: 10px;
+    }
+
+    .empty-state p {
+      color: #9ca3af;
+      margin-bottom: 25px;
+    }
+
+    /* ⭐ TOAST */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .toast {
+      min-width: 350px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-left: 5px solid var(--revolt-red);
+      background: white;
+      padding: 18px 22px;
+      margin-bottom: 12px;
+      animation: slideIn 0.3s ease;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .toast.success {
+      border-left-color: #10b981;
+    }
+
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+
+    .toast.warning {
+      border-left-color: #f59e0b;
+    }
+
+    .toast.info {
+      border-left-color: #3b82f6;
+    }
+
+    /* ⭐ MODAL PERSONALIZADO */
+    .custom-modal-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    .custom-modal {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .custom-modal-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .custom-modal-header i {
+      font-size: 2rem;
+      color: var(--revolt-red);
+    }
+
+    .custom-modal-header h3 {
+      margin: 0;
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: var(--revolt-dark);
+    }
+
+    .custom-modal-body {
+      margin-bottom: 25px;
+    }
+
+    .custom-modal-body p {
+      color: #666;
+      font-size: 1rem;
+      line-height: 1.6;
+      margin-bottom: 15px;
+    }
+
+    .custom-modal-footer {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    .loading {
+      display: inline-block;
+      width: 18px;
+      height: 18px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    @media (max-width: 768px) {
+      .page-header-secondary {
+        padding: 20px;
+      }
+
+      .page-header-secondary h1 {
+        font-size: 1.5rem;
+      }
+
+      .templates-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 15px;
+      }
+
+      .section-actions {
+        width: 100%;
+        flex-direction: column;
+      }
+
+      .section-actions button,
+      .section-actions a {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .template-actions {
+        flex-direction: column;
+      }
+
+      .template-actions button,
+      .template-actions a {
+        width: 100%;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard.html">
+        <i class="bi bi-lightning-charge-fill"></i> REVOLT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard.html">
+              <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/quotes_history.html">
+              <i class="bi bi-clock-history"></i> Historial
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/new_quote.html">
+              <i class="bi bi-file-earmark-plus"></i> Nueva Cotización
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/clients.html">
+              <i class="bi bi-people-fill"></i> Clientes
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/products.html">
+              <i class="bi bi-box-seam"></i> Productos
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/reports.html">
+              <i class="bi bi-graph-up"></i> Reportes
+            </a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="logout()">
+              <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container-main">
+    <!-- Header -->
+    <div class="page-header-secondary">
+      <div class="d-flex justify-content-between align-items-center flex-wrap gap-3">
+        <div>
+          <h1>
+            <i class="bi bi-file-pdf"></i>
+            Gestión de Plantillas
+          </h1>
+          <p>Administra las plantillas PDF para generar cotizaciones profesionales</p>
+        </div>
+        <div class="d-flex gap-2">
+          <a href="/upload.html" class="btn-success">
+            <i class="bi bi-cloud-upload"></i> Subir Plantilla
+          </a>
+          <a href="/dashboard.html" class="btn-revolt-outline">
+            <i class="bi bi-arrow-left"></i> Volver
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Sección de Plantillas -->
+    <div class="templates-section">
+      <div class="section-header">
+        <h2 class="section-title">
+          <i class="bi bi-folder"></i>
+          Plantillas Disponibles
+        </h2>
+        <div class="section-actions">
+          <button class="btn-revolt-outline" id="btnReload">
+            <i class="bi bi-arrow-clockwise"></i> Recargar
+          </button>
+          <a href="/upload.html" class="btn-success">
+            <i class="bi bi-cloud-upload"></i> Subir Nueva
+          </a>
+        </div>
+      </div>
+
+      <div id="templatesList" class="templates-grid">
+        <!-- Cards generadas por JS -->
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  
+  <script>
+    (async function(){
+      // ⭐ HELPERS
+      function showToast(msg, type='success'){
+        const toastContainer = document.querySelector('.toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+        toast.innerHTML = `<strong>${icons[type]}</strong> ${msg}`;
+        toastContainer.appendChild(toast);
+        setTimeout(()=>toast.remove(),3000);
+      }
+
+      // ⭐ MODAL DE CONFIRMACIÓN
+      function showConfirm(title, message) {
+        return new Promise((resolve) => {
+          const overlay = document.createElement('div');
+          overlay.className = 'custom-modal-overlay';
+          
+          overlay.innerHTML = `
+            <div class="custom-modal">
+              <div class="custom-modal-header">
+                <i class="bi bi-exclamation-triangle"></i>
+                <h3>${title}</h3>
+              </div>
+              <div class="custom-modal-body">
+                <p>${message}</p>
+              </div>
+              <div class="custom-modal-footer">
+                <button class="btn-revolt-outline" id="confirmCancel">
+                  <i class="bi bi-x-lg"></i> Cancelar
+                </button>
+                <button class="btn-danger" id="confirmOk">
+                  <i class="bi bi-check-lg"></i> Confirmar
+                </button>
+              </div>
+            </div>
+          `;
+          
+          document.body.appendChild(overlay);
+          
+          const btnOk = overlay.querySelector('#confirmOk');
+          const btnCancel = overlay.querySelector('#confirmCancel');
+          
+          const cleanup = () => {
+            overlay.remove();
+          };
+          
+          btnOk.onclick = () => {
+            cleanup();
+            resolve(true);
+          };
+          
+          btnCancel.onclick = () => {
+            cleanup();
+            resolve(false);
+          };
+          
+          overlay.onclick = (e) => {
+            if (e.target === overlay) {
+              btnCancel.click();
+            }
+          };
+        });
+      }
+
+      // ⭐ CARGAR PLANTILLAS
+      async function loadTemplates(){
+        const container = document.getElementById('templatesList');
+        container.innerHTML = '<div style="text-align:center;padding:40px;"><div class="loading" style="width:40px;height:40px;border-width:4px;"></div></div>';
+
+        try {
+          const r = await fetch('/api/templates');
+          if(!r.ok) throw new Error('Error cargando plantillas');
+          
+          const js = await r.json();
+          container.innerHTML = '';
+          
+          if(!js.templates || js.templates.length === 0){
+            container.innerHTML = `
+              <div class="empty-state">
+                <i class="bi bi-file-pdf"></i>
+                <h3>No hay plantillas</h3>
+                <p>Sube tu primera plantilla PDF para comenzar a generar cotizaciones profesionales</p>
+                <a href="/upload.html" class="btn-success">
+                  <i class="bi bi-cloud-upload"></i> Subir Primera Plantilla
+                </a>
+              </div>
+            `;
+            return;
+          }
+          
+          js.templates.forEach(t => {
+            const card = document.createElement('article');
+            card.className = 'template-card';
+            
+            const statusClass = t.calibrated ? 'calibrated' : 'not-calibrated';
+            const statusText = t.calibrated ? 'Calibrada' : 'Sin calibrar';
+            const statusIcon = t.calibrated ? 'check-circle-fill' : 'exclamation-circle-fill';
+            
+            // Simular metadata (en producción vendría del servidor)
+            const fileSize = '~500 KB';
+            const uploadDate = 'Reciente';
+            
+            card.innerHTML = `
+              <div class="template-header">
+                <div class="template-icon">PDF</div>
+                <div class="template-info">
+                  <h3 class="template-name">${t.name}</h3>
+                  <span class="template-status ${statusClass}">
+                    <i class="bi bi-${statusIcon}"></i>
+                    ${statusText}
+                  </span>
+                </div>
+              </div>
+              
+              <div class="template-meta">
+                <div class="template-meta-item">
+                  <i class="bi bi-hdd"></i>
+                  <span>${fileSize}</span>
+                </div>
+                <div class="template-meta-item">
+                  <i class="bi bi-calendar"></i>
+                  <span>${uploadDate}</span>
+                </div>
+              </div>
+              
+              <div class="template-actions">
+                <button class="btn-info" onclick="openCalibrate('${t.name}')">
+                  <i class="bi bi-sliders"></i> Calibrar
+                </button>
+                <button class="btn-revolt-outline" onclick="openPreview('${t.name}')">
+                  <i class="bi bi-eye"></i> Ver
+                </button>
+                <button class="btn-success" onclick="useTemplate('${t.name}')">
+                  <i class="bi bi-play-circle"></i> Usar
+                </button>
+                <button class="btn-danger" onclick="deleteTemplate('${t.name}')">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+            `;
+            
+            container.appendChild(card);
+          });
+          
+        } catch(e) {
+          console.error(e);
+          container.innerHTML = `
+            <div class="empty-state">
+              <i class="bi bi-exclamation-triangle"></i>
+              <h3>Error al cargar plantillas</h3>
+              <p>${e.message}</p>
+              <button class="btn-revolt" onclick="location.reload()">
+                <i class="bi bi-arrow-clockwise"></i> Reintentar
+              </button>
+            </div>
+          `;
+        }
+      }
+
+      // ⭐ ABRIR CALIBRACIÓN
+      window.openCalibrate = function(name){
+        window.open('/calibrate.html?template=' + encodeURIComponent(name), '_blank');
+      };
+
+      // ⭐ ABRIR PREVIEW
+      window.openPreview = function(name){
+        window.open('/templates/' + encodeURIComponent(name), '_blank');
+      };
+
+      // ⭐ USAR PLANTILLA (IR A NUEVA COTIZACIÓN)
+      window.useTemplate = function(name){
+        window.location.href = '/new_quote.html?template=' + encodeURIComponent(name);
+      };
+
+      // ⭐ ELIMINAR PLANTILLA
+      window.deleteTemplate = async function(name){
+        const confirmed = await showConfirm(
+          'Eliminar Plantilla',
+          `¿Estás seguro de eliminar la plantilla "${name}"? Esta acción no se puede deshacer y también eliminará su calibración.`
+        );
+        
+        if(!confirmed) return;
+
+        try {
+          const r = await fetch('/api/templates/' + encodeURIComponent(name), {
+            method: 'DELETE'
+          });
+
+          if(!r.ok) throw new Error('Error al eliminar plantilla');
+
+          showToast('Plantilla eliminada correctamente', 'success');
+          await loadTemplates();
+        } catch(e) {
+          showToast('Error: ' + e.message, 'error');
+        }
+      };
+
+      // ⭐ BOTÓN RECARGAR
+      document.getElementById('btnReload').addEventListener('click', async () => {
+        await loadTemplates();
+        showToast('Plantillas actualizadas', 'info');
+      });
+
+      // ⭐ LOGOUT
+      window.logout = async () => {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+          window.location.href = '/login.html';
+        } catch (e) {
+          window.location.href = '/login.html';
+        }
+      };
+
+      // ⭐ CARGAR AL INICIO
+      await loadTemplates();
+      showToast('Plantillas cargadas', 'info');
+
+    })();
+  </script>
+  
+  <script src="/auth-guard.js"></script>
+</body>
+</html>

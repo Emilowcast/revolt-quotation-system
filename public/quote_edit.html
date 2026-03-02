@@ -1,0 +1,1737 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Editar Cotización - REVOLT SGAC</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <style>
+    :root {
+      --revolt-red: #F62E41;
+      --revolt-dark: #1a1a1a;
+    }
+
+    body {
+      /* 🎨 OPCIÓN 2: Degradado de negro a rojo intenso */
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 30%, #d41f33 70%, #F62E41 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar {
+      background: var(--revolt-dark) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .navbar-brand {
+      font-weight: bold;
+      color: var(--revolt-red) !important;
+      font-size: 1.5rem;
+    }
+
+    .nav-link {
+      color: rgba(255,255,255,0.8) !important;
+      transition: all 0.3s;
+      font-weight: 500;
+    }
+
+    .nav-link:hover {
+      color: var(--revolt-red) !important;
+    }
+
+    .container-main {
+      max-width: 1600px;
+      margin: 30px auto;
+      padding: 0 20px;
+    }
+
+    /* ⭐ HEADER WITH ACTIONS */
+    .page-header-edit {
+      background: white;
+      padding: 25px 30px;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(246, 46, 65, 0.3);
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+
+    .page-header-info h1 {
+      color: #f59e0b;
+      font-weight: bold;
+      font-size: 2rem;
+      margin: 0 0 5px 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .page-header-info p {
+      color: #666;
+      margin: 0;
+      font-size: 0.95rem;
+    }
+
+    .actions-toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    /* ⭐ ALERT */
+    .alert-edit-mode {
+      background: linear-gradient(to right, #fef3c7, #fde68a);
+      border: 2px solid #fbbf24;
+      border-radius: 15px;
+      padding: 20px 25px;
+      margin-bottom: 30px;
+      display: flex;
+      align-items: start;
+      gap: 15px;
+      box-shadow: 0 3px 10px rgba(251, 191, 36, 0.2);
+    }
+
+    .alert-edit-mode i {
+      font-size: 1.8rem;
+      color: #92400e;
+    }
+
+    .alert-edit-mode strong {
+      color: #92400e;
+      display: block;
+      margin-bottom: 5px;
+      font-size: 1.05rem;
+    }
+
+    .alert-edit-mode p {
+      color: #78350f;
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    /* ⭐ GRID LAYOUT */
+    .edit-grid {
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      gap: 30px;
+      align-items: start;
+    }
+
+    /* ⭐ CARDS */
+    .edit-card {
+      background: white;
+      border-radius: 20px;
+      padding: 30px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      margin-bottom: 30px;
+    }
+
+    .card-header-custom {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 25px;
+      padding-bottom: 15px;
+      border-bottom: 3px solid #f0f0f0;
+    }
+
+    .card-header-left {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .card-icon-custom {
+      width: 45px;
+      height: 45px;
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.3rem;
+      color: white;
+      box-shadow: 0 4px 12px rgba(246, 46, 65, 0.3);
+    }
+
+    .card-title-custom {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--revolt-dark);
+      margin: 0;
+    }
+
+    /* ⭐ FORM */
+    .form-group-custom {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 15px;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .form-group-custom label {
+      font-weight: 600;
+      color: #666;
+      font-size: 0.95rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-group-custom input,
+    .form-group-custom select,
+    .form-group-custom textarea {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      transition: all 0.3s;
+      font-family: inherit;
+    }
+
+    .form-group-custom input:focus,
+    .form-group-custom select:focus,
+    .form-group-custom textarea:focus {
+      outline: none;
+      border-color: var(--revolt-red);
+      box-shadow: 0 0 0 0.25rem rgba(246, 46, 65, 0.15);
+    }
+
+    .form-group-custom input[readonly] {
+      background: #f8f9fa;
+      cursor: not-allowed;
+      color: #999;
+    }
+
+    /* ⭐ TABLE */
+    .table-modern {
+      width: 100%;
+      border-collapse: separate;
+      border-spacing: 0;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+      margin-top: 20px;
+    }
+
+    .table-modern thead {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+    }
+
+    .table-modern thead th {
+      border: none;
+      font-weight: 600;
+      padding: 14px 12px;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.5px;
+    }
+
+    .table-modern tbody tr {
+      border-bottom: 1px solid #f0f0f0;
+      transition: all 0.2s;
+    }
+
+    .table-modern tbody tr:hover {
+      background: #f8f9fa;
+    }
+
+    .table-modern tbody td {
+      padding: 10px;
+      vertical-align: middle;
+    }
+
+    .table-modern tbody td input {
+      border: 2px solid #e0e0e0;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+    }
+
+    /* ⭐ TEXTAREA AUTO-RESIZE */
+    .table-modern tbody td textarea {
+      border: 2px solid #e0e0e0;
+      padding: 8px 10px;
+      font-size: 0.9rem;
+      border-radius: 6px;
+      transition: all 0.2s;
+      resize: none;
+      overflow: hidden;
+      min-height: 38px;
+      line-height: 1.4;
+      font-family: inherit;
+      vertical-align: top;
+    }
+
+    .table-modern tbody td textarea:focus {
+      border-color: var(--revolt-red);
+      box-shadow: 0 0 0 2px rgba(246, 46, 65, 0.1);
+    }
+
+    .table-modern tbody td input:focus {
+      border-color: var(--revolt-red);
+      box-shadow: 0 0 0 2px rgba(246, 46, 65, 0.1);
+    }
+
+    /* ⭐ TOTALS */
+    .totals-section {
+      background: linear-gradient(135deg, #fff5f7, #ffffff);
+      border: 2px solid #fecaca;
+      border-radius: 15px;
+      padding: 25px;
+      margin-top: 25px;
+    }
+
+    .totals-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 15px;
+      font-size: 1rem;
+    }
+
+    .totals-row:last-child {
+      margin-bottom: 0;
+      padding-top: 15px;
+      border-top: 3px solid var(--revolt-red);
+      font-size: 1.3rem;
+      font-weight: 700;
+    }
+
+    .totals-label {
+      color: #666;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .totals-value {
+      font-weight: 700;
+      color: var(--revolt-dark);
+    }
+
+    .totals-value.highlight {
+      color: var(--revolt-red);
+      font-size: 1.5rem;
+    }
+
+    /* ⭐ EXCHANGE RATE BOX */
+    .exchange-box {
+      background: linear-gradient(to right, #fef9c3, #fef3c7);
+      border: 2px solid #fde047;
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 25px;
+    }
+
+    .exchange-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .exchange-item label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 10px;
+      font-size: 0.95rem;
+      color: var(--revolt-dark);
+    }
+
+    .exchange-controls {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .exchange-value {
+      font-size: 1.8rem;
+      font-weight: 700;
+      color: #15803d;
+      margin-top: 5px;
+    }
+
+    /* ⭐ CONDICIONES COMERCIALES */
+    .condiciones-box {
+      background: linear-gradient(to right, #f0f9ff, #e0f2fe);
+      border: 2px solid #bae6fd;
+      border-radius: 15px;
+      padding: 20px;
+      margin-top: 25px;
+    }
+
+    .condiciones-header {
+      font-weight: 700;
+      color: var(--revolt-dark);
+      margin-bottom: 15px;
+      font-size: 1.05rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .condiciones-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+    }
+
+    .condiciones-item label {
+      display: block;
+      font-weight: 600;
+      margin-bottom: 8px;
+      font-size: 0.9rem;
+      color: #666;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .checkbox-wrapper {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 12px;
+      background: white;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 10px;
+    }
+
+    .checkbox-wrapper:hover {
+      background: #f8f9fa;
+    }
+
+    .checkbox-wrapper input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      cursor: pointer;
+    }
+
+    .checkbox-wrapper span {
+      font-weight: 600;
+      font-size: 0.9rem;
+    }
+
+    /* ⭐ PREVIEW */
+    .preview-container {
+      position: sticky;
+      top: 20px;
+    }
+
+    .preview-actions {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+    }
+
+    .preview-frame {
+      width: 100%;
+      height: 900px;
+      border: 3px solid #e0e0e0;
+      border-radius: 12px;
+      box-shadow: 0 5px 20px rgba(0,0,0,0.1);
+      background: white;
+    }
+
+    /* ⭐ BOTONES */
+    .btn-revolt {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      text-decoration: none;
+      box-shadow: 0 4px 12px rgba(246, 46, 65, 0.3);
+    }
+
+    .btn-revolt:hover:not(:disabled) {
+      background: linear-gradient(135deg, #d41f33, #b81b2a);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(246, 46, 65, 0.4);
+    }
+
+    .btn-revolt:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary-custom {
+      background: white;
+      color: var(--revolt-dark);
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      padding: 9px 18px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      text-decoration: none;
+    }
+
+    .btn-secondary-custom:hover {
+      background: #f8f9fa;
+      border-color: var(--revolt-red);
+      color: var(--revolt-dark);
+      transform: translateY(-1px);
+    }
+
+    .btn-warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 11px 20px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+    }
+
+    .btn-warning:hover {
+      background: linear-gradient(135deg, #d97706, #b45309);
+      color: white;
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(245, 158, 11, 0.4);
+    }
+
+    .btn-danger-custom {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-weight: 600;
+      transition: all 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    .btn-danger-custom:hover {
+      background: linear-gradient(135deg, #dc2626, #b91c1c);
+      transform: translateY(-2px);
+    }
+
+    .btn-sm {
+      padding: 8px 14px;
+      font-size: 0.85rem;
+    }
+
+    /* ⭐ LOADING SPINNER */
+    .loading-spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    /* ⭐ TOAST */
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+
+    .toast {
+      min-width: 350px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      border-left: 5px solid var(--revolt-red);
+      background: white;
+      padding: 18px 22px;
+      margin-bottom: 12px;
+      animation: slideIn 0.3s ease;
+      font-weight: 500;
+      font-size: 0.95rem;
+    }
+
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    .toast.success {
+      border-left-color: #10b981;
+    }
+
+    .toast.error {
+      border-left-color: #ef4444;
+    }
+
+    .toast.info {
+      border-left-color: #3b82f6;
+    }
+
+    .toast.warning {
+      border-left-color: #f59e0b;
+    }
+
+    /* ⭐ CUSTOM ALERT/CONFIRM/PROMPT */
+    .custom-dialog-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.6);
+      backdrop-filter: blur(4px);
+      z-index: 10000;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      animation: fadeIn 0.2s ease;
+    }
+
+    .custom-dialog-overlay.show {
+      display: flex;
+    }
+
+    .custom-dialog {
+      background: white;
+      border-radius: 16px;
+      padding: 30px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      animation: slideUp 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+      from {
+        transform: translateY(50px);
+        opacity: 0;
+      }
+      to {
+        transform: translateY(0);
+        opacity: 1;
+      }
+    }
+
+    .custom-dialog-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .custom-dialog-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+
+    .custom-dialog-icon.info {
+      background: linear-gradient(135deg, #3b82f6, #2563eb);
+      color: white;
+    }
+
+    .custom-dialog-icon.warning {
+      background: linear-gradient(135deg, #f59e0b, #d97706);
+      color: white;
+    }
+
+    .custom-dialog-icon.error {
+      background: linear-gradient(135deg, #ef4444, #dc2626);
+      color: white;
+    }
+
+    .custom-dialog-title {
+      font-size: 1.3rem;
+      font-weight: bold;
+      color: var(--revolt-dark);
+      margin: 0;
+    }
+
+    .custom-dialog-message {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 25px;
+      white-space: pre-line;
+    }
+
+    .custom-dialog-input {
+      width: 100%;
+      padding: 12px 15px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 0.95rem;
+      margin-bottom: 20px;
+      transition: all 0.3s;
+    }
+
+    .custom-dialog-input:focus {
+      outline: none;
+      border-color: var(--revolt-red);
+      box-shadow: 0 0 0 0.25rem rgba(246, 46, 65, 0.15);
+    }
+
+    .custom-dialog-actions {
+      display: flex;
+      gap: 12px;
+      justify-content: flex-end;
+    }
+
+    @media (max-width: 1400px) {
+      .edit-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .preview-container {
+        position: static;
+      }
+    }
+
+    @media (max-width: 768px) {
+      .page-header-edit {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
+      .actions-toolbar {
+        width: 100%;
+      }
+
+      .form-group-custom {
+        grid-template-columns: 1fr;
+      }
+
+      .exchange-grid,
+      .condiciones-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .edit-card {
+        padding: 20px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Navbar -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="/dashboard.html">
+        <i class="bi bi-lightning-charge-fill"></i> REVOLT
+      </a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link" href="/dashboard.html">
+              <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/quotes_history.html">
+              <i class="bi bi-clock-history"></i> Historial
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="/new_quote.html">
+              <i class="bi bi-file-earmark-plus"></i> Nueva Cotización
+            </a>
+          </li>
+        </ul>
+        <ul class="navbar-nav">
+          <li class="nav-item">
+            <a class="nav-link" href="#" onclick="window.history.back()">
+              <i class="bi bi-arrow-left"></i> Volver
+            </a>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Container -->
+  <div class="container-main">
+    <!-- Header -->
+    <div class="page-header-edit">
+      <div class="page-header-info">
+        <h1>
+          <i class="bi bi-pencil-square"></i>
+          Editar Cotización
+        </h1>
+        <p id="pageSubtitle">Cargando cotización...</p>
+      </div>
+
+      <div class="actions-toolbar">
+        <button class="btn-secondary-custom" onclick="window.location.href='/quotes_history.html'">
+          <i class="bi bi-arrow-left"></i>
+          Volver
+        </button>
+        
+        <button class="btn-revolt" id="btnUpdateQuote">
+          <i class="bi bi-save" id="updateIcon"></i>
+          <span id="updateText">Guardar Cambios</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert-edit-mode">
+      <i class="bi bi-exclamation-triangle-fill"></i>
+      <div>
+        <strong>Modo de edición:</strong>
+        <p>
+          Estás editando una cotización existente. Los cambios afectarán la cotización original.<br>
+          <small style="font-size:0.9rem;"><strong>Caso de uso común:</strong> Actualizar tipo de cambio cuando el cliente paga a diferente tasa.</small>
+        </p>
+      </div>
+    </div>
+
+    <!-- Grid -->
+    <div class="edit-grid">
+      <!-- Columna Principal -->
+      <div>
+        <!-- Información General -->
+        <div class="edit-card">
+          <div class="card-header-custom">
+            <div class="card-header-left">
+              <div class="card-icon-custom">
+                <i class="bi bi-file-text"></i>
+              </div>
+              <h3 class="card-title-custom">Información General</h3>
+            </div>
+          </div>
+
+          <div class="form-group-custom">
+            <label>
+              <i class="bi bi-hash"></i>
+              Folio
+            </label>
+            <input id="folio" type="text" readonly />
+          </div>
+
+          <div class="form-group-custom">
+            <label>
+              <i class="bi bi-calendar-event"></i>
+              Fecha
+            </label>
+            <input id="fecha" type="date" />
+          </div>
+
+          <div class="form-group-custom">
+            <label>
+              <i class="bi bi-file-earmark"></i>
+              Plantilla
+            </label>
+            <select id="templateSel"></select>
+          </div>
+        </div>
+
+        <!-- Cliente -->
+        <div class="edit-card">
+          <div class="card-header-custom">
+            <div class="card-header-left">
+              <div class="card-icon-custom">
+                <i class="bi bi-person"></i>
+              </div>
+              <h3 class="card-title-custom">Información del Cliente</h3>
+            </div>
+          </div>
+
+          <div class="form-group-custom">
+            <label>
+              <i class="bi bi-person-badge"></i>
+              Nombre
+            </label>
+            <input id="nombre" type="text" placeholder="Nombre del cliente" />
+          </div>
+
+          <div class="form-group-custom">
+            <label>
+              <i class="bi bi-briefcase"></i>
+              Empresa
+            </label>
+            <input id="empresa" type="text" placeholder="Empresa o razón social" />
+          </div>
+
+          <div class="form-group-custom">
+            <label>
+              <i class="bi bi-geo-alt"></i>
+              Estado
+            </label>
+            <input id="estado" type="text" placeholder="Estado" />
+          </div>
+
+          <div class="form-group-custom">
+            <label>
+              <i class="bi bi-envelope"></i>
+              Correo
+            </label>
+            <input id="correo" type="email" placeholder="correo@ejemplo.com" />
+          </div>
+
+          <div class="form-group-custom">
+            <label>
+              <i class="bi bi-telephone"></i>
+              Teléfono
+            </label>
+            <input id="numero" type="text" placeholder="Teléfono" />
+          </div>
+        </div>
+
+        <!-- Productos -->
+        <div class="edit-card">
+          <div class="card-header-custom">
+            <div class="card-header-left">
+              <div class="card-icon-custom">
+                <i class="bi bi-box-seam"></i>
+              </div>
+              <h3 class="card-title-custom">Productos/Servicios</h3>
+            </div>
+            <div style="display:flex;gap:10px;">
+              <button class="btn-secondary-custom btn-sm" id="addRowBtn">
+                <i class="bi bi-plus-lg"></i>
+                Agregar
+              </button>
+            </div>
+          </div>
+
+          <table class="table-modern" id="itemsTable">
+            <thead>
+              <tr>
+                <th style="width:15%">Modelo</th>
+                <th style="width:35%">Descripción</th>
+                <th style="width:15%;text-align:right;">Precio (USD)</th>
+                <th style="width:10%;text-align:right;">Cant.</th>
+                <th style="width:15%;text-align:right;">Subtotal</th>
+                <th style="width:10%;text-align:center;">Acción</th>
+              </tr>
+            </thead>
+            <tbody id="itemsBody"></tbody>
+          </table>
+
+          <div class="totals-section">
+            <div class="totals-row">
+              <span class="totals-label">Subtotal (USD):</span>
+              <span class="totals-value" id="displaySubtotal">$0.00</span>
+            </div>
+
+            <div class="totals-row">
+              <div class="totals-label">
+                <span>Descuento:</span>
+                <input 
+                  id="discountInput" 
+                  type="number" 
+                  step="0.01" 
+                  value="0"
+                  style="width:100px;padding:6px 10px;font-size:0.9rem;border:2px solid #e0e0e0;border-radius:6px;"
+                />
+                <span style="font-size:0.85rem;color:#999;">USD</span>
+              </div>
+              <span class="totals-value" id="displayDiscount">-$0.00</span>
+            </div>
+
+            <div class="totals-row">
+              <div class="totals-label">
+                <span>Impuesto:</span>
+                <input 
+                  id="taxInput" 
+                  type="number" 
+                  step="0.01" 
+                  value="0"
+                  style="width:80px;padding:6px 10px;font-size:0.9rem;border:2px solid #e0e0e0;border-radius:6px;"
+                />
+                <span style="font-size:0.85rem;color:#999;">%</span>
+              </div>
+              <span class="totals-value" id="displayTax">$0.00</span>
+            </div>
+
+            <div class="totals-row">
+              <span class="totals-label">TOTAL (USD):</span>
+              <span class="totals-value highlight" id="displayTotal">$0.00</span>
+            </div>
+          </div>
+
+          <!-- Exchange Rate Box -->
+          <div class="exchange-box">
+            <div class="exchange-grid">
+              <div class="exchange-item">
+                <label>
+                  <i class="bi bi-currency-exchange"></i>
+                  Tipo de cambio USD → MXN
+                </label>
+                <div class="exchange-controls">
+                  <input 
+                    id="exchangeRate" 
+                    type="number" 
+                    step="0.0001" 
+                    value="18.00"
+                    style="width:130px;padding:10px;font-size:1rem;border:2px solid #fbbf24;border-radius:8px;font-weight:600;"
+                  />
+                  <button class="btn-secondary-custom btn-sm" id="fetchRateBtn">
+                    <i class="bi bi-arrow-clockwise"></i>
+                    Obtener actual
+                  </button>
+                </div>
+                <small style="color:#78350f;display:block;margin-top:8px;">
+                  <i class="bi bi-info-circle"></i>
+                  Caso de uso: Cliente paga a diferente tasa
+                </small>
+              </div>
+
+              <div class="exchange-item">
+                <label>
+                  <i class="bi bi-cash"></i>
+                  Precio Neto (MXN)
+                </label>
+                <div class="exchange-value" id="displayMXN">$0.00 MXN</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Condiciones Comerciales -->
+          <div class="condiciones-box">
+            <div class="condiciones-header">
+              <i class="bi bi-clipboard-check"></i>
+              Condiciones Comerciales
+              <span style="font-size:0.85rem;color:#666;font-weight:400;margin-left:8px;">(Opcional)</span>
+            </div>
+
+            <div class="condiciones-grid">
+              <!-- Tiempo de Entrega -->
+              <div class="condiciones-item">
+                <label>
+                  <i class="bi bi-clock-history"></i>
+                  Tiempo de Entrega
+                </label>
+
+                <div class="checkbox-wrapper">
+                  <input 
+                    type="checkbox" 
+                    id="disponibilidadInmediata"
+                  />
+                  <span style="color:#10b981;">
+                    <i class="bi bi-lightning-fill"></i>
+                    Disponibilidad Inmediata
+                  </span>
+                </div>
+
+                <select 
+                  id="tiempoEntregaSelect"
+                  style="width:100%;padding:10px;font-size:0.9rem;border:2px solid #bae6fd;border-radius:8px;margin-bottom:10px;"
+                >
+                  <option value="">Seleccionar plazo...</option>
+                  <option value="5-10 días hábiles">5-10 días hábiles</option>
+                  <option value="10-15 días hábiles">10-15 días hábiles</option>
+                  <option value="10-20 días hábiles">10-20 días hábiles</option>
+                  <option value="15-20 días hábiles">15-20 días hábiles</option>
+                  <option value="20-30 días hábiles">20-30 días hábiles</option>
+                  <option value="manual">Otro (especificar manualmente)</option>
+                </select>
+
+                <input 
+                  id="tiempoEntregaManual" 
+                  type="text" 
+                  placeholder="Especificar plazo personalizado"
+                  maxlength="200"
+                  style="width:100%;padding:10px;font-size:0.9rem;border:2px solid #bae6fd;border-radius:8px;display:none;"
+                />
+              </div>
+
+              <!-- Forma de Pago -->
+              <div class="condiciones-item">
+                <label>
+                  <i class="bi bi-credit-card"></i>
+                  Forma de Pago
+                </label>
+                <input 
+                  id="formaPago" 
+                  type="text" 
+                  placeholder="Se llenará automáticamente"
+                  maxlength="200"
+                  style="width:100%;padding:10px;font-size:0.9rem;border:2px solid #bae6fd;border-radius:8px;background:#f0f9ff;"
+                  readonly
+                />
+                <div style="margin-top:8px;font-size:0.8rem;color:#0369a1;">
+                  <i class="bi bi-lightbulb" id="formaPagoHint"></i>
+                  <span id="formaPagoHintText">Selecciona tiempo de entrega para auto-completar</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Columna Preview -->
+      <div class="preview-container">
+        <div class="edit-card">
+          <div class="card-header-custom">
+            <div class="card-header-left">
+              <div class="card-icon-custom">
+                <i class="bi bi-eye"></i>
+              </div>
+              <h3 class="card-title-custom">Vista Previa</h3>
+            </div>
+          </div>
+
+          <div class="preview-actions">
+            <button class="btn-revolt" id="btnPreview" style="flex:1;">
+              <i class="bi bi-arrow-clockwise" id="previewIcon"></i>
+              Actualizar
+            </button>
+            <button class="btn-secondary-custom" id="btnGenerate">
+              <i class="bi bi-download"></i>
+              Descargar
+            </button>
+          </div>
+
+          <iframe id="previewFrame" class="preview-frame"></iframe>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+
+  <!-- Custom Dialog Overlay -->
+  <div class="custom-dialog-overlay" id="customDialogOverlay">
+    <div class="custom-dialog">
+      <div class="custom-dialog-header">
+        <div class="custom-dialog-icon" id="dialogIcon">
+          <i class="bi bi-info-circle"></i>
+        </div>
+        <h3 class="custom-dialog-title" id="dialogTitle">Confirmar</h3>
+      </div>
+      <div class="custom-dialog-message" id="dialogMessage"></div>
+      <input type="text" class="custom-dialog-input" id="dialogInput" style="display:none;" />
+      <div class="custom-dialog-actions" id="dialogActions"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+  <script>
+    (async function(){
+      const $ = s => document.querySelector(s);
+      const $$ = s => document.querySelectorAll(s);
+      const fmt = n => '$' + Number(n||0).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      const toNum = v => {const n=Number(String(v||'').replace(/[^0-9\.\-]+/g,''));return isFinite(n)?n:0;};
+
+      // ⭐ CUSTOM DIALOGS
+      function customAlert(message, type = 'info') {
+        return new Promise((resolve) => {
+          const overlay = $('#customDialogOverlay');
+          const icon = $('#dialogIcon');
+          const title = $('#dialogTitle');
+          const msg = $('#dialogMessage');
+          const input = $('#dialogInput');
+          const actions = $('#dialogActions');
+
+          // Icon y título según tipo
+          if (type === 'warning') {
+            icon.className = 'custom-dialog-icon warning';
+            icon.innerHTML = '<i class="bi bi-exclamation-triangle"></i>';
+            title.textContent = 'Advertencia';
+          } else if (type === 'error') {
+            icon.className = 'custom-dialog-icon error';
+            icon.innerHTML = '<i class="bi bi-x-circle"></i>';
+            title.textContent = 'Error';
+          } else {
+            icon.className = 'custom-dialog-icon info';
+            icon.innerHTML = '<i class="bi bi-info-circle"></i>';
+            title.textContent = 'Información';
+          }
+
+          msg.textContent = message;
+          input.style.display = 'none';
+          
+          actions.innerHTML = `
+            <button class="btn-revolt" onclick="this.closest('.custom-dialog-overlay').classList.remove('show')">
+              <i class="bi bi-check-lg"></i>
+              Aceptar
+            </button>
+          `;
+
+          overlay.classList.add('show');
+
+          // Resolver cuando se cierre
+          const closeHandler = () => {
+            overlay.classList.remove('show');
+            resolve(true);
+          };
+
+          actions.querySelector('button').onclick = closeHandler;
+        });
+      }
+
+      function customConfirm(message) {
+        return new Promise((resolve) => {
+          const overlay = $('#customDialogOverlay');
+          const icon = $('#dialogIcon');
+          const title = $('#dialogTitle');
+          const msg = $('#dialogMessage');
+          const input = $('#dialogInput');
+          const actions = $('#dialogActions');
+
+          icon.className = 'custom-dialog-icon warning';
+          icon.innerHTML = '<i class="bi bi-question-circle"></i>';
+          title.textContent = 'Confirmar';
+          msg.textContent = message;
+          input.style.display = 'none';
+
+          actions.innerHTML = `
+            <button class="btn-secondary-custom" id="cancelBtn">
+              <i class="bi bi-x-lg"></i>
+              Cancelar
+            </button>
+            <button class="btn-revolt" id="confirmBtn">
+              <i class="bi bi-check-lg"></i>
+              Confirmar
+            </button>
+          `;
+
+          overlay.classList.add('show');
+
+          $('#cancelBtn').onclick = () => {
+            overlay.classList.remove('show');
+            resolve(false);
+          };
+
+          $('#confirmBtn').onclick = () => {
+            overlay.classList.remove('show');
+            resolve(true);
+          };
+        });
+      }
+
+      // Override confirm nativo
+      window.confirm = customConfirm;
+      window.alert = customAlert;
+
+      function showToast(msg, type='success'){
+        const toastContainer = document.querySelector('.toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast ${type}`;
+        const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
+        toast.innerHTML = `<strong>${icons[type]}</strong> ${msg}`;
+        toastContainer.appendChild(toast);
+        setTimeout(()=>toast.remove(),3500);
+      }
+
+      const params = new URLSearchParams(location.search);
+      const quoteId = params.get('id');
+
+      if(!quoteId) {
+        showToast('ID de cotización no especificado', 'error');
+        setTimeout(() => window.location.href = '/quotes_history.html', 2000);
+        return;
+      }
+
+      let currentQuote = null;
+
+      // ⭐ CARGAR PLANTILLAS
+      let templates = [];
+      async function loadTemplates(){
+        try {
+          const r = await fetch('/api/templates');
+          const js = await r.json();
+          templates = js.templates || [];
+          const sel = $('#templateSel');
+          sel.innerHTML = templates.map(t => 
+            `<option value="${t.name}">${t.name} ${t.calibrated?'✓':''}</option>`
+          ).join('');
+        } catch(e){ showToast('Error cargando plantillas','error'); }
+      }
+
+      // ⭐ CARGAR COTIZACIÓN
+      async function loadQuote(){
+        try {
+          showToast('Cargando cotización...', 'info');
+
+          const r = await fetch(`/api/quotes/${quoteId}`);
+          if(!r.ok) throw new Error('Cotización no encontrada');
+
+          const js = await r.json();
+          currentQuote = js.quote;
+
+          $('#pageSubtitle').textContent = `Editando: ${currentQuote.folio} - Creada el ${new Date(currentQuote.createdAt).toLocaleDateString('es-MX')}`;
+
+          if(currentQuote.template) $('#templateSel').value = currentQuote.template;
+          if(currentQuote.folio) $('#folio').value = currentQuote.folio;
+          if(currentQuote.date) $('#fecha').value = new Date(currentQuote.date).toISOString().split('T')[0];
+
+          if(currentQuote.client) {
+            $('#nombre').value = currentQuote.client.name || '';
+            $('#empresa').value = currentQuote.client.company || '';
+            $('#numero').value = currentQuote.client.phone || '';
+            $('#correo').value = currentQuote.client.email || '';
+            $('#estado').value = currentQuote.client.estado || '';
+          }
+
+          $('#itemsBody').innerHTML = '';
+          if(currentQuote.items && currentQuote.items.length){
+            currentQuote.items.forEach(item => {
+              addRow({
+                modelo: item.modelo,
+                descripcion: item.descripcion,
+                precio: item.unitPrice,
+                cant: item.qty
+              });
+            });
+          } else {
+            addRow();
+          }
+
+          if(currentQuote.discount !== undefined) $('#discountInput').value = currentQuote.discount;
+          if(currentQuote.tax !== undefined && currentQuote.subtotal){
+            const taxPct = currentQuote.subtotal > 0 ? (currentQuote.tax / (currentQuote.subtotal - (currentQuote.discount||0))) * 100 : 0;
+            $('#taxInput').value = taxPct.toFixed(2);
+          }
+
+          if(currentQuote.exchangeRate) $('#exchangeRate').value = currentQuote.exchangeRate;
+
+          // Cargar condiciones comerciales
+          if (currentQuote.tiempoEntrega) {
+            const tiempoValue = currentQuote.tiempoEntrega;
+
+            if (tiempoValue.toLowerCase().includes('inmediata')) {
+              $('#disponibilidadInmediata').checked = true;
+              $('#disponibilidadInmediata').dispatchEvent(new Event('change'));
+            } 
+            else if (['5-10 días hábiles', '10-15 días hábiles', '10-20 días hábiles', '15-20 días hábiles', '20-30 días hábiles'].includes(tiempoValue)) {
+              $('#tiempoEntregaSelect').value = tiempoValue;
+              $('#tiempoEntregaSelect').dispatchEvent(new Event('change'));
+            }
+            else {
+              $('#tiempoEntregaSelect').value = 'manual';
+              $('#tiempoEntregaSelect').dispatchEvent(new Event('change'));
+              $('#tiempoEntregaManual').value = tiempoValue;
+            }
+          }
+
+          if (currentQuote.formaPago) {
+            $('#formaPago').value = currentQuote.formaPago;
+          }
+
+          recalc();
+          showToast('Cotización cargada correctamente', 'success');
+
+        } catch(e) {
+          showToast('Error cargando cotización: ' + e.message, 'error');
+          setTimeout(() => window.location.href = '/quotes_history.html', 3000);
+        }
+      }
+
+      // ⭐ AUTO-RESIZE TEXTAREA
+      function autoResizeTextarea(textarea) {
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+      }
+
+      // ⭐ AGREGAR FILA
+      function addRow(item={modelo:'',descripcion:'',precio:0,cant:1}){
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><input class="modelo" type="text" value="${item.modelo||''}" placeholder="Modelo"/></td>
+          <td><textarea class="descripcion" placeholder="Descripción" rows="1">${item.descripcion||''}</textarea></td>
+          <td><input class="precio" type="number" step="0.01" value="${Number(item.precio||0).toFixed(2)}" style="text-align:right"/></td>
+          <td><input class="cant" type="number" step="1" value="${item.cant||1}" style="text-align:right;width:70px;"/></td>
+          <td style="text-align:right;font-weight:700;color:var(--revolt-red);" class="subtotal">${fmt(0)}</td>
+          <td style="text-align:center;"><button class="btn-danger-custom delRow"><i class="bi bi-trash"></i></button></td>
+        `;
+        $('#itemsBody').appendChild(tr);
+
+        const textarea = tr.querySelector('.descripcion');
+        
+        // Auto-resize on input
+        textarea.addEventListener('input', function() {
+          autoResizeTextarea(this);
+        });
+
+        // Initial resize
+        autoResizeTextarea(textarea);
+
+        tr.querySelector('.precio').oninput = recalc;
+        tr.querySelector('.cant').oninput = recalc;
+        tr.querySelector('.delRow').onclick = ()=>{tr.remove();recalc();};
+
+        recalc();
+      }
+
+      $('#addRowBtn').onclick = () => addRow();
+
+      // ⭐ RECALCULAR
+      function recalc(){
+        let subtotal = 0;
+        $$('#itemsBody tr').forEach(tr => {
+          const precio = toNum(tr.querySelector('.precio').value);
+          const cant = Math.max(1,Math.floor(toNum(tr.querySelector('.cant').value)));
+          const sub = Number((precio*cant).toFixed(2));
+          tr.querySelector('.subtotal').textContent = fmt(sub);
+          subtotal += sub;
+        });
+
+        const discount = toNum($('#discountInput').value);
+        const taxable = Math.max(0, subtotal - discount);
+        const taxPct = toNum($('#taxInput').value);
+        const tax = Number((taxable * (taxPct/100)).toFixed(2));
+        const total = Number((taxable + tax).toFixed(2));
+
+        $('#displaySubtotal').textContent = fmt(subtotal);
+        $('#displayDiscount').textContent = '-'+fmt(discount);
+        $('#displayTax').textContent = fmt(tax);
+        $('#displayTotal').textContent = fmt(total);
+
+        const fx = toNum($('#exchangeRate').value);
+        const mxn = Number((total * fx).toFixed(2));
+        $('#displayMXN').textContent = fmt(mxn).replace('$','') + ' MXN';
+
+        return {subtotal,discount,tax,total,mxn};
+      }
+
+      $('#discountInput').oninput = recalc;
+      $('#taxInput').oninput = recalc;
+      $('#exchangeRate').oninput = recalc;
+
+      // ⭐ OBTENER TIPO DE CAMBIO
+      $('#fetchRateBtn').onclick = async () => {
+        const btn = $('#fetchRateBtn');
+        btn.disabled = true;
+        btn.innerHTML = '<span class="loading-spinner"></span> Obteniendo...';
+        try {
+          const r = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=MXN');
+          const js = await r.json();
+          const rate = js?.rates?.MXN;
+          if(rate){
+            $('#exchangeRate').value = Math.round(rate*10000)/10000;
+            recalc();
+            showToast(`Tipo de cambio actualizado: ${rate.toFixed(4)}`,'success');
+          } else showToast('No se pudo obtener el tipo de cambio','warning');
+        } catch(e){ showToast('Error obteniendo tipo de cambio','error'); }
+        btn.disabled = false;
+        btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> Obtener actual';
+      };
+
+      // ⭐ RECOLECTAR DATOS
+      function collectData(){
+        const items = [];
+        $$('#itemsBody tr').forEach(tr => {
+          const modelo = tr.querySelector('.modelo').value.trim();
+          const descripcion = tr.querySelector('.descripcion').value.trim();
+          const precio = toNum(tr.querySelector('.precio').value);
+          const cant = Math.max(1,Math.floor(toNum(tr.querySelector('.cant').value)));
+          const subtotal = Number((precio*cant).toFixed(2));
+          items.push({modelo,descripcion,precio,cant,subtotal});
+        });
+
+        const calc = recalc();
+
+        const subtotalNum = Number(calc.subtotal.toFixed(2));
+        const discountNum = Number(calc.discount.toFixed(2));
+        const taxNum = Number(calc.tax.toFixed(2));
+        const totalNum = Number(calc.total.toFixed(2));
+        const mxnNum = Number(calc.mxn.toFixed(2));
+        const exchangeRateNum = Number(toNum($('#exchangeRate').value).toFixed(4));
+
+        const baseFields = {
+          folio: $('#folio').value,
+          fecha: $('#fecha').value,
+          nombre: $('#nombre').value,
+          empresa: $('#empresa').value,
+          estado: $('#estado').value,
+          correo: $('#correo').value,
+          numero: $('#numero').value,
+          subtotal: fmt(calc.subtotal),
+          descuento: fmt(calc.discount),
+          impuestos: fmt(calc.tax),
+          total: fmt(calc.total),
+          precio_neto_mxn: calc.mxn,
+          precio_neto_mxn_formatted: fmt(calc.mxn).replace('$','')+' MXN'
+        };
+
+        return {
+          template: $('#templateSel').value,
+          folio: $('#folio').value,
+          fecha: $('#fecha').value,
+          nombre: $('#nombre').value,
+          empresa: $('#empresa').value,
+          estado: $('#estado').value,
+          correo: $('#correo').value,
+          numero: $('#numero').value,
+          fields: baseFields,
+          items: items,
+          subtotal: subtotalNum,
+          descuento: discountNum,
+          impuestos: taxNum,
+          total: totalNum,
+          precio_neto_mxn: mxnNum,
+          precio_neto_mxn_formatted: fmt(calc.mxn).replace('$','')+' MXN',
+          exchangeRate: exchangeRateNum,
+          status: currentQuote?.status || 'vigente',
+          tiempoEntrega: (() => {
+            const disponibilidadInmediata = $('#disponibilidadInmediata');
+            const tiempoEntregaSelect = $('#tiempoEntregaSelect');
+            const tiempoEntregaManual = $('#tiempoEntregaManual');
+
+            if (disponibilidadInmediata.checked) {
+              return 'Disponibilidad inmediata';
+            } else if (tiempoEntregaSelect.value === 'manual' && tiempoEntregaManual.value.trim()) {
+              return tiempoEntregaManual.value.trim();
+            } else if (tiempoEntregaSelect.value) {
+              return tiempoEntregaSelect.value;
+            }
+            return null;
+          })(),
+          formaPago: $('#formaPago').value.trim() || null
+        };
+      }
+
+      function flattenPayload(data){
+        const flat = {...data};
+        if(flat.fields){
+          Object.keys(flat.fields).forEach(k => {
+            if(flat[k]===undefined) flat[k] = flat.fields[k];
+          });
+        }
+        return flat;
+      }
+
+      // ⭐ VISTA PREVIA (SIN DEBUG)
+      $('#btnPreview').onclick = async () => {
+        const btn = $('#btnPreview');
+        btn.disabled = true;
+        $('#previewIcon').className = 'loading-spinner';
+        try {
+          const data = collectData();
+          const payload = flattenPayload(data);
+          // ❌ NO INCLUIR debug: true para que no muestre los cuadritos rojos
+          // payload.debug = true; 
+
+          const r = await fetch('/preview',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+          if(!r.ok) throw new Error(await r.text());
+
+          const blob = await r.blob();
+          $('#previewFrame').src = URL.createObjectURL(blob);
+          showToast('Vista previa actualizada','success');
+        } catch(e){
+          showToast('Error generando preview: '+e.message,'error');
+        }
+        btn.disabled = false;
+        $('#previewIcon').className = 'bi bi-arrow-clockwise';
+      };
+
+      // ⭐ DESCARGAR PDF
+      $('#btnGenerate').onclick = async () => {
+        try {
+          const data = collectData();
+          const payload = flattenPayload(data);
+
+          const r = await fetch('/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});
+          if(!r.ok) throw new Error(await r.text());
+
+          const blob = await r.blob();
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = `cotizacion_${data.folio}.pdf`;
+          a.click();
+          showToast('PDF generado correctamente','success');
+        } catch(e){
+          showToast('Error generando PDF: '+e.message,'error');
+        }
+      };
+
+      // ⭐ GUARDAR CAMBIOS
+      const btnUpdate = $('#btnUpdateQuote');
+      if (btnUpdate) {
+        btnUpdate.onclick = async () => {
+          const itemsCount = $$('#itemsBody tr').length;
+          if (itemsCount === 0) {
+            showToast('Debes tener al menos un producto', 'error');
+            return;
+          }
+
+          let hasEmptyItems = false;
+          $$('#itemsBody tr').forEach(tr => {
+            const modelo = tr.querySelector('.modelo').value.trim();
+            const precio = toNum(tr.querySelector('.precio').value);
+            if (!modelo || precio <= 0) {
+              hasEmptyItems = true;
+            }
+          });
+
+          if (hasEmptyItems) {
+            showToast('Todos los productos deben tener modelo y precio válido', 'error');
+            return;
+          }
+
+          const confirmed = await customConfirm(`¿Guardar cambios en la cotización ${currentQuote.folio}?\n\nEsto actualizará la cotización existente.`);
+          if(!confirmed) return;
+
+          btnUpdate.disabled = true;
+          $('#updateIcon').className = 'loading-spinner';
+          $('#updateText').textContent = 'Guardando...';
+
+          try {
+            const data = collectData();
+
+            const r = await fetch(`/api/quotes/${quoteId}`,{
+              method:'PUT',
+              headers:{'Content-Type':'application/json'},
+              body:JSON.stringify(data)
+            });
+
+            if(!r.ok) {
+              const errorText = await r.text();
+              throw new Error(errorText);
+            }
+
+            const js = await r.json();
+            showToast(`Cotización actualizada: ${js.quote.folio}`,'success');
+
+            setTimeout(()=>{
+              window.location.href = `/quote_detail.html?id=${quoteId}`;
+            }, 1500);
+
+          } catch(e){
+            showToast('Error guardando: '+(e.message||e),'error');
+          }
+
+          btnUpdate.disabled = false;
+          $('#updateIcon').className = 'bi bi-save';
+          $('#updateText').textContent = 'Guardar Cambios';
+        };
+      }
+
+      // ⭐ CONDICIONES COMERCIALES
+      (function setupCondicionesComerciales() {
+        const disponibilidadInmediata = $('#disponibilidadInmediata');
+        const tiempoEntregaSelect = $('#tiempoEntregaSelect');
+        const tiempoEntregaManual = $('#tiempoEntregaManual');
+        const formaPago = $('#formaPago');
+        const formaPagoHintText = $('#formaPagoHintText');
+
+        function actualizarFormaPago() {
+          if (disponibilidadInmediata.checked) {
+            formaPago.value = '100% pago anticipado';
+            formaPago.style.background = '#f0fdf4';
+            formaPago.readOnly = true;
+            formaPagoHintText.textContent = 'Pago completo por disponibilidad inmediata';
+          } else if (tiempoEntregaSelect.value && tiempoEntregaSelect.value !== 'manual') {
+            formaPago.value = '50% anticipo, 50% contra entrega';
+            formaPago.style.background = '#eff6ff';
+            formaPago.readOnly = false;
+            formaPagoHintText.textContent = 'Puedes editar si es necesario';
+          } else {
+            formaPago.value = '';
+            formaPago.style.background = '#f0f9ff';
+            formaPago.readOnly = false;
+            formaPagoHintText.textContent = 'Especifica forma de pago manualmente';
+          }
+        }
+
+        disponibilidadInmediata.onchange = () => {
+          if (disponibilidadInmediata.checked) {
+            tiempoEntregaSelect.value = '';
+            tiempoEntregaSelect.disabled = true;
+            tiempoEntregaSelect.style.background = '#f3f4f6';
+            tiempoEntregaManual.style.display = 'none';
+            tiempoEntregaManual.value = '';
+          } else {
+            tiempoEntregaSelect.disabled = false;
+            tiempoEntregaSelect.style.background = '#fff';
+          }
+          actualizarFormaPago();
+        };
+
+        tiempoEntregaSelect.onchange = () => {
+          if (tiempoEntregaSelect.value === 'manual') {
+            tiempoEntregaManual.style.display = 'block';
+            tiempoEntregaManual.focus();
+          } else {
+            tiempoEntregaManual.style.display = 'none';
+            tiempoEntregaManual.value = '';
+          }
+          actualizarFormaPago();
+        };
+
+        tiempoEntregaManual.oninput = () => {
+          if (tiempoEntregaManual.value.trim()) {
+            formaPago.value = '50% anticipo, 50% contra entrega';
+            formaPago.style.background = '#eff6ff';
+            formaPago.readOnly = false;
+          }
+        };
+      })();
+
+      // ⭐ ATAJOS DE TECLADO
+      document.onkeydown = (e) => {
+        if(e.ctrlKey && e.key === 's'){
+          e.preventDefault();
+          const btn = $('#btnUpdateQuote');
+          if (btn) btn.click();
+        }
+        if(e.ctrlKey && e.key === 'p'){
+          e.preventDefault();
+          $('#btnPreview').click();
+        }
+      };
+
+      // ⭐ INICIALIZAR
+      await loadTemplates();
+      await loadQuote();
+
+      showToast('Modo edición cargado. Atajos: Ctrl+S (guardar), Ctrl+P (preview)','info');
+
+    })();
+  </script>
+</body>
+</html>

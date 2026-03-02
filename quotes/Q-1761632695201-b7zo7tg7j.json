@@ -1,0 +1,35 @@
+{
+  "id": "Q-1761632695201-b7zo7tg7j",
+  "template": "plantillav2.pdf",
+  "fields": {
+    "subtotal": "9,870.00",
+    "descuento": "0.00",
+    "impuestos": "0.00",
+    "total": "9,870.00",
+    "precio_neto_mxn_formatted": "177,660.00 MXN",
+    "cliente": "erere",
+    "senor": "rerer",
+    "tipo": "erer",
+    "estado": "erere",
+    "numero": "erer",
+    "folio": "erere",
+    "fecha": "rerer"
+  },
+  "items": [
+    {
+      "modelo": "erer",
+      "descripcion": "ererer",
+      "precio": 9870,
+      "cant": 1,
+      "subtotal": 9870
+    }
+  ],
+  "subtotal": 9870,
+  "descuento": 5,
+  "impuestos": 4932.5,
+  "total": 14797.5,
+  "precio_neto_mxn": 266355,
+  "precio_neto_mxn_formatted": "266,355.00 MXN",
+  "createdAt": "2025-10-28T06:24:55.201Z",
+  "updatedAt": "2025-10-28T06:24:55.201Z"
+}
