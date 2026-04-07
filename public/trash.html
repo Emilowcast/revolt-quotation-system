@@ -777,7 +777,7 @@
         <i class="bi bi-trash3"></i>
         Vaciar Papelera
       </button>
-      <button class="btn-secondary-custom" onclick="autoClean()">
+      <button class="btn-secondary-custom" onclick="showAutoCleanModal()">
         <i class="bi bi-gear"></i>
         Auto-Limpieza (30d)
       </button>
@@ -785,6 +785,16 @@
 
     <!-- Table -->
     <div class="table-card">
+        <div style="display:flex;gap:0;" id="trashTabs">
+        <button onclick="switchTab('quotes')" id="tabQuotes"
+          style="flex:1;padding:14px;border:none;background:var(--revolt-red);color:white;font-weight:700;border-radius:12px 0 0 0;cursor:pointer;">
+          <i class="bi bi-file-earmark-text"></i> Cotizaciones
+        </button>
+        <button onclick="switchTab('sales')" id="tabSales"
+          style="flex:1;padding:14px;border:none;background:#e5e7eb;color:#374151;font-weight:700;border-radius:0 12px 0 0;cursor:pointer;">
+          <i class="bi bi-cash-stack"></i> Ventas
+        </button>
+      </div>
       <!-- Loading -->
       <div id="loadingContainer" class="loading-state">
         <div class="loading-spinner"></div>
@@ -872,12 +882,112 @@
     </div>
   </div>
 
+  <!-- Modal: Restaurar Cotización -->
+<div id="restoreQuoteModal" class="custom-modal-overlay">
+  <div class="custom-modal">
+    <div class="custom-modal-header">
+      <h3>
+        <i class="bi bi-arrow-counterclockwise" style="color:#10b981;"></i>
+        ¿Restaurar cotización?
+      </h3>
+    </div>
+    <div class="custom-modal-body">
+      <p>La cotización <strong id="restoreQuoteFolio"></strong> volverá a estar disponible en el historial.</p>
+    </div>
+    <div class="custom-modal-actions">
+      <button class="btn-secondary-custom" onclick="hideRestoreQuoteModal()">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button class="btn-success" onclick="confirmRestoreQuote()" style="padding:12px 24px;font-size:1rem;">
+        <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Restaurar Venta -->
+<div id="restoreSaleModal" class="custom-modal-overlay">
+  <div class="custom-modal">
+    <div class="custom-modal-header">
+      <h3>
+        <i class="bi bi-arrow-counterclockwise" style="color:#10b981;"></i>
+        ¿Restaurar venta?
+      </h3>
+    </div>
+    <div class="custom-modal-body">
+      <p>La venta <strong id="restoreSaleFolio"></strong> volverá a estar disponible en la sección de ventas.</p>
+    </div>
+    <div class="custom-modal-actions">
+      <button class="btn-secondary-custom" onclick="hideRestoreSaleModal()">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button class="btn-success" onclick="confirmRestoreSale()" style="padding:12px 24px;font-size:1rem;">
+        <i class="bi bi-arrow-counterclockwise"></i> Restaurar
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Eliminar Venta Permanente -->
+<div id="deleteSaleModal" class="custom-modal-overlay">
+  <div class="custom-modal">
+    <div class="custom-modal-header">
+      <h3>
+        <i class="bi bi-exclamation-triangle-fill" style="color:#ef4444;"></i>
+        ¿Eliminar permanentemente?
+      </h3>
+    </div>
+    <div class="custom-modal-body">
+      <p>Esta acción eliminará <strong>permanentemente</strong> la venta <strong id="deleteSaleFolio"></strong>.</p>
+      <p><strong style="color:#ef4444;">⚠️ Esta acción no se puede deshacer.</strong></p>
+    </div>
+    <div class="custom-modal-actions">
+      <button class="btn-secondary-custom" onclick="hideDeleteSaleModal()">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button class="btn-danger-custom" onclick="confirmDeleteSale()">
+        <i class="bi bi-trash3"></i> Eliminar Permanentemente
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Auto-Limpieza -->
+<div id="autoCleanModal" class="custom-modal-overlay">
+  <div class="custom-modal">
+    <div class="custom-modal-header">
+      <h3>
+        <i class="bi bi-gear" style="color:#f59e0b;"></i>
+        Auto-Limpieza (30 días)
+      </h3>
+    </div>
+    <div class="custom-modal-body">
+      <p>Se eliminarán permanentemente todas las cotizaciones y ventas con <strong>más de 30 días</strong> en la papelera.</p>
+      <p><strong style="color:#ef4444;">⚠️ Esta acción no se puede deshacer.</strong></p>
+    </div>
+    <div class="custom-modal-actions">
+      <button class="btn-secondary-custom" onclick="hideAutoCleanModal()">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button class="btn-danger-custom" onclick="confirmAutoClean()">
+        <i class="bi bi-gear"></i> Ejecutar Limpieza
+      </button>
+    </div>
+  </div>
+</div>
+
   <!-- Toast Container -->
   <div class="toast-container"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
   <script>
+    let pendingRestoreQuoteId    = null;
+    let pendingRestoreQuoteFolio = null;
+    let pendingRestoreSaleId     = null;
+    let pendingRestoreSaleFolio  = null;
+    let pendingDeleteSaleId      = null;
+    let pendingDeleteSaleFolio   = null;
     let currentPage = 1;
     let totalPages = 1;
     let searchTimeout;
@@ -971,7 +1081,7 @@
           </td>
           <td>
             <div style="display:flex;gap:6px;justify-content:center;">
-              <button class="btn-success" onclick="restoreQuotation(${q.id}, '${q.folio}')" title="Restaurar">
+              <button class="btn-success" onclick="showRestoreQuoteModal(${q.id}, '${q.folio}')" title="Restaurar">
                 <i class="bi bi-arrow-counterclockwise"></i>
               </button>
               <button class="btn-danger-sm" onclick="showDeleteModal(${q.id}, '${q.folio}')" title="Eliminar">
@@ -1035,36 +1145,33 @@
       container.appendChild(nextBtn);
     }
 
-    // ⭐ RESTAURAR
-    async function restoreQuotation(id, folio) {
-      if (!confirm(`¿Restaurar cotización ${folio}?`)) return;
-
-      try {
-        const token = localStorage.getItem('token');
-
-        const res = await fetch(`/api/trash/quotations/${id}/restore`, {
-          method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        const data = await res.json();
-
-        if (!data.ok) {
-          throw new Error(data.error);
-        }
-
-        showToast(`Cotización ${folio} restaurada exitosamente`, 'success');
-        loadTrash(currentPage, document.getElementById('searchInput').value);
-
-      } catch (e) {
-        console.error('Error:', e);
-        showToast('Error restaurando: ' + e.message, 'error');
-      }
-    }
-
+// ── Restaurar Cotización ──
+function showRestoreQuoteModal(id, folio) {
+  pendingRestoreQuoteId    = id;
+  pendingRestoreQuoteFolio = folio;
+  document.getElementById('restoreQuoteFolio').textContent = folio;
+  document.getElementById('restoreQuoteModal').classList.add('show');
+}
+function hideRestoreQuoteModal() {
+  pendingRestoreQuoteId = null;
+  document.getElementById('restoreQuoteModal').classList.remove('show');
+}
+async function confirmRestoreQuote() {
+  const id    = pendingRestoreQuoteId;
+  const folio = pendingRestoreQuoteFolio;
+  hideRestoreQuoteModal();
+  try {
+    const res = await fetch(`/api/trash/quotations/${id}/restore`, {
+      method: 'POST', credentials: 'include'
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    showToast(`Cotización ${folio} restaurada`, 'success');
+    loadTrash(currentPage, document.getElementById('searchInput').value);
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
     // ⭐ MODALES
     function showDeleteModal(id, folio) {
       deleteQuotationId = id;
@@ -1119,69 +1226,52 @@
     // ⭐ VACIAR PAPELERA
     async function emptyTrash() {
       try {
-        const token = localStorage.getItem('token');
-
-        const res = await fetch('/api/trash/quotations/empty', {
-          method: 'DELETE',
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        const data = await res.json();
-
-        if (!data.ok) {
-          throw new Error(data.error);
+        let res;
+        if (currentTab === 'quotes') {
+          res = await fetch('/api/trash/quotations/empty', {
+            method: 'DELETE', credentials: 'include'
+          });
+        } else {
+          res = await fetch('/api/trash/sales/empty', {
+            method: 'DELETE', credentials: 'include'
+          });
         }
 
-        showToast(`${data.count} cotizaciones eliminadas permanentemente`, 'success');
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+
+        showToast(`${data.count} ${currentTab === 'quotes' ? 'cotizaciones' : 'ventas'} eliminadas permanentemente`, 'success');
         hideEmptyTrashModal();
-        loadTrash(1, '');
+        currentTab === 'quotes' ? loadTrash(1, '') : loadTrashSales(1, '');
 
       } catch (e) {
         console.error('Error:', e);
         showToast('Error vaciando papelera: ' + e.message, 'error');
       }
     }
-
     // ⭐ AUTO-LIMPIEZA
-    async function autoClean() {
-      if (!confirm('¿Ejecutar auto-limpieza? Esto eliminará permanentemente todas las cotizaciones con más de 30 días en la papelera.')) {
-        return;
-      }
-
+    // ── Auto-Limpieza ──
+    function showAutoCleanModal() {
+      document.getElementById('autoCleanModal').classList.add('show');
+    }
+    function hideAutoCleanModal() {
+      document.getElementById('autoCleanModal').classList.remove('show');
+    }
+    async function confirmAutoClean() {
+      hideAutoCleanModal();
       try {
-        const token = localStorage.getItem('token');
-
         const res = await fetch('/api/trash/auto-clean', {
-          method: 'POST',
-          headers: { 
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
+          method: 'POST', credentials: 'include'
         });
-
         const data = await res.json();
-
-        if (!data.ok) {
-          throw new Error(data.error);
-        }
-
-        if (data.count === 0) {
-          showToast('No hay cotizaciones para limpiar', 'info');
-        } else {
-          showToast(`${data.count} cotizaciones antiguas eliminadas`, 'success');
-        }
-
-        loadTrash(currentPage, document.getElementById('searchInput').value);
-
+        if (!data.ok) throw new Error(data.error);
+        showToast(data.count === 0 ? 'No hay elementos para limpiar' : `${data.count} elementos eliminados`, 
+          data.count === 0 ? 'info' : 'success');
+        currentTab === 'quotes' ? loadTrash(currentPage, '') : loadTrashSales(currentPage, '');
       } catch (e) {
-        console.error('Error:', e);
-        showToast('Error en auto-limpieza: ' + e.message, 'error');
+        showToast('Error: ' + e.message, 'error');
       }
     }
-
     // ⭐ BÚSQUEDA
     document.getElementById('searchInput').addEventListener('input', (e) => {
       clearTimeout(searchTimeout);
@@ -1226,6 +1316,132 @@
         loadTrash();
       });
     }
+
+    let currentTab = 'quotes';
+
+    function switchTab(tab) {
+      currentTab = tab;
+      document.getElementById('tabQuotes').style.background = tab === 'quotes' ? 'var(--revolt-red)' : '#e5e7eb';
+      document.getElementById('tabQuotes').style.color      = tab === 'quotes' ? 'white' : '#374151';
+      document.getElementById('tabSales').style.background  = tab === 'sales'  ? 'var(--revolt-red)' : '#e5e7eb';
+      document.getElementById('tabSales').style.color       = tab === 'sales'  ? 'white' : '#374151';
+      tab === 'quotes' ? loadTrash(1, '') : loadTrashSales(1, '');
+    }
+
+    async function loadTrashSales(page = 1, search = '') {
+      try {
+        document.getElementById('loadingContainer').style.display = 'block';
+        document.getElementById('emptyContainer').style.display = 'none';
+        document.getElementById('quotationsTable').style.display = 'none';
+
+        const res = await fetch(`/api/trash/sales?page=${page}&limit=20&search=${encodeURIComponent(search)}`, {
+          credentials: 'include'
+        });
+        const data = await res.json();
+        if (!data.ok) throw new Error(data.error);
+
+        document.getElementById('loadingContainer').style.display = 'none';
+
+        if (data.sales.length === 0) {
+          document.getElementById('emptyContainer').style.display = 'block';
+          return;
+        }
+
+        const tbody = document.getElementById('quotationsBody');
+        tbody.innerHTML = data.sales.map(s => {
+          const daysAgo  = Math.floor((new Date() - new Date(s.deletedAt)) / 86400000);
+          const daysLeft = 30 - daysAgo;
+          return `
+            <tr>
+              <td><strong>${s.folio}</strong></td>
+              <td>${s.client?.name || '-'}</td>
+              <td>${s.client?.company || '-'}</td>
+              <td style="font-weight:600;color:var(--revolt-red);">
+                $${parseFloat(s.total).toLocaleString('es-MX', {minimumFractionDigits:2})} ${s.currency}
+              </td>
+              <td>${formatDate(s.deletedAt)}</td>
+              <td>
+                <span class="badge ${daysLeft <= 7 ? 'badge-danger' : daysLeft <= 14 ? 'badge-warning' : 'badge-info'}">
+                  <i class="bi bi-clock"></i> ${daysLeft}d
+                </span>
+              </td>
+              <td>
+                <div style="display:flex;gap:6px;justify-content:center;">
+                  <button class="btn-success" onclick="showRestoreSaleModal(${s.id}, '${s.folio}')">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                  </button>
+                  <button class="btn-danger-sm" onclick="showDeleteSaleModal(${s.id}, '${s.folio}')">
+                    <i class="bi bi-trash3"></i>
+                  </button>
+                </div>
+              </td>
+            </tr>
+          `;
+        }).join('');
+
+        document.getElementById('quotationsTable').style.display = 'table';
+
+      } catch (e) {
+        showToast('Error: ' + e.message, 'error');
+        document.getElementById('loadingContainer').style.display = 'none';
+      }
+    }
+
+// ── Restaurar Venta ──
+function showRestoreSaleModal(id, folio) {
+  pendingRestoreSaleId    = id;
+  pendingRestoreSaleFolio = folio;
+  document.getElementById('restoreSaleFolio').textContent = folio;
+  document.getElementById('restoreSaleModal').classList.add('show');
+}
+function hideRestoreSaleModal() {
+  pendingRestoreSaleId = null;
+  document.getElementById('restoreSaleModal').classList.remove('show');
+}
+async function confirmRestoreSale() {
+  const id    = pendingRestoreSaleId;
+  const folio = pendingRestoreSaleFolio;
+  hideRestoreSaleModal();
+  try {
+    const res = await fetch(`/api/trash/sales/${id}/restore`, {
+      method: 'POST', credentials: 'include'
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    showToast(`Venta ${folio} restaurada`, 'success');
+    loadTrashSales(currentPage, document.getElementById('searchInput').value);
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
+    
+// ── Eliminar Venta Permanente ──
+function showDeleteSaleModal(id, folio) {
+  pendingDeleteSaleId    = id;
+  pendingDeleteSaleFolio = folio;
+  document.getElementById('deleteSaleFolio').textContent = folio;
+  document.getElementById('deleteSaleModal').classList.add('show');
+}
+function hideDeleteSaleModal() {
+  pendingDeleteSaleId = null;
+  document.getElementById('deleteSaleModal').classList.remove('show');
+}
+async function confirmDeleteSale() {
+  const id    = pendingDeleteSaleId;
+  const folio = pendingDeleteSaleFolio;
+  hideDeleteSaleModal();
+  try {
+    const res = await fetch(`/api/trash/sales/${id}/permanent`, {
+      method: 'DELETE', credentials: 'include'
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    showToast('Venta eliminada permanentemente', 'success');
+    loadTrashSales(currentPage, document.getElementById('searchInput').value);
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
   </script>
 
   <script src="/auth-guard.js"></script>

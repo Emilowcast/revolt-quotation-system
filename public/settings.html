@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Configuración - REVOLT</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+  <script src="/auth-guard.js"></script>
+  <style>
+    :root {
+      --revolt-red: #F62E41;
+      --revolt-dark: #1a1a1a;
+    }
+
+    body {
+      background: linear-gradient(135deg, #000000 0%, #1a1a1a 30%, #d41f33 70%, #F62E41 100%);
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .navbar {
+      background: var(--revolt-dark) !important;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+    }
+
+    .navbar-brand {
+      font-weight: bold;
+      color: var(--revolt-red) !important;
+      font-size: 1.5rem;
+    }
+
+    .container-main {
+      background: white;
+      border-radius: 15px;
+      box-shadow: 0 10px 40px rgba(246, 46, 65, 0.3);
+      padding: 40px;
+      margin-top: 30px;
+      margin-bottom: 30px;
+      max-width: 95%;
+    }
+
+    .page-header {
+      margin-bottom: 35px;
+      padding-bottom: 25px;
+      border-bottom: 3px solid var(--revolt-red);
+    }
+
+    .page-header h1 {
+      color: var(--revolt-dark);
+      font-weight: bold;
+      font-size: 2rem;
+      margin-bottom: 6px;
+    }
+
+    .page-header p {
+      color: #666;
+      font-size: 0.95rem;
+      margin: 0;
+    }
+
+    .section-title {
+      color: var(--revolt-dark);
+      font-weight: 700;
+      font-size: 1.1rem;
+      margin-bottom: 20px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #e0e0e0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .config-card {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    .config-card .form-label {
+      font-weight: 600;
+      color: #374151;
+      font-size: 0.9rem;
+    }
+
+    .config-card .form-text {
+      color: #6b7280;
+      font-size: 0.8rem;
+    }
+
+    .config-card .form-control {
+      border-color: #d1d5db;
+      font-size: 0.92rem;
+    }
+
+    .config-card .form-control:focus {
+      border-color: var(--revolt-red);
+      box-shadow: 0 0 0 3px rgba(246,46,65,0.12);
+    }
+
+    .folio-preview {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: #fef2f2;
+      border: 1px solid #fecaca;
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-weight: 700;
+      color: #991b1b;
+      font-size: 0.95rem;
+      margin-top: 8px;
+    }
+
+    .btn-guardar {
+      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 28px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+    }
+
+    .btn-guardar:hover {
+      background: linear-gradient(135deg, #d41f33, #b91c1c);
+      transform: translateY(-1px);
+      box-shadow: 0 5px 15px rgba(246,46,65,0.4);
+      color: white;
+    }
+
+    .btn-volver {
+      background: #f3f4f6;
+      color: #374151;
+      border: none;
+      border-radius: 8px;
+      padding: 10px 22px;
+      font-weight: 600;
+      font-size: 0.92rem;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: all 0.2s;
+      text-decoration: none;
+    }
+
+    .btn-volver:hover {
+      background: #e5e7eb;
+      color: #374151;
+    }
+
+    .info-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eff6ff;
+      border: 1px solid #bfdbfe;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.82rem;
+      color: #1e40af;
+      margin-bottom: 20px;
+    }
+
+    .toast-container {
+      position: fixed;
+      top: 20px;
+      right: 20px;
+      z-index: 9999;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="navbar navbar-expand-lg navbar-dark">
+    <div class="container-fluid px-4">
+      <a class="navbar-brand" href="/dashboard.html">
+        ⚡ REVOLT
+      </a>
+      <div class="ms-auto d-flex align-items-center gap-3">
+        <a href="/dashboard.html" class="btn-volver">
+          <i class="bi bi-arrow-left"></i> Dashboard
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <div class="container-fluid px-4">
+    <div class="container-main mx-auto">
+
+      <!-- HEADER -->
+      <div class="page-header">
+        <h1><i class="bi bi-gear-fill" style="color:var(--revolt-red);"></i> Configuración del Sistema</h1>
+        <p>Administra los parámetros generales del sistema REVOLT SGAC</p>
+      </div>
+
+      <!-- SECCIÓN FOLIOS -->
+      <div class="section-title">
+        <i class="bi bi-hash" style="color:var(--revolt-red);"></i>
+        Manejo de Folios
+      </div>
+
+      <div class="info-badge">
+        <i class="bi bi-info-circle-fill"></i>
+        El folio inicial solo se aplica cuando no existen registros previos con el nuevo formato. Si ya hay cotizaciones o ventas, el sistema continuará desde el último número registrado.
+      </div>
+
+      <div class="row g-4">
+
+        <!-- Folio cotizaciones -->
+        <div class="col-md-6">
+          <div class="config-card">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <i class="bi bi-file-earmark-text" style="color:var(--revolt-red);font-size:1.3rem;"></i>
+              <strong style="font-size:1rem;color:#1a1a1a;">Cotizaciones</strong>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Folio inicial</label>
+              <input type="number" class="form-control" id="folioInicialCotizacion"
+                min="1" max="9999" placeholder="Ej: 45">
+              <div class="form-text">Número desde el cual iniciará el contador de cotizaciones.</div>
+            </div>
+            <div>
+              <label class="form-label">Vista previa</label><br>
+              <span class="folio-preview" id="previewCotizacion">
+                <i class="bi bi-tag"></i> COT-26-0001
+              </span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Folio ventas -->
+        <div class="col-md-6">
+          <div class="config-card">
+            <div class="d-flex align-items-center gap-2 mb-3">
+              <i class="bi bi-bag-check" style="color:var(--revolt-red);font-size:1.3rem;"></i>
+              <strong style="font-size:1rem;color:#1a1a1a;">Ventas / Órdenes de Producción</strong>
+            </div>
+            <div class="mb-3">
+              <label class="form-label">Folio inicial</label>
+              <input type="number" class="form-control" id="folioInicialVenta"
+                min="1" max="9999" placeholder="Ej: 32">
+              <div class="form-text">Número desde el cual iniciará el contador de ventas y órdenes de producción.</div>
+            </div>
+            <div>
+              <label class="form-label">Vista previa</label><br>
+              <span class="folio-preview" id="previewVenta">
+                <i class="bi bi-tag"></i> VTA-26-0001
+              </span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BOTÓN GUARDAR -->
+      <div class="d-flex justify-content-end gap-3 mt-3">
+        <a href="/dashboard.html" class="btn-volver">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </a>
+        <button class="btn-guardar" onclick="guardarConfig()">
+          <i class="bi bi-check-circle-fill"></i> Guardar configuración
+        </button>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="toast-container"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    function showToast(msg, type = 'success') {
+      const toastContainer = document.querySelector('.toast-container');
+      if (!toastContainer) return;
+      const toastId = 'toast-' + Date.now();
+      const icons   = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+      const colors  = { success: '#10b981', error: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
+      const labels  = { success: 'Éxito', error: 'Error', warning: 'Advertencia', info: 'Información' };
+      const toastHTML = `
+        <div class="toast" id="${toastId}" role="alert">
+          <div class="toast-header" style="background: ${colors[type]};">
+            <strong class="me-auto">${icons[type]} ${labels[type]}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+          </div>
+          <div class="toast-body">${msg}</div>
+        </div>`;
+      toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+      const toastEl = document.getElementById(toastId);
+      const toast   = new bootstrap.Toast(toastEl, { autohide: true, delay: 3500 });
+      toast.show();
+      toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
+
+    const anio2 = String(new Date().getFullYear()).slice(-2);
+
+    // Vista previa en tiempo real
+    document.getElementById('folioInicialCotizacion').addEventListener('input', function () {
+      const val = parseInt(this.value) || 1;
+      document.getElementById('previewCotizacion').innerHTML =
+        `<i class="bi bi-tag"></i> COT-${anio2}-${String(val).padStart(4, '0')}`;
+    });
+
+    document.getElementById('folioInicialVenta').addEventListener('input', function () {
+      const val = parseInt(this.value) || 1;
+      document.getElementById('previewVenta').innerHTML =
+        `<i class="bi bi-tag"></i> VTA-${anio2}-${String(val).padStart(4, '0')}`;
+    });
+
+    // Cargar configuración existente
+    async function cargarConfig() {
+      try {
+        const r  = await fetch('/api/config', { credentials: 'include' });
+        const js = await r.json();
+        if (!js.ok) return;
+
+        const cfg = js.config;
+
+        if (cfg.folio_inicial_cotizacion) {
+          const val = parseInt(cfg.folio_inicial_cotizacion);
+          document.getElementById('folioInicialCotizacion').value = val;
+          document.getElementById('previewCotizacion').innerHTML =
+            `<i class="bi bi-tag"></i> COT-${anio2}-${String(val).padStart(4, '0')}`;
+        }
+
+        if (cfg.folio_inicial_venta) {
+          const val = parseInt(cfg.folio_inicial_venta);
+          document.getElementById('folioInicialVenta').value = val;
+          document.getElementById('previewVenta').innerHTML =
+            `<i class="bi bi-tag"></i> VTA-${anio2}-${String(val).padStart(4, '0')}`;
+        }
+      } catch (e) {
+        console.error('Error cargando configuración:', e);
+      }
+    }
+
+    // Guardar configuración
+    async function guardarConfig() {
+      try {
+        const cot  = document.getElementById('folioInicialCotizacion').value;
+        const vta  = document.getElementById('folioInicialVenta').value;
+        const reqs = [];
+
+        if (cot) {
+          reqs.push(fetch('/api/config', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clave: 'folio_inicial_cotizacion', valor: cot })
+          }));
+        }
+
+        if (vta) {
+          reqs.push(fetch('/api/config', {
+            method: 'POST',
+            credentials: 'include',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ clave: 'folio_inicial_venta', valor: vta })
+          }));
+        }
+
+        if (reqs.length === 0) {
+          showToast('Ingresa al menos un valor para guardar', 'warning');
+          return;
+        }
+
+        await Promise.all(reqs);
+        showToast('Configuración guardada correctamente', 'success');
+      } catch (e) {
+        showToast('Error guardando configuración: ' + e.message, 'error');
+      }
+    }
+
+    cargarConfig();
+  </script>
+</body>
+</html>

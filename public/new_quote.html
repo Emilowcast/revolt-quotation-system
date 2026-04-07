@@ -429,6 +429,25 @@
       border-bottom: none;
     }
 
+    .provider-cost-row {
+      display: none;
+      background: #fff7ed;
+      border-top: 1px dashed #f59e0b;
+    }
+    .provider-cost-row td {
+      padding: 4px 8px 6px 8px;
+    }
+    .provider-cost-badge {
+      display: inline-block;
+      background: #f59e0b;
+      color: white;
+      font-size: 0.7rem;
+      font-weight: 600;
+      padding: 1px 7px;
+      border-radius: 10px;
+      margin-bottom: 3px;
+    }
+
     .action-buttons-fixed {
       position: fixed;
       bottom: 30px;
@@ -458,8 +477,9 @@
     }
 
     .floating-btn-save {
-      background: linear-gradient(135deg, var(--revolt-red), #d41f33);
+      background: linear-gradient(135deg, #22c55e, #16a34a);
       color: white;
+      box-shadow: 0 6px 24px rgba(34, 197, 94, 0.5);
     }
 
     .floating-btn-preview {
@@ -477,46 +497,6 @@
       top: 20px;
       right: 20px;
       z-index: 9999;
-    }
-
-    .toast {
-      min-width: 350px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      border-left: 5px solid var(--revolt-red);
-      background: white;
-      padding: 18px 22px;
-      margin-bottom: 12px;
-      animation: slideIn 0.3s ease;
-      font-weight: 500;
-      font-size: 0.95rem;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .toast.success {
-      border-left-color: #10b981;
-    }
-
-    .toast.error {
-      border-left-color: #ef4444;
-    }
-
-    .toast.warning {
-      border-left-color: #f59e0b;
-    }
-
-    .toast.info {
-      border-left-color: #3b82f6;
     }
 
     .loading {
@@ -758,6 +738,311 @@
         padding: 20px;
       }
     }
+
+    /* =============================================
+   SECCIÓN: CONFIGURACIÓN OPCIONAL
+   ============================================= */
+
+    .config-opcional-wrapper {
+      margin-top: 20px;
+    }
+
+    .config-toggle-btn {
+      width: 100%;
+      background: white;
+      border: 2px dashed #d1d5db;
+      border-radius: 12px;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: all 0.3s;
+      color: #6b7280;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    .config-toggle-btn:hover {
+      border-color: var(--revolt-red);
+      color: var(--revolt-red);
+      background: #fff5f6;
+    }
+
+    .config-toggle-btn.active {
+      border-style: solid;
+      border-color: var(--revolt-red);
+      color: var(--revolt-red);
+      background: #fff5f6;
+      border-radius: 12px 12px 0 0;
+    }
+
+    .config-toggle-btn .toggle-icon {
+      transition: transform 0.3s;
+      font-size: 1.1rem;
+    }
+
+    .config-toggle-btn.active .toggle-icon {
+      transform: rotate(180deg);
+    }
+
+    .config-opcional-body {
+      display: none;
+      background: white;
+      border: 2px solid var(--revolt-red);
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      overflow: hidden;
+      animation: expandDown 0.3s ease;
+    }
+
+    @keyframes expandDown {
+      from { opacity: 0; transform: translateY(-10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .config-opcional-body.show {
+      display: block;
+    }
+
+    /* Tabs internos */
+    .config-tabs {
+      display: flex;
+      border-bottom: 1px solid #f0f0f0;
+      background: #fafafa;
+    }
+
+    .config-tab {
+      flex: 1;
+      padding: 14px 20px;
+      border: none;
+      background: transparent;
+      font-weight: 600;
+      font-size: 0.88rem;
+      color: #9ca3af;
+      cursor: pointer;
+      transition: all 0.25s;
+      border-bottom: 3px solid transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .config-tab:hover {
+      color: var(--revolt-red);
+      background: #fff5f6;
+    }
+
+    .config-tab.active {
+      color: var(--revolt-red);
+      border-bottom-color: var(--revolt-red);
+      background: white;
+    }
+
+    .config-tab-content {
+      display: none;
+      padding: 28px;
+      animation: fadeTabIn 0.2s ease;
+    }
+
+    @keyframes fadeTabIn {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+
+    .config-tab-content.active {
+      display: block;
+    }
+
+    /* Condiciones comerciales */
+    .condicion-card {
+      background: #f8fafc;
+      border: 1.5px solid #e2e8f0;
+      border-radius: 10px;
+      padding: 20px;
+      transition: border-color 0.2s;
+    }
+
+    .condicion-card:hover {
+      border-color: #cbd5e1;
+    }
+
+    .condicion-card-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      color: #94a3b8;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .condicion-card-label i {
+      color: var(--revolt-red);
+      font-size: 0.9rem;
+    }
+
+    /* Tipo de caso */
+    .tipo-caso-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+
+    .tipo-caso-option {
+      position: relative;
+    }
+
+    .tipo-caso-option input[type="radio"] {
+      position: absolute;
+      opacity: 0;
+      width: 0;
+      height: 0;
+    }
+
+    .tipo-caso-label {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 12px;
+      border: 2px solid #e5e7eb;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.25s;
+      background: white;
+      text-align: center;
+    }
+
+    .tipo-caso-label:hover {
+      border-color: #fca5a5;
+      background: #fff5f6;
+    }
+
+    .tipo-caso-option input:checked + .tipo-caso-label {
+      border-color: var(--revolt-red);
+      background: linear-gradient(135deg, #fff1f2, #fff5f6);
+      box-shadow: 0 4px 12px rgba(246, 46, 65, 0.15);
+    }
+
+    .tipo-caso-label .caso-icon {
+      font-size: 1.6rem;
+      line-height: 1;
+    }
+
+    .tipo-caso-label .caso-nombre {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: #374151;
+    }
+
+    .tipo-caso-label .caso-desc {
+      font-size: 0.7rem;
+      color: #9ca3af;
+      line-height: 1.3;
+    }
+
+    .tipo-caso-option input:checked + .tipo-caso-label .caso-nombre {
+      color: var(--revolt-red);
+    }
+
+    /* Panel de anticipo */
+    .anticipo-panel {
+      display: none;
+      background: linear-gradient(135deg, #fefce8, #fef3c7);
+      border: 2px solid #fde68a;
+      border-radius: 10px;
+      padding: 20px;
+      margin-top: 4px;
+      animation: fadeTabIn 0.2s ease;
+    }
+
+.anticipo-panel.show {
+      display: block;
+    }
+
+    .anticipo-modo-toggle {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+
+    .anticipo-modo-toggle button {
+      flex: 1;
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 2px solid #fde68a;
+      background: white;
+      color: #92400e;
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .anticipo-modo-toggle button.active {
+      background: #f59e0b;
+      border-color: #f59e0b;
+      color: white;
+    }
+
+  .anticipo-equivalencia {
+      margin-top: 10px;
+      font-size: 1rem;
+      color: #92400e;
+      font-weight: 700;
+      background: rgba(245,158,11,0.15);
+      border-radius: 6px;
+      padding: 10px 14px;
+      display: none;
+    }
+
+    .anticipo-equivalencia.show {
+      display: block;
+    }
+
+    .anticipo-input-wrapper {
+      position: relative;
+      max-width: 280px;
+    }
+
+    .anticipo-input-wrapper .currency-prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: 700;
+      color: #92400e;
+      font-size: 0.95rem;
+      pointer-events: none;
+    }
+
+    .anticipo-input-wrapper input {
+      padding-left: 42px;
+      border: 2px solid #fde68a;
+      border-radius: 8px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #92400e;
+      background: white;
+      transition: border-color 0.2s;
+    }
+
+    .anticipo-input-wrapper input:focus {
+      border-color: #f59e0b;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.15);
+    }
+
+    .notas-caso-field {
+      margin-top: 20px;
+    }
+  
   </style>
 </head>
 <body>
@@ -1016,26 +1301,55 @@
             </div>
           </div>
 
-          <!-- ⭐ CONDICIONES COMERCIALES COMPACTAS -->
-          <div class="condiciones-compact">
-            <div class="condiciones-title">
-              <i class="bi bi-file-text"></i> Condiciones Comerciales
-              <span class="badge bg-secondary" style="font-size:0.65rem;margin-left:6px;">Opcional</span>
-            </div>
-            
-            <div class="condiciones-grid">
-              <div class="condicion-field">
-                <label>
+<!-- =============================================
+     CONFIGURACIÓN OPCIONAL (Condiciones + Tipo de Caso)
+     ============================================= -->
+    <div class="config-opcional-wrapper">
+
+      <!-- Botón toggle -->
+      <button type="button" class="config-toggle-btn active" id="configToggleBtn">
+        <span style="display:flex;align-items:center;gap:10px;">
+          <i class="bi bi-sliders" style="font-size:1.1rem;"></i>
+          Configuración Opcional
+          <span style="font-size:0.75rem;font-weight:400;color:#9ca3af;background:#f3f4f6;padding:2px 10px;border-radius:20px;">
+            Condiciones comerciales · Tipo de caso
+          </span>
+        </span>
+        <i class="bi bi-chevron-down toggle-icon"></i>
+      </button>
+
+      <!-- Cuerpo colapsable -->
+      <div class="config-opcional-body show" id="configOpcionalBody">
+
+        <!-- Tabs -->
+        <div class="config-tabs">
+          <button class="config-tab active" data-tab="condiciones">
+            <i class="bi bi-file-text"></i> Condiciones Comerciales
+          </button>
+          <button class="config-tab" data-tab="tipocaso">
+            <i class="bi bi-tag"></i> Tipo de Caso
+          </button>
+        </div>
+
+        <!-- Tab 1: Condiciones Comerciales -->
+        <div class="config-tab-content active" id="tab-condiciones">
+          <div class="row g-4">
+
+            <!-- Tiempo de entrega -->
+            <div class="col-md-6">
+              <div class="condicion-card">
+                <div class="condicion-card-label">
                   <i class="bi bi-clock"></i> Tiempo de Entrega
-                </label>
-                
-                <div class="form-check mb-2" style="font-size:0.85rem;">
-                  <input type="checkbox" class="form-check-input" id="disponibilidadInmediata">
-                  <label class="form-check-label text-success fw-bold" for="disponibilidadInmediata">
-                    <i class="bi bi-check-circle"></i> Disponibilidad Inmediata
+                </div>
+
+                <div class="form-check mb-3" style="padding:10px 12px;background:#f0fdf4;border-radius:8px;border:1.5px solid #bbf7d0;">
+                  <input type="checkbox" class="form-check-input" id="disponibilidadInmediata" style="accent-color:#10b981;">
+                  <label class="form-check-label fw-bold" for="disponibilidadInmediata" style="color:#065f46;cursor:pointer;">
+                    <i class="bi bi-check-circle-fill" style="color:#10b981;"></i>
+                    Disponibilidad Inmediata
                   </label>
                 </div>
-                
+
                 <select id="tiempoEntregaSelect" class="form-select form-select-sm mb-2">
                   <option value="">Seleccionar plazo...</option>
                   <option value="5-10 días hábiles">5-10 días hábiles</option>
@@ -1043,23 +1357,185 @@
                   <option value="10-20 días hábiles">10-20 días hábiles</option>
                   <option value="15-20 días hábiles">15-20 días hábiles</option>
                   <option value="20-30 días hábiles">20-30 días hábiles</option>
-                  <option value="manual">✏️ Otro</option>
+                  <option value="manual">✏️ Otro plazo...</option>
                 </select>
-                
-                <input id="tiempoEntregaManual" type="text" class="form-control form-control-sm" placeholder="Plazo personalizado" style="display:none;" maxlength="200" />
+
+                <input id="tiempoEntregaManual" type="text" class="form-control form-control-sm"
+                  placeholder="Escribe el plazo personalizado" style="display:none;" maxlength="200" />
               </div>
-              
-              <div class="condicion-field">
-                <label>
+            </div>
+
+            <!-- Forma de pago -->
+            <div class="col-md-6">
+              <div class="condicion-card">
+                <div class="condicion-card-label">
                   <i class="bi bi-credit-card"></i> Forma de Pago
-                </label>
-                <input id="formaPago" type="text" class="form-control form-control-sm" placeholder="Se auto-completa..." maxlength="200" readonly style="background:#f0f9ff;" />
-                <small class="text-muted d-block mt-1" id="formaPagoHint" style="font-size:0.75rem;">
-                  <i class="bi bi-lightbulb"></i> Auto-completa según entrega
+                </div>
+
+                <input id="formaPago" type="text" class="form-control form-control-sm mb-2"
+                  placeholder="Se auto-completa según entrega..." maxlength="200" readonly
+                  style="background:#f0f9ff;border:1.5px solid #bae6fd;color:#0369a1;font-weight:600;" />
+
+                <small style="font-size:0.75rem;color:#64748b;display:flex;align-items:center;gap:4px;">
+                  <i class="bi bi-lightbulb" style="color:#f59e0b;"></i>
+                  Se calcula automáticamente según el tiempo de entrega seleccionado
                 </small>
               </div>
             </div>
+
           </div>
+
+<!-- Venta al extranjero -->
+          <div class="row g-4 mt-0">
+            <div class="col-12">
+              <div class="condicion-card" style="border:1.5px solid #e0e7ff;background:#f8f9ff;">
+                <div class="condicion-card-label">
+                  <i class="bi bi-globe"></i> Venta Internacional
+                </div>
+                <div class="form-check" style="padding:10px 12px;background:#eff6ff;border-radius:8px;border:1.5px solid #bfdbfe;">
+                  <input type="checkbox" class="form-check-input" id="esExtranjero" style="accent-color:#3b82f6;">
+                  <label class="form-check-label fw-bold" for="esExtranjero" style="color:#1e40af;cursor:pointer;">
+                    <i class="bi bi-airplane-fill" style="color:#3b82f6;"></i>
+                    Venta al extranjero (sin IVA)
+                  </label>
+                </div>
+                <div id="paisExtranjeroPanel" style="display:none;margin-top:12px;">
+                  <label class="form-label" style="font-size:0.85rem;color:#64748b;">País de destino</label>
+                  <select id="paisExtranjero" class="form-select form-select-sm">
+                    <option value="GT">Guatemala</option>
+                    <option value="SV">El Salvador</option>
+                    <option value="PA">Panamá</option>
+                    <option value="HN">Honduras</option>
+                    <option value="NI">Nicaragua</option>
+                    <option value="CR">Costa Rica</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+        <!-- Tab 2: Tipo de Caso -->
+        <div class="config-tab-content" id="tab-tipocaso">
+
+          <div class="tipo-caso-grid">
+
+            <div class="tipo-caso-option">
+              <input type="radio" name="tipoCaso" id="caso-venta" value="venta" checked>
+              <label class="tipo-caso-label" for="caso-venta">
+                <span class="caso-icon">🛒</span>
+                <span class="caso-nombre">Venta</span>
+                <span class="caso-desc">Venta estándar de producto</span>
+              </label>
+            </div>
+
+<div class="tipo-caso-option">
+              <input type="radio" name="tipoCaso" id="caso-reparacion" value="reparacion">
+              <label class="tipo-caso-label" for="caso-reparacion">
+                <span class="caso-icon">🔧</span>
+                <span class="caso-nombre">Reparación</span>
+                <span class="caso-desc">Servicio de reparación de equipo</span>
+              </label>
+            </div>
+
+            <div class="tipo-caso-option">
+              <input type="radio" name="tipoCaso" id="caso-mantenimiento" value="mantenimiento">
+              <label class="tipo-caso-label" for="caso-mantenimiento">
+                <span class="caso-icon">⚙️</span>
+                <span class="caso-nombre">Mantenimiento</span>
+                <span class="caso-desc">Servicio de mantenimiento preventivo</span>
+              </label>
+            </div>
+
+            <div class="tipo-caso-option">
+              <input type="radio" name="tipoCaso" id="caso-anticipo" value="anticipo">
+              <label class="tipo-caso-label" for="caso-anticipo">
+                <span class="caso-icon">💰</span>
+                <span class="caso-nombre">Anticipo</span>
+                <span class="caso-desc">Pago parcial anticipado</span>
+              </label>
+            </div>
+
+          </div>
+
+<!-- Panel anticipo (se muestra solo si selecciona anticipo) -->
+          <div class="anticipo-panel" id="anticipoPanel">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+              <i class="bi bi-cash-coin" style="font-size:1.3rem;color:#92400e;"></i>
+              <span style="font-weight:700;color:#92400e;font-size:0.95rem;">Anticipo</span>
+            </div>
+
+            <!-- Toggle modo -->
+            <div class="anticipo-modo-toggle">
+              <button type="button" id="btnModoPorcentaje" class="active" onclick="setAnticipo('porcentaje')">
+                <i class="bi bi-percent"></i> Porcentaje
+              </button>
+              <button type="button" id="btnModoMonto" onclick="setAnticipo('monto')">
+                <i class="bi bi-currency-dollar"></i> Monto fijo
+              </button>
+            </div>
+
+            <!-- Modo porcentaje -->
+            <div id="anticipoModoPorcentaje">
+              <div class="anticipo-input-wrapper">
+                <span class="currency-prefix" style="color:#92400e;">%</span>
+                <input type="number" id="anticipoPorcentaje" step="1" min="1" max="100"
+                  value="50" class="form-control" placeholder="50" />
+              </div>
+              <div class="anticipo-equivalencia" id="anticipoEquivalencia">
+                <i class="bi bi-arrow-right-circle"></i> Equivale a: <span id="anticipoEquivalenciaValor">$0.00</span> MXN
+              </div>
+            </div>
+
+            <!-- Modo monto fijo -->
+            <div id="anticipoModoMonto" style="display:none;">
+              <div class="anticipo-input-wrapper">
+                <span class="currency-prefix">$</span>
+                <input type="number" id="anticipoMonto" step="0.01" min="0"
+                  class="form-control" placeholder="0.00" />
+              </div>
+              <small style="display:block;margin-top:8px;font-size:0.78rem;color:#92400e;opacity:0.8;">
+                <i class="bi bi-info-circle"></i> Ingresa el monto en pesos mexicanos (MXN)
+              </small>
+            </div>
+          </div>
+
+          <!-- Panel reparación -->
+          <div class="anticipo-panel" id="reparacionPanel">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+              <i class="bi bi-tools" style="font-size:1.3rem;color:#92400e;"></i>
+              <span style="font-weight:700;color:#92400e;font-size:0.95rem;">Monto de Reparación</span>
+            </div>
+            <div class="anticipo-input-wrapper">
+              <span class="currency-prefix">$</span>
+              <input type="number" id="reparacionMonto" step="0.01" min="0"
+                class="form-control" placeholder="0.00" />
+            </div>
+            <small style="display:block;margin-top:8px;font-size:0.78rem;color:#92400e;opacity:0.8;">
+              <i class="bi bi-info-circle"></i> Ingresa el monto en pesos mexicanos (MXN)
+            </small>
+          </div>
+
+          <!-- Panel mantenimiento -->
+          <div class="anticipo-panel" id="mantenimientoPanel">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+              <i class="bi bi-gear" style="font-size:1.3rem;color:#92400e;"></i>
+              <span style="font-weight:700;color:#92400e;font-size:0.95rem;">Monto de Mantenimiento</span>
+            </div>
+            <div class="anticipo-input-wrapper">
+              <span class="currency-prefix">$</span>
+              <input type="number" id="mantenimientoMonto" step="0.01" min="0"
+                class="form-control" placeholder="0.00" />
+            </div>
+            <small style="display:block;margin-top:8px;font-size:0.78rem;color:#92400e;opacity:0.8;">
+              <i class="bi bi-info-circle"></i> Ingresa el monto en pesos mexicanos (MXN)
+            </small>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
         </div>
       </div>
     </div>
@@ -1069,12 +1545,6 @@
   <div class="action-buttons-fixed">
     <button class="floating-btn floating-btn-save" id="btnSaveQuote" title="Guardar Cotización (Ctrl+S)">
       <i class="bi bi-save" id="saveIcon"></i>
-    </button>
-    <button class="floating-btn floating-btn-preview" id="btnPreview" title="Vista Previa (Ctrl+P)">
-      <i class="bi bi-eye" id="previewIcon"></i>
-    </button>
-    <button class="floating-btn floating-btn-download" id="btnGenerate" title="Descargar PDF (Ctrl+G)">
-      <i class="bi bi-download"></i>
     </button>
   </div>
 
@@ -1240,24 +1710,45 @@
 
     function showToast(msg, type='success'){
       const toastContainer = document.querySelector('.toast-container');
-      const toast = document.createElement('div');
-      toast.className = `toast ${type}`;
-      const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
-      toast.innerHTML = `<strong>${icons[type]}</strong> ${msg}`;
-      toastContainer.appendChild(toast);
-      setTimeout(()=>toast.remove(),3000);
+      if (!toastContainer) return;
+      const toastId = 'toast-' + Date.now();
+      const icons  = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+      const colors = { success: '#10b981', error: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
+      const labels = { success: 'Éxito', error: 'Error', warning: 'Advertencia', info: 'Información' };
+      const toastHTML = `
+        <div class="toast" id="${toastId}" role="alert">
+          <div class="toast-header" style="background: ${colors[type]};">
+            <strong class="me-auto">${icons[type]} ${labels[type]}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+          </div>
+          <div class="toast-body">${msg}</div>
+        </div>
+      `;
+      toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+      const toastEl = document.getElementById(toastId);
+      const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3500 });
+      toast.show();
+      toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
     }
 
-    $('#fecha').value = new Date().toISOString().split('T')[0];
+    $('#fecha').value = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
 
-    function generateFolio(){
-      const date = new Date();
-      const year = date.getFullYear();
-      const month = String(date.getMonth()+1).padStart(2,'0');
-      const random = Math.floor(Math.random()*9000)+1000;
-      return `COT-${year}${month}-${random}`;
+    async function generateFolio(){
+      try {
+        const r = await fetch('/api/quotes/siguiente-folio', { credentials: 'include' });
+        const d = await r.json();
+        return d.folio;
+      } catch {
+        // Fallback en caso de error
+        const date  = new Date();
+        const year  = date.getFullYear();
+        const month = String(date.getMonth()+1).padStart(2,'0');
+        return `COT-${year}${month}-0001`;
+      }
     }
-    $('#folio').value = generateFolio();
+    generateFolio().then(f => $('#folio').value = f);
+    // ⭐ Obtener tipo de cambio automáticamente al cargar
+    fetchTipoCambio(true);
 
     let templates = [];
     async function loadTemplates(){
@@ -1280,8 +1771,47 @@
       textarea.style.height = textarea.scrollHeight + 'px';
     }
 
-    function addRow(item={modelo:'',descripcion:'',precio:0,cant:1}){
+    // ⭐ Keywords de comercialización (hardcodeadas + actualizables desde servidor)
+    let COMERCIALIZACION_KEYWORDS = [
+      { keywords: ['ups', 'no break', 'nobreak', 'no-break'],                          tipo: 'ups' },
+      { keywords: ['regulador electrónico', 'regulador electronico', 'electronico'],   tipo: 'regulador_electronico' },
+      { keywords: ['equipo ec'],                                                        tipo: 'equipo_ec' },
+      { keywords: ['planta'],                                                           tipo: 'planta' },
+      { keywords: ['transformador'],                                                    tipo: 'transformador' },
+      { keywords: ['instalacion', 'instalación'],                                       tipo: 'instalacion' },
+      { keywords: ['supresor'],                                                         tipo: 'supresor' },
+      { keywords: ['multimetro', 'multímetro'],                                         tipo: 'multimetro' },
+      { keywords: ['extension de garantia', 'extensión de garantía'],                  tipo: 'garantia' },
+    ];
+    fetch('/api/comercializacion/keywords')
+      .then(r => r.json())
+      .then(d => { if (d.keywords?.length) COMERCIALIZACION_KEYWORDS = d.keywords; })
+      .catch(() => {});
+
+    function detectarComercializacion(texto) {
+      if (!texto) return { esComercializacion: false, tipo: null };
+      const t = texto.toLowerCase();
+      for (const entry of COMERCIALIZACION_KEYWORDS) {
+        if (entry.keywords.some(kw => t.includes(kw))) {
+          return { esComercializacion: true, tipo: entry.tipo };
+        }
+      }
+      return { esComercializacion: false, tipo: null };
+    }
+
+    const TIPO_LABELS = {
+      ups: 'UPS / No Break', regulador_electronico: 'Regulador Electrónico',
+      equipo_ec: 'Equipo EC', planta: 'Planta', transformador: 'Transformador',
+      instalacion: 'Instalación', supresor: 'Supresor de Picos',
+      multimetro: 'Multímetro', garantia: 'Extensión de Garantía'
+    };
+
+    function addRow(item={modelo:'',descripcion:'',precio:0,cant:1,categoryType:null,providerCost:null}){
+      const tbody = $('#itemsBody');
+
+      // Fila principal del producto
       const tr = document.createElement('tr');
+      tr.className = 'item-main-row';
       tr.innerHTML = `
         <td><textarea class="modelo form-control" rows="1" placeholder="Modelo">${item.modelo||''}</textarea></td>
         <td><textarea class="descripcion form-control" rows="1" placeholder="Descripción del producto">${item.descripcion||''}</textarea></td>
@@ -1290,23 +1820,66 @@
         <td class="text-end fw-bold text-danger subtotal">${fmt(0)}</td>
         <td class="text-center"><button class="btn-danger-custom delRow"><i class="bi bi-trash"></i></button></td>
       `;
-      $('#itemsBody').appendChild(tr);
-      
-      // ⭐ AUTO-RESIZE EN TEXTAREAS
+
+      // Fila secundaria: precio proveedor (oculta por defecto)
+      const trProvider = document.createElement('tr');
+      trProvider.className = 'provider-cost-row';
+      trProvider.innerHTML = `
+        <td colspan="6">
+          <span class="provider-cost-badge"><i class="bi bi-shop"></i> Comercialización</span>
+          <span class="provider-cost-tipo" style="font-size:0.78rem;color:#92400e;margin-left:6px;"></span>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:4px;">
+            <label style="font-size:0.82rem;color:#92400e;white-space:nowrap;margin:0;">
+              <i class="bi bi-currency-dollar"></i> Precio del proveedor <span style="color:#aaa;">(MXN con IVA)</span>
+            </label>
+            <div class="input-group" style="max-width:200px;">
+              <span class="input-group-text">$</span>
+              <input type="number" class="provider-cost form-control" step="0.01" min="0"
+                     placeholder="0.00" value="${item.providerCost||''}">
+            </div>
+          </div>
+          <input type="hidden" class="category-type" value="${item.categoryType||''}">
+        </td>
+      `;
+
+      tbody.appendChild(tr);
+      tbody.appendChild(trProvider);
+
+      // ⭐ Función para evaluar y mostrar/ocultar fila de proveedor
+      function evaluarComercializacion() {
+        const modelo = tr.querySelector('.modelo').value;
+        const descripcion = tr.querySelector('.descripcion').value;
+        const textoCompleto = modelo + ' ' + descripcion;
+        const resultado = detectarComercializacion(textoCompleto);
+        
+        if (resultado.esComercializacion) {
+          trProvider.style.display = 'table-row';
+          trProvider.querySelector('.provider-cost-tipo').textContent =
+            TIPO_LABELS[resultado.tipo] || resultado.tipo;
+          trProvider.querySelector('.category-type').value = resultado.tipo;
+        } else {
+          trProvider.style.display = 'none';
+          trProvider.querySelector('.category-type').value = '';
+        }
+      }
+
+      // AUTO-RESIZE + detección en textareas
       const modeloTextarea = tr.querySelector('.modelo');
       const descripcionTextarea = tr.querySelector('.descripcion');
       
-      modeloTextarea.oninput = () => autoResize(modeloTextarea);
-      descripcionTextarea.oninput = () => autoResize(descripcionTextarea);
+      modeloTextarea.oninput = () => { autoResize(modeloTextarea); evaluarComercializacion(); };
+      descripcionTextarea.oninput = () => { autoResize(descripcionTextarea); evaluarComercializacion(); };
       
-      // Aplicar auto-resize inicial
       autoResize(modeloTextarea);
       autoResize(descripcionTextarea);
       
       tr.querySelector('.precio').oninput = recalc;
       tr.querySelector('.cant').oninput = recalc;
-      tr.querySelector('.delRow').onclick = ()=>{tr.remove();recalc();};
-      
+      tr.querySelector('.delRow').onclick = () => { tr.remove(); trProvider.remove(); recalc(); };
+
+      // Evaluar inmediatamente si el item ya viene con datos
+      if (item.modelo || item.descripcion) evaluarComercializacion();
+
       recalc();
     }
 
@@ -1314,7 +1887,7 @@
 
     function recalc(){
       let subtotal = 0;
-      $$('#itemsBody tr').forEach(tr => {
+      $$('#itemsBody tr.item-main-row').forEach(tr => {
         const precio = toNum(tr.querySelector('.precio').value);
         const cant = Math.max(1,Math.floor(toNum(tr.querySelector('.cant').value)));
         const sub = Number((precio*cant).toFixed(2));
@@ -1344,33 +1917,46 @@
     $('#taxInput').oninput = recalc;
     $('#exchangeRate').oninput = recalc;
 
-    $('#fetchRateBtn').onclick = async () => {
+async function fetchTipoCambio(silencioso = false) {
       const btn = $('#fetchRateBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="loading"></span>';
+      if (btn) { btn.disabled = true; btn.innerHTML = '<span class="loading"></span>'; }
       try {
-        const r = await fetch('https://api.exchangerate.host/latest?base=USD&symbols=MXN');
+        // API del Banco de México — sin límites, oficial
+        const r = await fetch('https://open.er-api.com/v6/latest/USD');
         const js = await r.json();
         const rate = js?.rates?.MXN;
-        if(rate){
-          $('#exchangeRate').value = Math.round(rate*10000)/10000;
+        if (rate) {
+          $('#exchangeRate').value = Math.round(rate * 10000) / 10000;
           recalc();
-          showToast(`Tipo de cambio: ${rate.toFixed(4)}`,'success');
-        } else showToast('No se pudo obtener','warning');
-      } catch(e){ showToast('Error obteniendo tipo de cambio','error'); }
-      btn.disabled = false;
-      btn.innerHTML = '<i class="bi bi-arrow-repeat"></i>';
-    };
+          if (!silencioso) showToast(`Tipo de cambio: $${rate.toFixed(2)} MXN`, 'success');
+        } else {
+          if (!silencioso) showToast('No se pudo obtener el tipo de cambio', 'warning');
+        }
+      } catch(e) {
+        if (!silencioso) showToast('Error obteniendo tipo de cambio', 'error');
+      }
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="bi bi-arrow-repeat"></i>'; }
+    }
+
+    $('#fetchRateBtn').onclick = () => fetchTipoCambio(false);
 
     function collectData(){
       const items = [];
-      $$('#itemsBody tr').forEach(tr => {
+$$('#itemsBody tr.item-main-row').forEach(tr => {
         const modelo = tr.querySelector('.modelo').value.trim();
         const descripcion = tr.querySelector('.descripcion').value.trim();
         const precio = toNum(tr.querySelector('.precio').value);
         const cant = Math.max(1,Math.floor(toNum(tr.querySelector('.cant').value)));
         const subtotal = Number((precio*cant).toFixed(2));
-        items.push({modelo,descripcion,precio,cant,subtotal});
+        // ⭐ Leer proveedor de la fila secundaria (hermana siguiente)
+        const trProvider = tr.nextElementSibling;
+        const categoryType = trProvider?.querySelector('.category-type')?.value || null;
+        const providerCost = trProvider?.querySelector('.provider-cost')?.value
+          ? parseFloat(trProvider.querySelector('.provider-cost').value) : null;
+        items.push({modelo, descripcion, precio, cant, subtotal,
+          categoryType: categoryType || null,
+          providerCost: providerCost || null
+        });
       });
       
       const calc = recalc();
@@ -1382,8 +1968,15 @@
       const data = {
         template: $('#templateSel').value,
         folio: $('#folio').value,
-        fecha: $('#fecha').value,
         clientId: currentClient ? currentClient.id : null,
+        fields: {
+          fecha: $('#fecha').value,
+          nombre: $('#nombre').value,
+          empresa: $('#empresa').value,
+          estado: $('#estado').value,
+          correo: $('#correo').value,
+          numero: $('#numero').value,
+        },
         nombre: $('#nombre').value,
         empresa: $('#empresa').value,
         estado: $('#estado').value,
@@ -1405,8 +1998,33 @@
           if ($('#tiempoEntregaSelect').value) return $('#tiempoEntregaSelect').value;
           return null;
         })(),
-        formaPago: $('#formaPago').value.trim() || null
+        formaPago: $('#formaPago').value.trim() || null,
+        esExtranjero: document.getElementById('esExtranjero').checked,
+        country: document.getElementById('esExtranjero').checked
+          ? document.getElementById('paisExtranjero').value
+          : 'MX'
       };
+      // Tipo de caso
+      const tipoCasoEl = document.querySelector('input[name="tipoCaso"]:checked');
+      data.tipoCaso         = tipoCasoEl ? tipoCasoEl.value : 'venta';
+      // ⭐ categoryType y providerCost ahora vienen dentro de cada item
+        if (data.tipoCaso === 'anticipo') {
+        const modoPct = document.getElementById('btnModoPorcentaje').classList.contains('active');
+        if (modoPct) {
+          const pct = parseFloat(document.getElementById('anticipoPorcentaje').value) || 50;
+          const totalMxn = parseFloat(document.getElementById('displayMXN')?.textContent?.replace(/[^0-9.]/g, '')) || 0;
+          data.anticipoMonto = totalMxn > 0 ? parseFloat(((pct / 100) * totalMxn).toFixed(2)) : null;
+        } else {
+          data.anticipoMonto = parseFloat(document.getElementById('anticipoMonto').value) || null;
+        }
+      } else {
+        data.anticipoMonto = null;
+        data.reparacionMonto = data.tipoCaso === 'reparacion'
+          ? (parseFloat(document.getElementById('reparacionMonto')?.value) || null) : null;
+        data.mantenimientoMonto = data.tipoCaso === 'mantenimiento'
+          ? (parseFloat(document.getElementById('mantenimientoMonto')?.value) || null) : null;
+      }
+      data.notasCaso = document.getElementById('notasCaso')?.value?.trim() || null;
       
       console.log('📤 Data completa:', data);
       return data;
@@ -1419,13 +2037,13 @@
       console.log('💾 Botón guardar presionado');
       console.log('   currentClient actual:', currentClient);
       
-      if ($$('#itemsBody tr').length === 0) {
+      if ($$('#itemsBody tr.item-main-row').length === 0) {
         showToast('Agrega al menos un producto', 'error');
         return;
       }
       
       let hasEmptyItems = false;
-      $$('#itemsBody tr').forEach(tr => {
+      $$('#itemsBody tr.item-main-row').forEach(tr => {
         if (!tr.querySelector('.modelo').value.trim() || toNum(tr.querySelector('.precio').value) <= 0) {
           hasEmptyItems = true;
         }
@@ -1470,61 +2088,6 @@
       }
     };
 
-    $('#btnPreview').onclick = async () => {
-      const btn = $('#btnPreview');
-      const icon = $('#previewIcon');
-      btn.disabled = true;
-      icon.className = 'loading';
-      
-      try {
-        const data = collectData();
-        const r = await fetch('/preview',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify({...data, debug: true})
-        });
-        
-        if(!r.ok) throw new Error(await r.text());
-        
-        const blob = await r.blob();
-        window.open(URL.createObjectURL(blob), '_blank');
-        showToast('Preview generado','success');
-      } catch(e){
-        showToast('Error: '+e.message,'error');
-      }
-      
-      btn.disabled = false;
-      icon.className = 'bi bi-eye';
-    };
-
-    $('#btnGenerate').onclick = async () => {
-      const btn = $('#btnGenerate');
-      btn.disabled = true;
-      
-      try {
-        const data = collectData();
-        const r = await fetch('/generate',{
-          method:'POST',
-          headers:{'Content-Type':'application/json'},
-          body:JSON.stringify(data)
-        });
-        
-        if(!r.ok) throw new Error(await r.text());
-        
-        const blob = await r.blob();
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `cotizacion_${data.folio}.pdf`;
-        a.click();
-        showToast('PDF descargado','success');
-      } catch(e){
-        showToast('Error: '+e.message,'error');
-      }
-      
-      btn.disabled = false;
-    };
-
     let clientsCache = [];
     
     async function loadClients(search = '') {
@@ -1552,10 +2115,32 @@
       const clients = await loadClients(val);
       
       if(clients.length === 0){
-        console.log('⚠️ No se encontraron clientes');
+      console.log('⚠️ No se encontraron clientes');
+      $('#clientAutocomplete').innerHTML = `
+        <div style="padding:16px 18px;display:flex;flex-direction:column;gap:10px;">
+          <div style="display:flex;align-items:center;gap:10px;color:#6b7280;">
+            <i class="bi bi-person-x" style="font-size:1.3rem;color:#d1d5db;"></i>
+            <span style="font-size:0.95rem;">No se encontró ningún cliente con "<strong>${val}</strong>"</span>
+          </div>
+          <button id="btnCreateFromSearch" style="
+            background:linear-gradient(135deg,var(--revolt-red),#d41f33);
+            color:white;border:none;border-radius:8px;
+            padding:9px 14px;font-weight:600;font-size:0.88rem;
+            cursor:pointer;display:flex;align-items:center;gap:8px;
+            transition:all 0.2s;
+          ">
+            <i class="bi bi-plus-circle"></i> Crear cliente "${val}"
+          </button>
+        </div>
+      `;
+      $('#clientAutocomplete').classList.add('show');
+
+      document.getElementById('btnCreateFromSearch').onclick = async () => {
         $('#clientAutocomplete').classList.remove('show');
-        return;
-      }
+        $('#btnNewClient').click();
+      };
+      return;
+    }
       
       console.log(`✅ ${clients.length} clientes encontrados`);
       
@@ -1653,11 +2238,41 @@
       try {
         const clients = await loadClients(search);
         
-        if(clients.length === 0) {
-          console.log('⚠️ Cliente no encontrado');
-          showToast('No encontrado','warning');
-          return;
-        }
+    if(clients.length === 0) {
+      console.log('⚠️ Cliente no encontrado');
+      
+      // Preguntar si desea crear el cliente
+      const overlay = document.createElement('div');
+      overlay.className = 'custom-modal-overlay';
+      overlay.innerHTML = `
+        <div class="custom-modal">
+          <div class="custom-modal-header">
+            <i class="bi bi-person-x" style="color:#6b7280;"></i>
+            <h3>Cliente no encontrado</h3>
+          </div>
+          <div class="custom-modal-body">
+            <p>No existe ningún cliente con el nombre <strong>"${search}"</strong>.</p>
+            <p>¿Deseas crearlo ahora?</p>
+          </div>
+          <div class="custom-modal-footer">
+            <button class="custom-modal-btn custom-modal-btn-secondary" id="btnNotFoundCancel">
+              <i class="bi bi-x-lg"></i> Cancelar
+            </button>
+            <button class="custom-modal-btn custom-modal-btn-primary" id="btnNotFoundCreate">
+              <i class="bi bi-plus-circle"></i> Crear cliente
+            </button>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(overlay);
+
+      document.getElementById('btnNotFoundCancel').onclick = () => overlay.remove();
+      document.getElementById('btnNotFoundCreate').onclick = () => {
+        overlay.remove();
+        $('#btnNewClient').click();
+      };
+      return;
+    }
         
         if(clients.length === 1) {
           const c = clients[0];
@@ -1728,8 +2343,8 @@
         
         if(!selectedProduct) return;
         
-        // ⭐ VERIFICAR SI HAY UNA FILA VACÍA
-        const rows = $$('#itemsBody tr');
+        // ⭐ VERIFICAR SI HAY UNA FILA VACÍA (solo item-main-row)
+        const rows = $$('#itemsBody tr.item-main-row');
         let emptyRow = null;
         
         for(let tr of rows) {
@@ -1750,6 +2365,22 @@
           // ⭐ APLICAR AUTO-RESIZE
           autoResize(emptyRow.querySelector('.modelo'));
           autoResize(emptyRow.querySelector('.descripcion'));
+
+          // ⭐ DETECTAR COMERCIALIZACIÓN en la fila reemplazada
+            const trProvider = emptyRow.nextElementSibling;
+            if (trProvider?.classList.contains('provider-cost-row')) {
+            const textoCompleto = selectedProduct.model + ' ' + (selectedProduct.description || '');
+            const resultado = detectarComercializacion(textoCompleto);
+            if (resultado.esComercializacion) {
+              trProvider.style.display = 'table-row';
+              trProvider.querySelector('.provider-cost-tipo').textContent =
+                TIPO_LABELS[resultado.tipo] || resultado.tipo;
+              trProvider.querySelector('.category-type').value = resultado.tipo;
+            } else {
+              trProvider.style.display = 'none';
+              trProvider.querySelector('.category-type').value = '';
+            }
+          }
           
           recalc();
         } else {
@@ -1765,13 +2396,34 @@
       }
     };
 
+    // ── Condiciones comerciales + toggle + tabs ──
     (function(){
-      const disponibilidadInmediata = $('#disponibilidadInmediata');
-      const tiempoEntregaSelect = $('#tiempoEntregaSelect');
-      const tiempoEntregaManual = $('#tiempoEntregaManual');
-      const formaPago = $('#formaPago');
+      // Toggle abrir/cerrar
+      const toggleBtn  = document.getElementById('configToggleBtn');
+      const body       = document.getElementById('configOpcionalBody');
 
-      function actualizar() {
+      toggleBtn.onclick = () => {
+        const open = body.classList.toggle('show');
+        toggleBtn.classList.toggle('active', open);
+      };
+
+      // Tabs
+      document.querySelectorAll('.config-tab').forEach(tab => {
+        tab.onclick = () => {
+          document.querySelectorAll('.config-tab').forEach(t => t.classList.remove('active'));
+          document.querySelectorAll('.config-tab-content').forEach(c => c.classList.remove('active'));
+          tab.classList.add('active');
+          document.getElementById('tab-' + tab.dataset.tab).classList.add('active');
+        };
+      });
+
+      // Condiciones comerciales
+      const disponibilidadInmediata = document.getElementById('disponibilidadInmediata');
+      const tiempoEntregaSelect     = document.getElementById('tiempoEntregaSelect');
+      const tiempoEntregaManual     = document.getElementById('tiempoEntregaManual');
+      const formaPago               = document.getElementById('formaPago');
+
+      function actualizarCondiciones() {
         if (disponibilidadInmediata.checked) {
           formaPago.value = '100% pago anticipado';
           tiempoEntregaSelect.value = '';
@@ -1786,22 +2438,70 @@
         }
       }
 
-      disponibilidadInmediata.onchange = actualizar;
+      // Venta al extranjero
+      document.getElementById('esExtranjero').addEventListener('change', function() {
+        document.getElementById('paisExtranjeroPanel').style.display = 
+          this.checked ? 'block' : 'none';
+      });
+
+      disponibilidadInmediata.onchange = actualizarCondiciones;
       tiempoEntregaSelect.onchange = () => {
-        if (tiempoEntregaSelect.value === 'manual') {
-          tiempoEntregaManual.style.display = 'block';
-          tiempoEntregaManual.focus();
-        } else {
-          tiempoEntregaManual.style.display = 'none';
-        }
-        actualizar();
+        tiempoEntregaManual.style.display =
+          tiempoEntregaSelect.value === 'manual' ? 'block' : 'none';
+        if (tiempoEntregaSelect.value === 'manual') tiempoEntregaManual.focus();
+        actualizarCondiciones();
       };
+      
+
+      // Tipo de caso → mostrar/ocultar panel anticipo
+      document.querySelectorAll('input[name="tipoCaso"]').forEach(radio => {
+      radio.onchange = () => {
+          document.getElementById('anticipoPanel').classList.toggle('show', radio.value === 'anticipo');
+          document.getElementById('reparacionPanel').classList.toggle('show', radio.value === 'reparacion');
+          document.getElementById('mantenimientoPanel').classList.toggle('show', radio.value === 'mantenimiento');
+
+          if (radio.value === 'anticipo') {
+            calcularEquivalenciaAnticipo();
+          } else {
+            document.getElementById('anticipoMonto').value = '';
+            document.getElementById('anticipoPorcentaje').value = '50';
+            document.getElementById('anticipoEquivalencia').classList.remove('show');
+          }
+          if (radio.value !== 'reparacion') document.getElementById('reparacionMonto').value = '';
+          if (radio.value !== 'mantenimiento') document.getElementById('mantenimientoMonto').value = '';
+        };
+      });
     })();
+
+    // ============================================
+    // LÓGICA PANEL ANTICIPO
+    // ============================================
+    window.setAnticipo = function(modo) {
+      const esPorcentaje = modo === 'porcentaje';
+      document.getElementById('btnModoPorcentaje').classList.toggle('active', esPorcentaje);
+      document.getElementById('btnModoMonto').classList.toggle('active', !esPorcentaje);
+      document.getElementById('anticipoModoPorcentaje').style.display = esPorcentaje ? 'block' : 'none';
+      document.getElementById('anticipoModoMonto').style.display = esPorcentaje ? 'none' : 'block';
+    }
+
+    window.calcularEquivalenciaAnticipo = function() {
+      const pct = parseFloat(document.getElementById('anticipoPorcentaje')?.value) || 0;
+      const totalMxn = parseFloat(document.getElementById('displayMXN')?.textContent?.replace(/[^0-9.]/g, '')) || 0;
+      const eq = document.getElementById('anticipoEquivalencia');
+      const eqVal = document.getElementById('anticipoEquivalenciaValor');
+      if (pct > 0 && totalMxn > 0) {
+        const monto = ((pct / 100) * totalMxn).toFixed(2);
+        eqVal.textContent = '$' + parseFloat(monto).toLocaleString('es-MX', { minimumFractionDigits: 2 });
+        eq.classList.add('show');
+      } else {
+        eq.classList.remove('show');
+      }
+    }
+
+    document.getElementById('anticipoPorcentaje')?.addEventListener('input', calcularEquivalenciaAnticipo);
 
     document.onkeydown = (e) => {
       if(e.ctrlKey && e.key === 's'){ e.preventDefault(); $('#btnSaveQuote').click(); }
-      if(e.ctrlKey && e.key === 'p'){ e.preventDefault(); $('#btnPreview').click(); }
-      if(e.ctrlKey && e.key === 'g'){ e.preventDefault(); $('#btnGenerate').click(); }
     };
 
     window.logout = async () => {

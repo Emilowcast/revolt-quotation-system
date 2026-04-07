@@ -14,7 +14,6 @@
     }
 
     body {
-      /* 🎨 OPCIÓN 2: Degradado de negro a rojo intenso */
       background: linear-gradient(135deg, #000000 0%, #1a1a1a 30%, #d41f33 70%, #F62E41 100%);
       min-height: 100vh;
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -122,7 +121,6 @@
       font-weight: 600;
     }
 
-    /* ⭐ ESTADÍSTICAS CON COLORIMETRÍA REVOLT */
     .stats-row {
       margin: 40px 0;
     }
@@ -187,20 +185,17 @@
       font-weight: 600;
     }
 
-    /* 🎨 Tarjeta 1: Rojo REVOLT principal */
     .stat-card:nth-child(1) {
       background: linear-gradient(135deg, #F62E41 0%, #d41f33 100%);
       color: white;
     }
 
-    /* 🎨 Tarjeta 2: Negro elegante */
     .stat-card:nth-child(2) {
       background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
       color: white;
       border: 2px solid rgba(246, 46, 65, 0.3);
     }
 
-    /* 🎨 Tarjeta 3: Blanco con acentos rojos */
     .stat-card:nth-child(3) {
       background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 100%);
       color: var(--revolt-dark);
@@ -212,39 +207,124 @@
       color: var(--revolt-red);
     }
 
-    /* 🎨 Tarjeta 4: Rojo oscuro sofisticado */
     .stat-card:nth-child(4) {
       background: linear-gradient(135deg, #8b0000 0%, #5a0000 100%);
       color: white;
     }
 
+    /* ===== MODAL LOGOUT ===== */
+    #logoutModal .modal-content {
+      border: none;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+
+    #logoutModal .modal-header {
+      background: linear-gradient(135deg, #1a1a1a 0%, #2d2d2d 100%);
+      border-bottom: 3px solid var(--revolt-red);
+      padding: 20px 24px;
+    }
+
+    #logoutModal .modal-title {
+      color: white;
+      font-weight: 700;
+      font-size: 1.1rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    #logoutModal .btn-close {
+      filter: invert(1);
+      opacity: 0.7;
+    }
+
+    #logoutModal .modal-body {
+      background: #fafafa;
+      padding: 32px 24px;
+      text-align: center;
+    }
+
+    #logoutModal .logout-icon {
+      width: 70px;
+      height: 70px;
+      background: linear-gradient(135deg, #F62E41, #d41f33);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0 auto 20px auto;
+      box-shadow: 0 8px 20px rgba(246, 46, 65, 0.35);
+    }
+
+    #logoutModal .logout-icon i {
+      font-size: 2rem;
+      color: white;
+    }
+
+    #logoutModal .logout-title {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin-bottom: 8px;
+    }
+
+    #logoutModal .logout-subtitle {
+      font-size: 0.92rem;
+      color: #6b7280;
+      margin-bottom: 0;
+    }
+
+    #logoutModal .modal-footer {
+      background: #fafafa;
+      border-top: 1px solid #e5e7eb;
+      padding: 16px 24px;
+      gap: 10px;
+    }
+
+    #logoutModal .btn-cancel {
+      background: #f3f4f6;
+      color: #374151;
+      border: 1.5px solid #d1d5db;
+      border-radius: 8px;
+      padding: 9px 22px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    #logoutModal .btn-cancel:hover {
+      background: #e5e7eb;
+      border-color: #9ca3af;
+    }
+
+    #logoutModal .btn-logout-confirm {
+      background: linear-gradient(135deg, #F62E41, #d41f33);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      padding: 9px 22px;
+      font-weight: 600;
+      transition: all 0.2s;
+      box-shadow: 0 4px 12px rgba(246, 46, 65, 0.3);
+    }
+
+    #logoutModal .btn-logout-confirm:hover {
+      background: linear-gradient(135deg, #d41f33, #b01828);
+      box-shadow: 0 6px 16px rgba(246, 46, 65, 0.45);
+      transform: translateY(-1px);
+    }
+
     @media (max-width: 1400px) {
-      .container-main {
-        max-width: 90%;
-      }
+      .container-main { max-width: 90%; }
     }
 
     @media (max-width: 768px) {
-      .container-main {
-        padding: 20px;
-        max-width: 100%;
-      }
-
-      .dashboard-header h1 {
-        font-size: 1.8rem;
-      }
-
-      .section-title {
-        font-size: 1.4rem;
-      }
-
-      .card-desc {
-        min-height: auto;
-      }
-
-      .stat-value {
-        font-size: 2.2rem;
-      }
+      .container-main { padding: 20px; max-width: 100%; }
+      .dashboard-header h1 { font-size: 1.8rem; }
+      .section-title { font-size: 1.4rem; }
+      .card-desc { min-height: auto; }
+      .stat-value { font-size: 2.2rem; }
     }
   </style>
 </head>
@@ -299,7 +379,7 @@
       </ul>
       <ul class="navbar-nav">
         <li class="nav-item">
-          <a class="nav-link" href="#" onclick="logout()">
+          <a class="nav-link" href="#" onclick="showLogoutModal()">
             <i class="bi bi-box-arrow-right"></i> Cerrar Sesión
           </a>
         </li>
@@ -308,18 +388,46 @@
     </div>
   </nav>
 
+  <!-- Modal: Cerrar Sesión -->
+  <div class="modal fade" id="logoutModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:380px;">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">
+            <i class="bi bi-shield-lock-fill" style="color:#F62E41;"></i>
+            Cerrar Sesión
+          </h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="logout-icon">
+            <i class="bi bi-box-arrow-right"></i>
+          </div>
+          <div class="logout-title">¿Cerrar sesión?</div>
+          <p class="logout-subtitle">Tu sesión actual se cerrará y serás redirigido al inicio de sesión.</p>
+        </div>
+        <div class="modal-footer justify-content-center">
+          <button type="button" class="btn btn-cancel" data-bs-dismiss="modal">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button type="button" class="btn btn-logout-confirm" onclick="confirmLogout()">
+            <i class="bi bi-box-arrow-right"></i> Sí, cerrar sesión
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- Main Container -->
   <div class="container container-main">
-    <!-- Header -->
     <div class="dashboard-header">
       <h1>
         <i class="bi bi-lightning-charge-fill text-danger"></i>
-        Sistema de Cotizaciones REVOLT
+        Sistema de Cotizaciones
       </h1>
       <p>Gestiona tus cotizaciones, clientes, productos y reportes en un solo lugar</p>
     </div>
 
-    <!-- Accesos Rápidos - Cotizaciones -->
     <h2 class="section-title">
       <i class="bi bi-file-earmark-text"></i>
       Gestión de Cotizaciones
@@ -360,7 +468,46 @@
       </div>
     </div>
 
-    <!-- Accesos Rápidos - Clientes y Productos -->
+        <h2 class="section-title">
+      <i class="bi bi-cash-stack"></i>
+      Ventas y Producción
+    </h2>
+    <div class="row g-4 mb-4">
+      <div class="col-md-4">
+        <a href="/sales.html" class="dashboard-card">
+          <div class="card-icon">💼</div>
+          <div class="card-title">Gestionar Ventas</div>
+          <div class="card-desc">Convierte cotizaciones en ventas y genera órdenes de producción automáticamente</div>
+          <div class="card-footer">
+            <span>Ver ventas</span>
+            <span><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="/postventa.html" class="dashboard-card">
+          <div class="card-icon">💳</div>
+          <div class="card-title">Saldos</div>
+          <div class="card-desc">Registra el saldo pendiente de cotizaciones que fueron pagadas con anticipo</div>
+          <div class="card-footer">
+            <span>Ir a Saldos</span>
+            <span><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </a>
+      </div>
+      <div class="col-md-4">
+        <a href="/reports.html" class="dashboard-card">
+          <div class="card-icon">📊</div>
+          <div class="card-title">Reportes y Análisis</div>
+          <div class="card-desc">Genera reportes detallados de cotizaciones, ventas y productos en Excel</div>
+          <div class="card-footer">
+            <span>Ver reportes</span>
+            <span><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </a>
+      </div>
+    </div>
+
     <h2 class="section-title">
       <i class="bi bi-people"></i>
       Gestión de Datos
@@ -401,37 +548,8 @@
       </div>
     </div>
 
-<!-- Accesos Rápidos - Ventas y Producción -->
-    <h2 class="section-title">
-      <i class="bi bi-cash-stack"></i>
-      Ventas y Producción
-    </h2>
-    <div class="row g-4 mb-4">
-      <div class="col-md-6">
-        <a href="/sales.html" class="dashboard-card">
-          <div class="card-icon">💼</div>
-          <div class="card-title">Gestionar Ventas</div>
-          <div class="card-desc">Convierte cotizaciones en ventas y genera órdenes de producción automáticamente</div>
-          <div class="card-footer">
-            <span>Ver ventas</span>
-            <span><i class="bi bi-arrow-right"></i></span>
-          </div>
-        </a>
-      </div>
-      <div class="col-md-6">
-        <a href="/reports.html" class="dashboard-card">
-          <div class="card-icon">📊</div>
-          <div class="card-title">Reportes y Análisis</div>
-          <div class="card-desc">Genera reportes detallados de cotizaciones, ventas y productos en Excel</div>
-          <div class="card-footer">
-            <span>Ver reportes</span>
-            <span><i class="bi bi-arrow-right"></i></span>
-          </div>
-        </a>
-      </div>
-    </div>
 
-    <!-- Administración -->
+
     <h2 class="section-title">
       <i class="bi bi-gear"></i>
       Administración
@@ -470,9 +588,19 @@
           </div>
         </a>
       </div>
+      <div class="col-md-4">
+        <a href="/settings.html" class="dashboard-card">
+          <div class="card-icon">⚙️</div>
+          <div class="card-title">Configuración</div>
+          <div class="card-desc">Administra los parámetros del sistema, folios y preferencias generales</div>
+          <div class="card-footer">
+            <span>Configurar</span>
+            <span><i class="bi bi-arrow-right"></i></span>
+          </div>
+        </a>
+      </div>
     </div>
 
-    <!-- ⭐ ESTADÍSTICAS MOVIDAS AL FINAL -->
     <h2 class="section-title">
       <i class="bi bi-graph-up"></i>
       Estadísticas del Mes
@@ -559,7 +687,12 @@
       await loadStats();
     })();
 
-    async function logout() {
+    function showLogoutModal() {
+      const modal = new bootstrap.Modal(document.getElementById('logoutModal'));
+      modal.show();
+    }
+
+    async function confirmLogout() {
       try {
         await fetch('/api/auth/logout', { method: 'POST' });
         window.location.href = '/login.html';

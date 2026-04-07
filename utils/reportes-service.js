@@ -7,7 +7,8 @@ const path = require('path');
 const fs = require('fs');
 
 const {
-  prepararDatosVentaParaReporte
+  prepararDatosVentaParaReporte,
+  calcularIVA
 } = require('./reportes-utils');
 
 const prisma = new PrismaClient();
@@ -86,7 +87,8 @@ async function generarReporteAnual(año, userId) {
         },
         status: {
           not: 'cancelada'
-        }
+        },
+        deletedAt: null
       },
       include: {
         client: true,
@@ -129,43 +131,103 @@ async function generarReporteAnual(año, userId) {
       const datosVenta = prepararDatosVentaParaReporte(venta);
       const vendedor = datosVenta.vendedor;
       
-      // ⭐ USAR netMxn si está disponible, sino total
-      const montoMXN = venta.netMxn || venta.total;
-      const ivaMXN = montoMXN * 0.16;
-      const sinIvaMXN = montoMXN - ivaMXN;
+      // 👇 AGREGAR ESTO TEMPORALMENTE
+      console.log(`  🔍 Venta ${venta.folio} - tipoCaso en BD: "${venta.tipoCaso}"`);
+      console.log(`  🔍 Venta ${venta.folio} - country: "${venta.country}"`);
+      console.log(`  🔍 Venta ${venta.folio}`);
+      console.log(`       tipoCaso: "${venta.tipoCaso}"`);
+      console.log(`       netMxn: ${venta.netMxn}`);
+      console.log(`       total: ${venta.total}`);
+      console.log(`       reparacionMonto: ${venta.reparacionMonto}`);
+      console.log(`       mantenimientoMonto: ${venta.mantenimientoMonto}`);
+      console.log(`       anticipoMonto: ${venta.anticipoMonto}`);
+
+      // ⭐ USAR MONTO SEGÚN TIPO DE CASO
+      const tipoCaso = venta.tipoCaso || 'venta';
+
+    let montoBase;
+      if (tipoCaso === 'reparacion' && venta.reparacionMonto) {
+        montoBase = venta.reparacionMonto;
+      } else if (tipoCaso === 'mantenimiento' && venta.mantenimientoMonto) {
+        montoBase = venta.mantenimientoMonto;
+      } else if (tipoCaso === 'anticipo' && venta.anticipoMonto) {
+        montoBase = venta.anticipoMonto;
+      } else if (tipoCaso === 'saldo') {
+        montoBase = venta.netMxn || venta.total;
+      } else {
+        montoBase = venta.netMxn || venta.total;
+      }
+
+      // ⭐ Saldos, reparaciones y mantenimientos ya vienen en MXN directo — no convertir
+      let montoMXN, sinIvaMXN;
+      if (tipoCaso === 'saldo' || tipoCaso === 'reparacion' || tipoCaso === 'mantenimiento') {
+        montoMXN = montoBase;
+        sinIvaMXN = montoBase / 1.16;
+      } else {
+        // Ventas normales y anticipos: respetar país (IVA y moneda)
+        const ivaCalc = calcularIVA(montoBase, venta.country || 'MX');
+        montoMXN = ivaCalc.conIVA;
+        sinIvaMXN = ivaCalc.sinIVA;
+      }
+      console.log(`💰 MONTO DEBUG folio=${venta.folio} tipoCaso=${tipoCaso} montoBase=${montoBase} montoMXN=${montoMXN} sinIvaMXN=${sinIvaMXN} netMxn=${venta.netMxn} total=${venta.total} currency=${venta.currency} exchangeRate=${venta.exchangeRate}`);
       
       // ⭐ CONSTRUIR CONCEPTO ESTRUCTURADO desde los items
-      let conceptoEstructurado = '';
-      if (venta.items && venta.items.length > 0) {
-        const item = venta.items[0];
+      // ⭐ PREFIJO SEGÚN TIPO DE CASO
+      const PREFIJOS_CASO = {
+        'reparacion':    'Reparación',
+        'mantenimiento': 'Mantenimiento',
+        'anticipo':      'Anticipo',
+        'saldo':         'Saldo',
+        'venta':         null
+      };
+
+      const PREFIJOS_CATEGORIA = {
+        'regulador_electronico': 'Regulador Electrónico',
+        'equipo_ec':             'Equipo de EC',
+        'ups':                   'UPS',
+        'planta':                'Planta',
+        'transformador':         'Transformador',
+        'instalacion':           'Instalación',
+        'supresor':              'Supresor de Picos',
+        'variador':              'Variador de Voltaje'
+      };
+
+// ⭐ FUNCIÓN: construir concepto de un item individual
+      function buildItemConcepto(item) {
         const partes = [];
-        
-        if (item.modelo) {
-          partes.push(item.modelo.trim());
-        }
-        
+        if (item.modelo) partes.push(item.modelo.trim());
         if (item.descripcion) {
           const desc = item.descripcion;
           const capacidadMatch = desc.match(/(\d+\.?\d*)\s*(kva|kw|va|w)/i);
-          if (capacidadMatch) {
-            partes.push(capacidadMatch[0].toUpperCase());
-          }
-          
-          if (desc.match(/monof[áa]sic[oa]|1\s*f|1f/i)) {
-            partes.push('Monofásico');
-          } else if (desc.match(/trif[áa]sic[oa]|3\s*f|3f/i)) {
-            partes.push('Trifásico');
-          } else if (desc.match(/bif[áa]sic[oa]|2\s*f|2f/i)) {
-            partes.push('Bifásico');
-          }
-          
-          const voltajeMatch = desc.match(/(\d+\s*\/?\s*\d*)\s*v(?:oltios?)?/i);
-          if (voltajeMatch) {
-            partes.push(voltajeMatch[1].trim() + ' V');
-          }
+          if (capacidadMatch) partes.push(capacidadMatch[0].toUpperCase());
+          if (desc.match(/monof[áa]sic[oa]|1\s*f|1f/i)) partes.push('Monofásico');
+          else if (desc.match(/trif[áa]sic[oa]|3\s*f|3f/i)) partes.push('Trifásico');
+          else if (desc.match(/bif[áa]sic[oa]|2\s*f|2f/i)) partes.push('Bifásico');
+          const voltajeMatch = desc.match(/(\d+\s*\/?\\s*\d*)\s*v(?:oltios?)?/i);
+          if (voltajeMatch) partes.push(voltajeMatch[1].trim() + ' V');
         }
-        
-        conceptoEstructurado = partes.length > 0 ? partes.join(' - ') : datosVenta.concepto;
+        const conceptoBase = partes.length > 0 ? partes.join(' - ') : item.modelo || '';
+
+        // Prefijo de producto por item
+        let prefijoProducto = null;
+        if (item.categoryType) {
+          prefijoProducto = PREFIJOS_CATEGORIA[item.categoryType] || null;
+        }
+        if (!prefijoProducto && item.modelo?.trim().toUpperCase().startsWith('RM')) {
+          prefijoProducto = 'Regulador';
+        }
+        return prefijoProducto ? `${prefijoProducto} - ${conceptoBase}` : conceptoBase;
+      }
+
+      // ⭐ CONSTRUIR CONCEPTO ESTRUCTURADO (todos los items combinados)
+      let conceptoEstructurado = '';
+      if (venta.items && venta.items.length > 0) {
+        const prefijoCaso = PREFIJOS_CASO[tipoCaso];
+        const conceptosTodos = venta.items.map(item => buildItemConcepto(item));
+        const conceptoCombinado = conceptosTodos.join(' + ');
+        conceptoEstructurado = prefijoCaso
+          ? `${prefijoCaso} - ${conceptoCombinado}`
+          : conceptoCombinado;
       } else {
         conceptoEstructurado = datosVenta.concepto;
       }
@@ -191,12 +253,25 @@ async function generarReporteAnual(año, userId) {
         total: montoMXN,                   // ⭐ USAR MONTO EN MXN
         week: datosVenta.semanaViernes,
         vendor: vendedor,
-        paymentType: datosVenta.tipoPago
+        paymentType: datosVenta.tipoPago,
+        country: venta.country || 'MX'   // ⭐ NUEVO
       });
 
       // Agregar a COMISIONES (reguladores + mantenimientos)
       if (datosVenta.vaAComisiones) {
-        const montoVenta = sinIvaMXN;  // ⭐ USAR MONTO SIN IVA EN MXN
+      // ⭐ Calcular monto proporcional solo de items que van a comisiones
+        const itemsParaComisiones = datosVenta.itemsRegulador?.length
+          ? datosVenta.itemsRegulador
+          : venta.items;
+        // ⭐ Convertir subtotales a MXN para calcular proporción correctamente
+        const exchangeRate = venta.exchangeRate || 1;
+        const subtotalParaComisionesMXN = itemsParaComisiones.reduce((sum, i) => sum + ((i.subtotal || 0) * exchangeRate), 0);
+        const subtotalTotalMXN = venta.items.reduce((sum, i) => sum + ((i.subtotal || 0) * exchangeRate), 0);
+        const proporcionComisiones = subtotalTotalMXN > 0 ? subtotalParaComisionesMXN / subtotalTotalMXN : 1;
+        const montoMXNComisiones = montoMXN * proporcionComisiones;
+        const sinIvaMXNComisiones = sinIvaMXN * proporcionComisiones;
+
+        const montoVenta = sinIvaMXNComisiones;
         const acumuladoAnterior = acumuladosPorVendedor[vendedor].totalVendido;
 
         const comisionHugo = calcularComisionPorTramos(acumuladoAnterior, montoVenta, 'hugo');
@@ -206,44 +281,77 @@ async function generarReporteAnual(año, userId) {
         acumuladosPorVendedor[vendedor].totalComisionHugo += comisionHugo.comision;
         acumuladosPorVendedor[vendedor].totalComisionAuxiliar += comisionAuxiliar.comision;
 
+        // ⭐ Concepto solo con items que NO son comercialización
+        const itemsNoComercializ = datosVenta.itemsRegulador?.length
+          ? datosVenta.itemsRegulador
+          : venta.items;
+        const conceptoComisiones = (() => {
+          const prefijoCaso = PREFIJOS_CASO[tipoCaso];
+          const conceptosTodos = itemsNoComercializ.map(item => buildItemConcepto(item));
+          const combinado = conceptosTodos.join(' + ');
+          return prefijoCaso ? `${prefijoCaso} - ${combinado}` : combinado;
+        })();
+
         datosReporte.comisiones.push({
           mes: venta.date.getMonth() + 1,
           fecha: datosVenta.fecha,
           cliente: datosVenta.cliente,
           empresa: venta.client?.company || '',
-          concepto: conceptoEstructurado,
-          amountWithIVA: montoMXN,        // ⭐ USAR MONTO EN MXN
-          amountWithoutIVA: sinIvaMXN,    // ⭐ USAR SIN IVA EN MXN
-          total: montoMXN,                // ⭐ USAR MONTO EN MXN
+          concepto: conceptoComisiones,
+          amountWithIVA: montoMXNComisiones,
+          amountWithoutIVA: sinIvaMXNComisiones,
+          total: montoMXNComisiones,
           week: datosVenta.semanaViernes,
           vendor: vendedor,
           commissionPct: comisionHugo.porcentaje,
           commissionHugo: comisionHugo.comision,
-          commissionAux: comisionAuxiliar.comision
+          commissionAux: comisionAuxiliar.comision,
+          country: venta.country || 'MX'
         });
       }
 
-      // Agregar a COMERCIALIZACIÓN (otros productos)
+// Agregar a COMERCIALIZACIÓN — una fila por cada item de comercialización
       if (datosVenta.vaAComercializacion) {
-        const utilidad = datosVenta.utilidad;
-        const porcentajeComercializacion = 0.10;
-        const comision = utilidad * porcentajeComercializacion;
+        const itemsComercializ = datosVenta.itemsComercializacion?.length
+          ? datosVenta.itemsComercializacion
+          : venta.items;
 
-        datosReporte.comercializacion.push({
-          mes: venta.date.getMonth() + 1,
-          fecha: datosVenta.fecha,
-          cliente: datosVenta.cliente,
-          empresa: venta.client?.company || '',
-          concepto: conceptoEstructurado,
-          amountWithIVA: montoMXN,        // ⭐ USAR MONTO EN MXN
-          amountWithoutIVA: sinIvaMXN,    // ⭐ USAR SIN IVA EN MXN
-          providerCost: datosVenta.costoProveedor,
-          vendor: vendedor,
-          commission: comision
-        });
+        for (const itemCom of itemsComercializ) {
+          const conceptoItem = buildItemConcepto(itemCom);
+          const conceptoComercializ = PREFIJOS_CASO[tipoCaso]
+            ? `${PREFIJOS_CASO[tipoCaso]} - ${conceptoItem}`
+            : conceptoItem;
+
+          // ⭐ Para saldos, calcular proporción entre items (no contra venta.total que está en MXN)
+          const exchRate = venta.exchangeRate || 1;
+          // ⭐ Proporción del item vs TODOS los items (no solo comercialización)
+          const totalSubtotalTodosMXN = venta.items.reduce((sum, i) => sum + ((i.subtotal || 0) * exchRate), 0);
+          const proporcion = totalSubtotalTodosMXN > 0 ? ((itemCom.subtotal * exchRate) / totalSubtotalTodosMXN) : (1 / itemsComercializ.length);
+          const montoItemMXN = montoMXN * proporcion;
+          const sinIvaItemMXN = sinIvaMXN * proporcion;
+          const providerCostItem = itemCom.providerCost || 0;
+          const utilidadItem = sinIvaItemMXN - (providerCostItem / 1.16);
+          const comision = utilidadItem *
+            (vendedor.toLowerCase().includes('hugo') ? 0.05 : 0.10);
+
+          datosReporte.comercializacion.push({
+            mes: venta.date.getMonth() + 1,
+            fecha: datosVenta.fecha,
+            cliente: datosVenta.cliente,
+            empresa: venta.client?.company || '',
+            concepto: conceptoComercializ,
+            amountWithIVA: montoItemMXN,
+            amountWithoutIVA: sinIvaItemMXN,
+            providerCostWithIVA: providerCostItem,
+            providerCost: providerCostItem / 1.16,
+            vendor: vendedor,
+            commission: comision,
+            country: venta.country || 'MX'
+          });
+}
       }
-    }
-
+    } // cierra for (const venta of ventasConUsuario)
+      
     console.log(`\n  📊 RESUMEN POR MES:`);
     for (let mes = 1; mes <= 12; mes++) {
       const ventasMes = datosReporte.general.filter(v => v.mes === mes);
@@ -273,6 +381,8 @@ async function generarReporteAnual(año, userId) {
     const pythonScript = path.resolve(__dirname, '..', 'scripts', 'generate-sales-report.py');
     const dataJson = JSON.stringify(datosReporte);
 
+    console.log(`  📋 Primer concepto GENERAL: ${datosReporte.general[0]?.concepto}`);
+    console.log(`  📋 Primer concepto COMISIONES: ${datosReporte.comisiones[0]?.concepto}`);
     console.log(`  🐍 Ejecutando script Python...`);
     await ejecutarScriptPython(pythonScript, dataJson, outputPath, año);
 

@@ -354,7 +354,7 @@
         <h3><i class="bi bi-list-ul"></i> Lista de Ventas</h3>
         <div>
           <button class="btn btn-revolt" onclick="exportToExcel()">
-            <i class="bi bi-file-earmark-excel"></i> Exportar a Excel
+            <i class="bi bi-file-earmark-excel"></i> Descargar Reporte de Ventas
           </button>
         </div>
       </div>
@@ -363,9 +363,6 @@
       <div class="filter-buttons">
         <button class="filter-btn active" onclick="filterByOrderStatus('all')">
           <i class="bi bi-list"></i> Todas
-        </button>
-        <button class="filter-btn" onclick="filterByOrderStatus('no_order')">
-          <i class="bi bi-dash-circle"></i> Sin Orden
         </button>
         <button class="filter-btn" onclick="filterByOrderStatus('pending')">
           <i class="bi bi-hourglass-split"></i> Pendientes
@@ -405,6 +402,7 @@
                 <th>Cliente</th>
                 <th>Fecha</th>
                 <th>Total</th>
+                <th>Tipo</th>
                 <th>Estado Orden</th>
                 <th class="text-center">Acciones</th>
               </tr>
@@ -498,10 +496,6 @@
                 <option value="cancelled">Cancelada</option>
               </select>
             </div>
-            <div class="mb-3">
-              <label class="form-label">Notas (opcional)</label>
-              <textarea class="form-control" id="orderStatusNotes" rows="3"></textarea>
-            </div>
           </form>
         </div>
         <div class="modal-footer">
@@ -514,6 +508,33 @@
     </div>
   </div>
 
+  <!-- Modal: Mover Venta a Papelera -->
+<div class="modal fade" id="deleteSaleModal" tabindex="-1">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header" style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;">
+        <h5 class="modal-title">
+          <i class="bi bi-trash"></i> ¿Mover a papelera?
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <p>La venta <strong id="deleteSaleFolioModal"></strong> será movida a la papelera.</p>
+        <p class="text-muted" style="font-size:0.88rem;">
+          <i class="bi bi-info-circle"></i> Podrás restaurarla desde la sección de Papelera.
+        </p>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </button>
+        <button type="button" class="btn btn-danger" onclick="confirmDeleteSale()">
+          <i class="bi bi-trash"></i> Mover a Papelera
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
   <!-- Toast -->
   <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 11">
     <div id="toast" class="toast" role="alert">
@@ -619,7 +640,9 @@
         const tieneOrdenes = sale.productionOrders && Array.isArray(sale.productionOrders) && sale.productionOrders.length > 0;
         let ordenStatus = 'no_order';
         
-        if (tieneOrdenes) {
+        if (sale.tipoCaso === 'saldo') {
+          ordenStatus = 'completed';
+        } else if (tieneOrdenes) {
           ordenStatus = sale.productionOrders[0].status;
         }
 
@@ -635,6 +658,32 @@
       });
 
       renderSales();
+    }
+
+    function getTipoCasoBadge(q, sale) {
+      const src = sale || q;
+      if (!src) return '-';
+      const montos = {
+        anticipo:      src.anticipoMonto,
+        reparacion:    src.reparacionMonto,
+        mantenimiento: src.mantenimientoMonto
+      };
+    const estilos = {
+        venta:         'background:#dbeafe;color:#1e40af;',
+        reparacion:    'background:#fef3c7;color:#92400e;',
+        mantenimiento: 'background:#ede9fe;color:#5b21b6;',
+        anticipo:      'background:#fef9c3;color:#854d0e;',
+        saldo:         'background:#d1fae5;color:#065f46;'
+      };
+      const iconos = { venta:'🛒', reparacion:'🔧', mantenimiento:'⚙️', anticipo:'💰', saldo:'💳' };
+      const tipo = src.tipoCaso || (q && q.tipoCaso) || 'venta';
+      const monto = montos[tipo];
+      const montoStr = monto
+        ? `<br><small style="font-size:0.7rem;">$${Number(monto).toLocaleString('es-MX', {minimumFractionDigits:2})} MXN</small>`
+        : '';
+      return `<span style="${estilos[tipo]}padding:4px 12px;border-radius:20px;font-size:0.75rem;font-weight:700;display:inline-block;text-align:center;">
+        ${iconos[tipo]} ${tipo.charAt(0).toUpperCase() + tipo.slice(1)}${montoStr}
+      </span>`;
     }
 
     // ============================================
@@ -665,7 +714,10 @@
         let orderId = null;
         let orderStatus = null;
         
-        if (tieneOrdenes) {
+        if (sale.tipoCaso === 'saldo') {
+          ordenStatus = 'Completada';
+          ordenClass = 'status-completed';
+        } else if (tieneOrdenes) {
           const orden = sale.productionOrders[0];
           orderId = orden.id;
           orderStatus = orden.status;
@@ -691,7 +743,13 @@
           </button>
         `;
 
-        if (!tieneOrdenes) {
+        if (sale.tipoCaso === 'saldo') {
+          actionButtons += `
+            <button class="btn btn-sm btn-danger btn-action" onclick="deleteSale(${sale.id})">
+              <i class="bi bi-trash"></i>
+            </button>
+          `;
+        } else if (!tieneOrdenes) {
           actionButtons += `
             <button class="btn btn-sm btn-success btn-action" onclick="openProductionOrderModal(${sale.id})">
               <i class="bi bi-gear"></i> Crear Orden
@@ -705,7 +763,6 @@
               </button>
             `;
           } else {
-            // Botón invisible para mantener espacio
             actionButtons += `
               <span style="display:inline-block; width:80px;"></span>
             `;
@@ -713,7 +770,13 @@
           
           actionButtons += `
             <button class="btn btn-sm btn-success btn-action" onclick="downloadOrderExcel(${orderId})">
-              <i class="bi bi-download"></i> Excel
+              <i class="bi bi-download"></i> Descargar OP
+            </button>
+          `;
+
+          actionButtons += `
+            <button class="btn btn-sm btn-danger btn-action" onclick="deleteSale(${sale.id})">
+              <i class="bi bi-trash"></i>
             </button>
           `;
         }
@@ -721,9 +784,10 @@
         return `
           <tr>
             <td><strong>${sale.folio || 'N/A'}</strong></td>
-            <td>${sale.client?.name || sale.quote?.client?.name || 'N/A'}</td>
+            <td>${sale.client?.name || sale.quote?.client?.name || '—'}</td>
             <td>${new Date(sale.date || sale.createdAt).toLocaleDateString('es-MX')}</td>
             <td><strong>$${parseFloat(sale.total || 0).toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
+            <td>${getTipoCasoBadge(sale.quote, sale)}</td>
             <td><span class="badge-status ${ordenClass}">${ordenStatus}</span></td>
             <td class="text-center actions-cell">
               ${actionButtons}
@@ -839,7 +903,7 @@
               }).join('')}
             </div>
           `;
-        } else {
+        } else if (sale.tipoCaso !== 'saldo') {
           ordenesHTML = `
             <div class="alert alert-warning mt-3">
               <i class="bi bi-exclamation-triangle"></i> Esta venta aún no tiene órdenes de producción.
@@ -860,7 +924,7 @@
           <div class="detail-row">
             <div class="row">
               <div class="col-6 detail-label">Cliente:</div>
-              <div class="col-6 detail-value">${sale.client?.name || sale.quote?.client?.name || 'N/A'}</div>
+              <div class="col-6 detail-value">${sale.client?.name || sale.quote?.client?.name || '—'}</div>
             </div>
           </div>
           <div class="detail-row">
@@ -881,6 +945,14 @@
               <div class="col-6 detail-value">${(sale.paymentType || 'total').toUpperCase()}</div>
             </div>
           </div>
+          ${sale.quote?.tipoCaso ? `
+            <div class="detail-row">
+              <div class="row">
+                <div class="col-6 detail-label">Tipo de Caso:</div>
+                <div class="col-6 detail-value">${getTipoCasoBadge(sale.quote)}</div>
+              </div>
+            </div>
+          ` : ''}
           ${sale.notes ? `
             <div class="detail-row">
               <div class="detail-label mb-2">Notas:</div>
@@ -1030,7 +1102,7 @@
 
       const orderId = document.getElementById('updateOrderId').value;
       const newStatus = document.getElementById('newOrderStatus').value;
-      const notes = document.getElementById('orderStatusNotes').value;
+      const notes = '';
 
       try {
         const response = await fetch(`/api/production-orders/${orderId}/status`, {
@@ -1062,32 +1134,62 @@
     // ============================================
     // EXPORTAR A EXCEL
     // ============================================
-    async function exportToExcel() {
-      try {
-        const response = await fetch('/api/sales/export-excel', {
-          credentials: 'include'
-        });
+async function exportToExcel() {
+  try {
+    const año = new Date().getFullYear();
+    showToast('⏳ Generando reporte, espera un momento...', 'info');
 
-        if (!response.ok) throw new Error('Error al exportar');
+    const response = await fetch(`/api/sales/reporte-anual?año=${año}`, {
+      credentials: 'include'
+    });
 
-        const blob = await response.blob();
-        const url = window.URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `ventas_${new Date().toISOString().split('T')[0]}.xlsx`;
-        document.body.appendChild(a);
-        a.click();
-        window.URL.revokeObjectURL(url);
-        a.remove();
-
-        showToast('Archivo Excel generado exitosamente', 'success');
-
-      } catch (e) {
-        console.error('Error:', e);
-        showToast('Error al exportar: ' + e.message, 'error');
-      }
+    if (!response.ok) {
+      const err = await response.json();
+      throw new Error(err.error || 'Error al generar el reporte');
     }
 
+    const blob = await response.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `REPORTE_VENTAS_${año}.xlsx`;
+    document.body.appendChild(a);
+    a.click();
+    window.URL.revokeObjectURL(url);
+    a.remove();
+
+    showToast('✅ Reporte anual descargado correctamente', 'success');
+
+  } catch (e) {
+    console.error('Error:', e);
+    showToast('Error al generar el reporte: ' + e.message, 'error');
+  }
+}
+
+let pendingDeleteSaleId = null;
+
+function deleteSale(id) {
+  pendingDeleteSaleId = id;
+  const sale = filteredSales.find(s => s.id === id);
+  document.getElementById('deleteSaleFolioModal').textContent = sale?.folio || id;
+  new bootstrap.Modal(document.getElementById('deleteSaleModal')).show();
+}
+
+async function confirmDeleteSale() {
+  const id = pendingDeleteSaleId;
+  bootstrap.Modal.getInstance(document.getElementById('deleteSaleModal')).hide();
+  try {
+    const res = await fetch(`/api/sales/${id}`, {
+      method: 'DELETE', credentials: 'include'
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error);
+    showToast('Venta movida a la papelera', 'success');
+    loadSales(currentPage);
+  } catch (e) {
+    showToast('Error: ' + e.message, 'error');
+  }
+}
     // ============================================
     // TOAST
     // ============================================

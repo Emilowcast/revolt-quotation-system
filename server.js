@@ -1,4 +1,6 @@
 // server.js - Sistema completo con Prisma + Ventas y Órdenes de Producción
+const { execFile } = require('child_process');
+const os = require('os');
 const { generarReporteMensual, obtenerReportes } = require('./utils/reportes-service');
 const express = require('express');
 const fs = require('fs');
@@ -1261,18 +1263,26 @@ app.get('/api/sales', async (req, res) => {
 
     console.log('📊 [GET /api/sales] Query params:', { page, limit, skip });
 
-    const total = await prisma.sale.count();
+const total = await prisma.sale.count({
+      where: {
+        deletedAt: null,
+      }
+    });
     const sales = await prisma.sale.findMany({
-      orderBy: { createdAt: 'desc' }, // ✅ CORREGIDO
+      where: {
+        deletedAt: null,
+      },
+      orderBy: { createdAt: 'desc' },
       skip,
       take: limit,
       include: {
+        client: true,
         quote: {
           include: {
             client: true
           }
         },
-        productionOrders: true // ✅ PLURAL
+        productionOrders: true
       }
     });
 
@@ -1336,6 +1346,40 @@ app.get('/api/sales/stats', async (req, res) => {
   }
 });
 
+// REPORTE ANUAL DE VENTAS (nuevo)
+app.get('/api/sales/reporte-anual', requireAuth, async (req, res) => {
+  try {
+    const { generarReporteAnual } = require('./utils/reportes-service');
+    const año = parseInt(req.query.año) || new Date().getFullYear();
+    const userId = req.session?.userId || req.user?.id;
+
+    console.log(`📊 [REPORTE ANUAL] Generando año ${año} para usuario ${userId}`);
+
+    const filePath = await generarReporteAnual(año, userId);
+
+    const nombreArchivo = `REPORTE_VENTAS_${año}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${nombreArchivo}"`);
+
+    const fs = require('fs');
+    const fileStream = fs.createReadStream(filePath);
+    fileStream.pipe(res);
+
+    fileStream.on('end', () => {
+      console.log(`✅ [REPORTE ANUAL] Archivo enviado: ${nombreArchivo}`);
+    });
+
+    fileStream.on('error', (err) => {
+      console.error('❌ [REPORTE ANUAL] Error enviando archivo:', err);
+      res.status(500).json({ error: 'Error enviando archivo' });
+    });
+
+  } catch (e) {
+    console.error('❌ [REPORTE ANUAL] Error:', e.message);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 // EXPORT SALES TO EXCEL
 app.get('/api/sales/export-excel', async (req, res) => {
   try {
@@ -1369,7 +1413,7 @@ app.get('/api/sales/export-excel', async (req, res) => {
         folio: sale.folio,
         quoteFolio: sale.quote?.folio || 'N/A',
         client: sale.quote?.client?.name || 'N/A',
-        date: new Date(sale.createdAt).toLocaleDateString('es-MX'), // ✅ CORREGIDO
+        date: new Date(sale.date || sale.createdAt).toLocaleDateString('es-MX'),
         total: `$${parseFloat(sale.total).toLocaleString('es-MX', {minimumFractionDigits: 2})}`,
         status: sale.status === 'completed' ? 'Completada' : sale.status === 'pending' ? 'Pendiente' : 'Cancelada'
       });
@@ -1413,6 +1457,7 @@ app.get('/api/sales/:id', async (req, res) => {
     const sale = await prisma.sale.findUnique({
       where: { id },
       include: {
+        client: true,
         quote: {
           include: {
             client: true,
@@ -1809,6 +1854,9 @@ app.get('/api/quotes', async (req, res) => {
     
     // Filtro de estado
     if (status) where.status = status;
+
+    // Filtro de tipo de caso
+    if (req.query.tipoCaso) where.tipoCaso = req.query.tipoCaso;
     
     // Filtro de fecha
     if (dateFrom || dateTo) {
@@ -1831,6 +1879,43 @@ app.get('/api/quotes', async (req, res) => {
     res.json({ ok: true, quotes });
   } catch (e) {
     res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ============================================
+// GENERAR FOLIO CONSECUTIVO
+// ============================================
+app.get('/api/quotes/siguiente-folio', requireAuth, async (req, res) => {
+  try {
+    const date   = new Date();
+    const anio2  = String(date.getFullYear()).slice(-2); // "26"
+    const prefijo = `COT-${anio2}-`;
+
+    // Leer folio inicial desde configuración
+    const configInicio = await prisma.config.findUnique({
+      where: { clave: 'folio_inicial_cotizacion' }
+    });
+    const folioInicial = configInicio ? parseInt(configInicio.valor) : 1;
+
+    // Buscar la última cotización del año actual con nuevo formato
+    const ultimaCot = await prisma.quote.findFirst({
+      where: { folio: { startsWith: prefijo } },
+      orderBy: { folio: 'desc' }
+    });
+
+    let siguiente = folioInicial;
+    if (ultimaCot) {
+      const partes   = ultimaCot.folio.split('-');
+      const ultimoNum = parseInt(partes[partes.length - 1]);
+      if (!isNaN(ultimoNum) && ultimoNum >= folioInicial) {
+        siguiente = ultimoNum + 1;
+      }
+    }
+
+    const folio = `${prefijo}${String(siguiente).padStart(4, '0')}`;
+    res.json({ folio });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -1868,15 +1953,29 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
       impuestos, 
       total, 
       precio_neto_mxn, 
-      exchangeRate 
+      exchangeRate,
+      tipoCaso, 
+      anticipoMonto, 
+      reparacionMonto, 
+      mantenimientoMonto,
+      notasCaso,
+      country,
+      esExtranjero,
     } = req.body;
     
     console.log('💾 [POST /api/quotes] Datos recibidos:', {
       folio,
-      clientId,  // ⭐ LOG PARA VERIFICAR
+      clientId,
       subtotal,
       total,
-      items: items?.length
+      items: items?.length,
+      tipoCaso,
+      anticipoMonto,
+      reparacionMonto, 
+      mantenimientoMonto,
+      notasCaso,
+      country,
+      esExtranjero,
     });
     
     if (!folio) return res.status(400).json({ ok: false, error: 'El folio es requerido' });
@@ -1936,7 +2035,7 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
     const quote = await prisma.quote.create({
       data: {
         folio,
-        date: fields?.fecha ? new Date(fields.fecha) : new Date(),
+        date: fields?.fecha ? new Date(fields.fecha + 'T12:00:00') : new Date(new Date().toLocaleString('en-US', { timeZone: 'America/Mexico_City' })),
         clientId: finalClientId,  // ⭐ USAR finalClientId EN LUGAR DE clientId
         subtotal: subtotalNum,
         discount: descuentoNum,
@@ -1944,6 +2043,13 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
         total: totalNum,
         netMxn: netMxnNum,
         exchangeRate: exchangeRateNum,
+        tipoCaso:  tipoCaso  || 'venta',
+        anticipoMonto: anticipoMonto ? parseFloat(anticipoMonto) : null,
+        reparacionMonto: tipoCaso === 'reparacion' ? parseFloat(reparacionMonto) || null : null,
+        mantenimientoMonto: tipoCaso === 'mantenimiento' ? parseFloat(mantenimientoMonto) || null : null,
+        notasCaso: notasCaso || null,
+        country:      country      || 'MX',
+        esExtranjero: esExtranjero || false,
         tiempoEntrega: tiempoEntrega || null,
         formaPago: formaPago || null,
         template: template || null,
@@ -1956,7 +2062,9 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
             descripcion: item.descripcion || '',
             unitPrice: parseFloat(item.precio) || 0,
             qty: parseInt(item.cant) || 1,
-            subtotal: parseFloat(item.subtotal) || 0
+            subtotal: parseFloat(item.subtotal) || 0,
+            categoryType: item.categoryType || null,
+            providerCost: item.providerCost ? parseFloat(item.providerCost) : null,
           }))
         }
       },
@@ -2069,7 +2177,7 @@ app.put('/api/quotes/:id', async (req, res) => {
       where: { id: quoteId },
       data: {
         folio: folio || oldQuote.folio,
-        date: fecha ? new Date(fecha) : oldQuote.date,
+        date: fecha ? new Date(fecha + 'T12:00:00') : oldQuote.date,
         clientId,
         template: template || oldQuote.template,
         subtotal: subtotalNum,
@@ -2087,7 +2195,9 @@ app.put('/api/quotes/:id', async (req, res) => {
             descripcion: item.descripcion || '',
             unitPrice: parseFloat(item.precio) || 0,
             qty: parseInt(item.cant) || 1,
-            subtotal: parseFloat(item.subtotal) || 0
+            subtotal: parseFloat(item.subtotal) || 0,
+            categoryType: item.categoryType || null,
+            providerCost: item.providerCost ? parseFloat(item.providerCost) : null,
           }))
         }
       },
@@ -2158,6 +2268,155 @@ app.delete('/api/quotes/:id', async (req, res) => {
 });
 
 // ============================================
+// GENERAR OP CON DATOS DEL FORMULARIO
+// ============================================
+app.post('/api/quotes/:id/generar-op', requireAuth, async (req, res) => {
+  const { id } = req.params;
+  const {
+    folio, modelo, descripcion, cant,
+    esTransformador,
+    voltajeMinEntrada, voltajeMaxEntrada,
+    voltajeEntrada, voltajeSalida,
+    numeroSerie, fechaSalida, adicionales, observaciones
+  } = req.body;
+
+  try {
+    const quote = await prisma.quote.findUnique({
+      where: { id: parseInt(id) },
+      include: { client: true }
+    });
+
+    if (!quote) return res.status(404).json({ error: 'Cotización no encontrada' });
+
+    // ⭐ Buscar la ProductionOrder asociada a este modelo para guardar los datos
+    const sale = await prisma.sale.findFirst({
+      where: { quoteId: parseInt(id) },
+      include: { productionOrders: true }
+    });
+
+    const produccionExistente = sale?.productionOrders?.find(po =>
+      po.productModel === modelo
+    );
+
+    if (produccionExistente) {
+      await prisma.productionOrder.update({
+        where: { id: produccionExistente.id },
+        data: {
+          esTransformador:   esTransformador || false,
+          voltajeMinEntrada: voltajeMinEntrada || null,
+          voltajeMaxEntrada: voltajeMaxEntrada || null,
+          voltajeEntrada:    voltajeEntrada || null,
+          voltajeSalida:     voltajeSalida || null,
+          adicionales:       adicionales || null,
+          observaciones:     observaciones || null,
+        }
+      });
+    }
+
+    const mexicoDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+
+    const orderData = {
+      folio: folio || quote.folio,
+      createdAt: mexicoDate + 'T12:00:00',
+      clientName: quote.client?.name || 'Cliente',
+      clientCompany: quote.client?.company || '',
+      modelo: modelo || '',
+      descripcion: descripcion || '',
+      cant: cant || 1,
+      esTransformador: esTransformador || false,
+      voltajeMinEntrada: voltajeMinEntrada || '',
+      voltajeMaxEntrada: voltajeMaxEntrada || '',
+      voltajeEntrada: voltajeEntrada || '',
+      voltajeSalida: voltajeSalida || '',
+      numeroSerie: numeroSerie || '',
+      fechaSalida: fechaSalida || '',
+      adicionales: adicionales || '',
+      observaciones: observaciones || '',
+    };
+
+    const templatePath = path.resolve(__dirname, 'FORMATO_ORDEN_DE_PRODUCCION.xlsx');
+    const outputDir = path.resolve(__dirname, 'temp', 'production-orders');
+    const outputFilename = `ORDEN_PRODUCCION_${folio}_${modelo}_${Date.now()}.xlsx`;
+    const outputPath = path.resolve(outputDir, outputFilename);
+
+    if (!fs.existsSync(templatePath)) {
+      return res.status(500).json({ error: 'Template de Orden de Producción no encontrado' });
+    }
+
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
+    }
+
+    const pythonScript = path.resolve(__dirname, 'scripts', 'generate-production-order.py');
+    const { execFile } = require('child_process');
+
+    // ⭐ Limpiar descripcion para evitar saltos de línea que rompen el comando
+    orderData.descripcion = (orderData.descripcion || '').replace(/\n/g, ' ').replace(/\r/g, '');
+
+// ⭐ Escribir datos en archivo temporal para evitar problemas con caracteres especiales
+    const tempJsonPath = outputPath + '.json';
+    fs.writeFileSync(tempJsonPath, JSON.stringify(orderData), 'utf8');
+
+    await new Promise((resolve, reject) => {
+      execFile(
+        'python',
+        [pythonScript, tempJsonPath, templatePath, outputPath],
+        { timeout: 60000 },
+        (err, stdout, stderr) => {
+          if (stdout) console.log(`🐍 [PYTHON] ${stdout.trim()}`);
+          if (stderr) console.log(`🐍 [PYTHON STDERR] ${stderr.trim()}`);
+          try { fs.unlinkSync(tempJsonPath); } catch(e) {}
+          if (err) reject(new Error(`STDERR: ${stderr} | STDOUT: ${stdout} | MSG: ${err.message}`));
+          else resolve();
+        }
+      );
+    });
+
+    if (!fs.existsSync(outputPath)) {
+      throw new Error('Archivo Excel no se generó correctamente');
+    }
+
+    res.download(outputPath, outputFilename, (err) => {
+      try { fs.unlinkSync(outputPath); } catch(e) {}
+    });
+
+  } catch(e) {
+    console.error('❌ [GENERAR-OP] Error:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ============================================
+// FUNCIÓN: GENERAR FOLIO DE VENTA
+// ============================================
+async function generarFolioVenta() {
+  const date   = new Date();
+  const anio2  = String(date.getFullYear()).slice(-2);
+  const prefijo = `VTA-${anio2}-`;
+
+  const configInicio = await prisma.config.findUnique({
+    where: { clave: 'folio_inicial_venta' }
+  });
+  const folioInicial = configInicio ? parseInt(configInicio.valor) : 1;
+
+  const ultimaVenta = await prisma.sale.findFirst({
+    where: { folio: { startsWith: prefijo } },
+    orderBy: { folio: 'desc' }
+  });
+
+  let siguiente = folioInicial;
+  if (ultimaVenta) {
+    const partes    = ultimaVenta.folio.split('-');
+    const ultimoNum = parseInt(partes[partes.length - 1]);
+    if (!isNaN(ultimoNum) && ultimoNum >= folioInicial) {
+      siguiente = ultimoNum + 1;
+    }
+  }
+
+  return `${prefijo}${String(siguiente).padStart(4, '0')}`;
+}
+
+// ============================================
 // GENERAR ORDEN DE PRODUCCIÓN DESDE COTIZACIÓN
 // VERSIÓN FINAL - RUTAS CON ESPACIOS EN WINDOWS
 // ============================================
@@ -2205,10 +2464,18 @@ app.post('/api/quotes/:id/generate-production-order', requireAuth, async (req, r
     console.log(`🔄 [ORDEN PRODUCCIÓN] Convirtiendo cotización ${quote.folio} a venta...`);
 
     // 3. Convertir cotización a venta
+    const { saleDate } = req.body;
+    const fechaVenta = saleDate ? new Date(saleDate) : new Date();
+    console.log('🔍 DEBUG quote.items:', JSON.stringify(quote.items.map(i => ({
+      modelo: i.modelo,
+      categoryType: i.categoryType,
+      providerCost: i.providerCost
+    })), null, 2));
+    const folioVenta = await generarFolioVenta();
     const sale = await prisma.sale.create({
       data: {
-        folio: quote.folio,
-        date: new Date(),
+        folio: folioVenta,
+        date: fechaVenta,
         quote: {
           connect: { id: quote.id }
         },
@@ -2220,7 +2487,9 @@ app.post('/api/quotes/:id/generate-production-order', requireAuth, async (req, r
             descripcion: item.descripcion || '',
             unitPrice: item.unitPrice,
             qty: item.qty,
-            subtotal: item.subtotal
+            subtotal: item.subtotal,
+            categoryType: item.categoryType || null,
+            providerCost: item.providerCost || null,
           }))
         },
         subtotal: quote.subtotal,
@@ -2234,7 +2503,16 @@ app.post('/api/quotes/:id/generate-production-order', requireAuth, async (req, r
         deliveryStatus: 'pending',
         template: quote.template || null,
         tiempoEntrega: quote.tiempoEntrega || null,
-        formaPago: quote.formaPago || null
+        formaPago: quote.formaPago || null,
+        // ⭐ NUEVO: Transferir tipo de caso desde la cotización
+        tipoCaso: quote.tipoCaso || 'venta',
+        categoryType:  quote.categoryType  || null,   // ⭐ NUEVO
+        providerCost:  quote.providerCost  || null,   // ⭐ NUEVO
+        country: quote.country || 'MX',
+        reparacionMonto: quote.reparacionMonto || null,
+        mantenimientoMonto: quote.mantenimientoMonto || null,
+        anticipoMonto: quote.anticipoMonto || null,
+        notasCaso: quote.notasCaso || null,
       }
     });
 
@@ -2286,35 +2564,45 @@ app.post('/api/quotes/:id/generate-production-order', requireAuth, async (req, r
 
     console.log(`📝 [ORDEN PRODUCCIÓN] Actividad registrada`);
 
+    // ⭐ Si soloConvertir=true, devolver JSON con items y terminar
+    if (req.body.soloConvertir) {
+      return res.json({
+        ok: true,
+        saleId: sale.id,
+        folio: quote.folio,
+        items: quote.items.map(item => ({
+          modelo: item.modelo,
+          descripcion: item.descripcion || '',
+          cant: item.qty,
+          categoryType: item.categoryType || null
+        }))
+      });
+    }
+
     // 7. Generar archivo Excel de Orden de Producción
     console.log(`📊 [ORDEN PRODUCCIÓN] Generando Excel...`);
 
     // Preparar datos para el script Python
+    const mexicoDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
     const orderData = {
       folio: quote.folio,
-      fecha: new Date().toLocaleDateString('es-MX'),
-      cliente: quote.client?.name || 'Cliente',
+      quoteFollio: quote.folio,
+      createdAt: mexicoDate + 'T12:00:00',
+      deliveryDate: null,
+      clientName: quote.client?.name || 'Cliente',
+      clientCompany: quote.client?.company || '',
+      notes: `Cotización: ${quote.folio}\nForma de Pago: ${quote.formaPago || 'N/A'}`,
+      priority: 'normal',
+      additionalNotes: quote.tiempoEntrega || '',
       items: quote.items.map(item => ({
-        producto: item.modelo,
-        descripcion: item.descripcion || '',
-        cantidad: item.qty,
-        capacidad: extractCapacity(item.descripcion || item.modelo),
-        voltajeEntrada: '',
-        voltajeSalida: '',
-        amperajeEntrada: '',
-        amperajeSalida: '',
         modelo: item.modelo,
-        tipo: determineTipo(item.modelo, item.descripcion || ''),
-        numeroSerie: ''
-      })),
-      fechaInicio: '',
-      fechaSalida: '',
-      adicionales: quote.tiempoEntrega || '',
-      observaciones: `Cotización: ${quote.folio}\nForma de Pago: ${quote.formaPago || 'N/A'}`
+        descripcion: item.descripcion || '',
+        cant: item.qty
+      }))
     };
 
     // Rutas
-    const templatePath = path.resolve(__dirname, 'templates', 'FORMATO_ORDEN_DE_PRODUCCION.xlsx');
+    const templatePath = path.resolve(__dirname, 'FORMATO_ORDEN_DE_PRODUCCION.xlsx');
     const outputDir = path.resolve(__dirname, 'temp', 'production-orders');
     const outputFilename = `ORDEN_PRODUCCION_${quote.folio}_${Date.now()}.xlsx`;
     const outputPath = path.resolve(outputDir, outputFilename);
@@ -2346,44 +2634,21 @@ app.post('/api/quotes/:id/generate-production-order', requireAuth, async (req, r
 
     // ⭐ SOLUCIÓN FINAL: Usar formato de comando completo en una sola string
     // Esto evita problemas con espacios en rutas en Windows
-    const command = `python "${pythonScript}" "${templatePath}" "${outputPath}" ${JSON.stringify(JSON.stringify(orderData))}`;
-    
-    console.log(`🐍 [ORDEN PRODUCCIÓN] Comando: ${command}`);
-
-    const pythonProcess = spawn(command, [], {
-      shell: true,
-      windowsHide: true
-    });
-
-    let pythonError = '';
-    let pythonOutput = '';
-    
-    pythonProcess.stdout.on('data', (data) => {
-      pythonOutput += data.toString();
-      console.log(`🐍 [PYTHON] ${data.toString().trim()}`);
-    });
-
-    pythonProcess.stderr.on('data', (data) => {
-      pythonError += data.toString();
-      console.log(`🐍 [PYTHON STDERR] ${data.toString().trim()}`);
-    });
+    const { execFile } = require('child_process');
 
     await new Promise((resolve, reject) => {
-      pythonProcess.on('close', (code) => {
-        console.log(`🐍 [PYTHON] Proceso terminó con código ${code}`);
-        if (code !== 0) {
-          reject(new Error(`Error generando Excel (código ${code}): ${pythonError}`));
-        } else {
-          resolve();
+      execFile(
+        'python',
+        [pythonScript, JSON.stringify(orderData), templatePath, outputPath],
+        { timeout: 15000 },
+        (err, stdout, stderr) => {
+          if (stdout) console.log(`🐍 [PYTHON] ${stdout.trim()}`);
+          if (stderr) console.log(`🐍 [PYTHON STDERR] ${stderr.trim()}`);
+          if (err) reject(new Error(stderr || err.message));
+          else resolve();
         }
-      });
-      
-      pythonProcess.on('error', (err) => {
-        console.error(`🐍 [PYTHON] Error al ejecutar: ${err.message}`);
-        reject(err);
-      });
+      );
     });
-
     console.log(`✅ [ORDEN PRODUCCIÓN] Excel generado exitosamente`);
 
     // 8. Verificar que el archivo existe
@@ -2565,11 +2830,12 @@ app.post('/api/trash/quotations/:id/restore', async (req, res) => {
 app.delete('/api/trash/quotations/:id/permanent', async (req, res) => {
   try {
     const { id } = req.params;
+    const quoteId = parseInt(id);
 
     // Verificar que existe y está eliminada
     const quotation = await prisma.quote.findFirst({
       where: {
-        id: parseInt(id),
+        id: quoteId,
         deletedAt: { not: null }
       },
       include: { items: true }
@@ -2582,17 +2848,41 @@ app.delete('/api/trash/quotations/:id/permanent', async (req, res) => {
       });
     }
 
-    // Eliminar items primero (relación)
-    await prisma.quoteItem.deleteMany({
-      where: { quoteId: parseInt(id) }
+    await prisma.$transaction(async (tx) => {
+      // 1. Buscar si tiene venta asociada
+      const sale = await tx.sale.findUnique({
+        where: { quoteId },
+        select: { id: true }
+      });
+
+      if (sale) {
+        // 2. Eliminar comisiones de la venta
+        await tx.commission.deleteMany({ where: { saleId: sale.id } });
+
+        // 3. Eliminar actividades de la venta
+        await tx.activity.deleteMany({ where: { saleId: sale.id } });
+
+        // 4. Eliminar órdenes de producción
+        await tx.productionOrder.deleteMany({ where: { saleId: sale.id } });
+
+        // 5. Eliminar items de la venta
+        await tx.saleItem.deleteMany({ where: { saleId: sale.id } });
+
+        // 6. Eliminar la venta
+        await tx.sale.delete({ where: { id: sale.id } });
+      }
+
+      // 7. Eliminar actividades de la cotización
+      await tx.activity.deleteMany({ where: { quoteId } });
+
+      // 8. Eliminar items de la cotización
+      await tx.quoteItem.deleteMany({ where: { quoteId } });
+
+      // 9. Eliminar la cotización
+      await tx.quote.delete({ where: { id: quoteId } });
     });
 
-    // Eliminar cotización permanentemente
-    await prisma.quote.delete({
-      where: { id: parseInt(id) }
-    });
-
-    // Eliminar archivo PDF si existe
+    // Eliminar PDF fuera de la transacción
     const pdfPath = path.join(ORDERS_DIR, `${quotation.folio}.pdf`);
     if (fs.existsSync(pdfPath)) {
       fs.unlinkSync(pdfPath);
@@ -2624,18 +2914,66 @@ app.delete('/api/trash/quotations/empty', async (req, res) => {
       select: { id: true, folio: true }
     });
 
-    // Eliminar items de todas
     const quotationIds = deletedQuotations.map(q => q.id);
-    await prisma.quoteItem.deleteMany({
-      where: { quoteId: { in: quotationIds } }
+
+    if (quotationIds.length === 0) {
+      return res.json({ ok: true, message: 'La papelera ya estaba vacía', count: 0 });
+    }
+
+    // Eliminar en orden para respetar las llaves foráneas
+    await prisma.$transaction(async (tx) => {
+
+      // 1. Obtener ventas asociadas a estas cotizaciones
+      const sales = await tx.sale.findMany({
+        where: { quoteId: { in: quotationIds } },
+        select: { id: true }
+      });
+      const saleIds = sales.map(s => s.id);
+
+      if (saleIds.length > 0) {
+        // 2. Eliminar comisiones de esas ventas
+        await tx.commission.deleteMany({
+          where: { saleId: { in: saleIds } }
+        });
+
+        // 3. Eliminar actividades de esas ventas
+        await tx.activity.deleteMany({
+          where: { saleId: { in: saleIds } }
+        });
+
+        // 4. Eliminar órdenes de producción de esas ventas
+        await tx.productionOrder.deleteMany({
+          where: { saleId: { in: saleIds } }
+        });
+
+        // 5. Eliminar items de esas ventas
+        await tx.saleItem.deleteMany({
+          where: { saleId: { in: saleIds } }
+        });
+
+        // 6. Eliminar las ventas
+        await tx.sale.deleteMany({
+          where: { id: { in: saleIds } }
+        });
+      }
+
+      // 7. Eliminar actividades de las cotizaciones
+      await tx.activity.deleteMany({
+        where: { quoteId: { in: quotationIds } }
+      });
+
+      // 8. Eliminar items de las cotizaciones
+      await tx.quoteItem.deleteMany({
+        where: { quoteId: { in: quotationIds } }
+      });
+
+      // 9. Finalmente eliminar las cotizaciones
+      await tx.quote.deleteMany({
+        where: { id: { in: quotationIds } }
+      });
     });
 
-    // Eliminar cotizaciones
-    const result = await prisma.quote.deleteMany({
-      where: { deletedAt: { not: null } }
-    });
-
-    // Eliminar PDFs
+    // Eliminar PDFs fuera de la transacción
     deletedQuotations.forEach(q => {
       const pdfPath = path.join(ORDERS_DIR, `${q.folio}.pdf`);
       if (fs.existsSync(pdfPath)) {
@@ -2643,12 +2981,12 @@ app.delete('/api/trash/quotations/empty', async (req, res) => {
       }
     });
 
-    console.log(`🗑️ Papelera vaciada: ${result.count} cotizaciones eliminadas`);
+    console.log(`🗑️ Papelera vaciada: ${deletedQuotations.length} cotizaciones eliminadas`);
 
     res.json({
       ok: true,
-      message: `${result.count} cotizaciones eliminadas permanentemente`,
-      count: result.count
+      message: `${deletedQuotations.length} cotizaciones eliminadas permanentemente`,
+      count: deletedQuotations.length
     });
 
   } catch (e) {
@@ -2808,110 +3146,6 @@ async function logSaleStatusChange(sale, field, oldValue, newValue) {
 // ============================================
 // SALES API (Ventas y Órdenes de Producción)
 // ============================================
-
-// CONVERTIR COTIZACIÓN A VENTA
-app.post('/api/quotes/:id/convert-to-sale', async (req, res) => {
-  try {
-    const quoteId = parseInt(req.params.id);
-    
-    const quote = await prisma.quote.findUnique({
-      where: { id: quoteId },
-      include: {
-        client: true,
-        items: {
-          include: { product: true }
-        }
-      }
-    });
-    
-    if (!quote) {
-      return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
-    }
-    
-    if (quote.status === 'convertida') {
-      return res.status(400).json({ ok: false, error: 'Esta cotización ya fue convertida a venta' });
-    }
-    
-    const year = new Date().getFullYear();
-    const month = String(new Date().getMonth() + 1).padStart(2, '0');
-    const salesCount = await prisma.sale.count();
-    const saleNumber = String(salesCount + 1).padStart(4, '0');
-    const saleFolio = `VTA-${year}${month}-${saleNumber}`;
-    
-    // Convertir explícitamente a números
-    const subtotalNum = parseFloat(quote.subtotal) || 0;
-    const discountNum = parseFloat(quote.discount) || 0;
-    const taxNum = parseFloat(quote.tax) || 0;
-    const totalNum = parseFloat(quote.total) || 0;
-    const netMxnNum = parseFloat(quote.netMxn) || null;
-    const exchangeRateNum = parseFloat(quote.exchangeRate) || null;
-    
-    console.log('💰 Valores convertidos para venta:', {
-      subtotal: subtotalNum,
-      discount: discountNum,
-      tax: taxNum,
-      total: totalNum,
-      netMxn: netMxnNum
-    });
-    
-    const sale = await prisma.sale.create({
-      data: {
-        folio: saleFolio,
-        quoteId: quote.id,
-        clientId: quote.clientId,
-        subtotal: subtotalNum,
-        discount: discountNum,
-        tax: taxNum,
-        total: totalNum,
-        netMxn: netMxnNum,
-        exchangeRate: exchangeRateNum,
-        currency: quote.currency,
-        status: 'pending',
-        paymentStatus: 'pendiente',
-        deliveryStatus: 'pendiente',
-        createdById: quote.createdById,
-        items: {
-          create: quote.items.map(item => ({
-            productId: item.productId,
-            modelo: item.modelo,
-            descripcion: item.descripcion,
-            unitPrice: parseFloat(item.unitPrice) || 0,
-            qty: parseInt(item.qty) || 1,
-            subtotal: parseFloat(item.subtotal) || 0
-          }))
-        }
-      },
-      include: {
-        client: true,
-        items: true
-      }
-    });
-    
-    await prisma.quote.update({
-      where: { id: quoteId },
-      data: { status: 'convertida' }
-    });
-
-    // 📝 Registrar actividad de conversión
-    await logQuoteConverted(quote, sale);
-    
-    const productionOrder = await createProductionOrder(sale);
-    
-    console.log('✅ Venta creada:', sale.folio);
-    console.log('✅ Orden de producción creada:', productionOrder.folio);
-    
-    res.json({
-      ok: true,
-      sale,
-      productionOrder,
-      message: `Cotización ${quote.folio} convertida a venta ${sale.folio}`
-    });
-    
-  } catch (e) {
-    console.error('❌ Error convirtiendo a venta:', e);
-    res.status(500).json({ ok: false, error: e.message });
-  }
-});
 
 // Función auxiliar: Crear Orden de Producción
 async function createProductionOrder(sale) {
@@ -3157,7 +3391,9 @@ app.get('/api/sales/:id', async (req, res) => {
       where: { id: parseInt(req.params.id) },
       include: {
         client: true,
-        quote: true,
+        quote: {
+          include: { client: true, items: true }
+        },
         items: {
           include: { product: true }
         },
@@ -3324,25 +3560,88 @@ app.put('/api/production-orders/:id', async (req, res) => {
 });
 
 // DOWNLOAD PRODUCTION ORDER EXCEL
-app.get('/api/production-orders/:id/download', async (req, res) => {
+app.get('/api/production-orders/:id/download', requireAuth, async (req, res) => {
   try {
     const order = await prisma.productionOrder.findUnique({
-      where: { id: parseInt(req.params.id) }
+      where: { id: parseInt(req.params.id) },
+      include: {
+        sale: {
+          include: {
+            client: true,
+            quote: { include: { client: true, items: true } }
+          }
+        }
+      }
     });
-    
-    if (!order || !order.excelPath) {
-      return res.status(404).json({ ok: false, error: 'Archivo no encontrado' });
+
+    if (!order) return res.status(404).json({ error: 'Orden no encontrada' });
+
+    const sale  = order.sale;
+    const quote = sale.quote;
+    const client = sale.client || quote?.client;
+
+    const mexicoDate = new Date().toLocaleDateString('en-CA', { timeZone: 'America/Mexico_City' });
+
+    const orderData = {
+      folio:             quote?.folio || sale.folio || `OP-${order.id}`,
+      createdAt:         mexicoDate + 'T12:00:00',
+      clientName:        client?.name  || 'Cliente',
+      clientCompany:     client?.company || '',
+      modelo:            order.productModel || '',
+      descripcion:       order.productDescription || '',
+      cant:              order.quantity || 1,
+      esTransformador:   order.esTransformador || false,
+      voltajeMinEntrada: order.voltajeMinEntrada || '',
+      voltajeMaxEntrada: order.voltajeMaxEntrada || '',
+      voltajeEntrada:    order.voltajeEntrada || '',
+      voltajeSalida:     order.voltajeSalida || '',
+      adicionales:       order.adicionales || '',
+      observaciones:     order.observaciones || '',
+    };
+
+    const templatePath  = path.resolve(__dirname, 'FORMATO_ORDEN_DE_PRODUCCION.xlsx');
+    const outputDir     = path.resolve(__dirname, 'temp', 'production-orders');
+    const outputFilename = `ORDEN_${orderData.folio}_${order.productModel}_${Date.now()}.xlsx`;
+    const outputPath    = path.resolve(outputDir, outputFilename);
+
+    if (!fs.existsSync(templatePath)) {
+      return res.status(500).json({ error: 'Template no encontrado' });
     }
-    
-    const filepath = path.join(__dirname, order.excelPath);
-    
-    if (!fs.existsSync(filepath)) {
-      return res.status(404).json({ ok: false, error: 'Archivo no encontrado en el servidor' });
+    if (!fs.existsSync(outputDir)) {
+      fs.mkdirSync(outputDir, { recursive: true });
     }
-    
-    res.download(filepath, `${order.folio}.xlsx`);
+
+    const pythonScript = path.resolve(__dirname, 'scripts', 'generate-production-order.py');
+    const tempJsonPath = outputPath + '.json';
+    fs.writeFileSync(tempJsonPath, JSON.stringify(orderData), 'utf8');
+
+    const { execFile } = require('child_process');
+    await new Promise((resolve, reject) => {
+      execFile(
+        'python',
+        [pythonScript, tempJsonPath, templatePath, outputPath],
+        { timeout: 60000 },
+        (err, stdout, stderr) => {
+          if (stdout) console.log(`🐍 [PYTHON] ${stdout.trim()}`);
+          if (stderr) console.log(`🐍 [PYTHON STDERR] ${stderr.trim()}`);
+          try { fs.unlinkSync(tempJsonPath); } catch(e) {}
+          if (err) reject(new Error(`STDERR: ${stderr} | MSG: ${err.message}`));
+          else resolve();
+        }
+      );
+    });
+
+    if (!fs.existsSync(outputPath)) {
+      throw new Error('Archivo Excel no se generó correctamente');
+    }
+
+    res.download(outputPath, outputFilename, (err) => {
+      try { fs.unlinkSync(outputPath); } catch(e) {}
+    });
+
   } catch (e) {
-    res.status(500).json({ ok: false, error: e.message });
+    console.error('❌ [DOWNLOAD OP] Error:', e.message);
+    res.status(500).json({ error: e.message });
   }
 });
 
@@ -3913,10 +4212,31 @@ app.post('/api/quotes/:id/log-send', async (req, res) => {
 // ============================================
 app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
   try {
-    if (!transporter) {
+  // ⭐ Obtener credenciales del usuario logueado
+    const userIdEmail = req.user?.id;
+    const usuario = await prisma.user.findUnique({ where: { id: userIdEmail } });
+
+    // Usar credenciales del usuario si las tiene, si no caer al transporter global
+    let transporterActivo = transporter;
+    let fromActivo = `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`;
+
+    if (usuario?.emailPassword && usuario?.email) {
+      transporterActivo = nodemailer.createTransport({
+        host: 'smtp.gmail.com',
+        port: 587,
+        secure: false,
+        auth: {
+          user: usuario.email,
+          pass: usuario.emailPassword
+        }
+      });
+      fromActivo = `"${usuario.emailFrom || usuario.name}" <${usuario.email}>`;
+    }
+
+    if (!transporterActivo) {
       return res.status(500).json({ 
         ok: false, 
-        error: 'Servicio de email no configurado. Revisa EMAIL_USER y EMAIL_PASSWORD en .env' 
+        error: 'No hay configuración de correo. Configura tu correo en tu perfil.' 
       });
     }
 
@@ -4279,7 +4599,7 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
 
     // ⭐ CONFIGURAR EMAIL CON CC/BCC
     const mailOptions = {
-      from: `"${process.env.EMAIL_FROM_NAME}" <${process.env.EMAIL_FROM_ADDRESS}>`,
+      from: fromActivo,
       to: quote.client.email,
       subject: `Cotización ${quote.folio} - ${quote.client.company || quote.client.name}`,
       html: emailHTML,
@@ -4311,7 +4631,7 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
     });
 
     // Enviar email
-    const info = await transporter.sendMail(mailOptions);
+    const info = await transporterActivo.sendMail(mailOptions);
     
     console.log('  ✅ Email enviado exitosamente:', info.messageId);
 
@@ -4707,7 +5027,9 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
         email: true,
         role: true,
         active: true,
-        createdAt: true
+        createdAt: true,
+        emailFrom: true,
+        emailPassword: true
       }
     });
     
@@ -5334,6 +5656,29 @@ app.delete('/api/users/:id/signature', requireAuth, async (req, res) => {
   }
 });
 
+// ============================================
+// GUARDAR CONFIG DE CORREO DEL USUARIO
+// ============================================
+app.put('/api/users/:id/email-config', requireAuth, async (req, res) => {
+  try {
+    const { emailFrom, emailPassword } = req.body;
+    const id = parseInt(req.params.id);
+
+    if (req.user.id !== id && req.user.role !== 'admin') {
+      return res.status(403).json({ ok: false, error: 'Sin permisos' });
+    }
+
+    await prisma.user.update({
+      where: { id },
+      data: { emailFrom, emailPassword }
+    });
+
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
 /**
  * GET /api/users/:id/signature
  * Obtener URL de la firma
@@ -5370,6 +5715,105 @@ app.get('/api/users/:id/signature', requireAuth, async (req, res) => {
     
   } catch (e) {
     console.error('❌ Error obteniendo firma:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+/////////////////////////////////////////////////////////////////
+// ENDPOINTS PAPELERA VENTAS //
+app.delete('/api/sales/:id', requireAuth, async (req, res) => {
+  try {
+    await prisma.sale.update({
+      where: { id: parseInt(req.params.id) },
+      data: { deletedAt: new Date() }
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.get('/api/trash/sales', requireAuth, async (req, res) => {
+  try {
+    const page  = parseInt(req.query.page)  || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const search = req.query.search || '';
+
+    const where = {
+      deletedAt: { not: null },
+      OR: search ? [
+        { folio: { contains: search, mode: 'insensitive' } },
+        { client: { name: { contains: search, mode: 'insensitive' } } }
+      ] : undefined
+    };
+
+    const [sales, total] = await Promise.all([
+      prisma.sale.findMany({
+        where,
+        include: { client: true, quote: true },
+        orderBy: { deletedAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit
+      }),
+      prisma.sale.count({ where })
+    ]);
+
+    res.json({ ok: true, sales, pagination: { page, pages: Math.ceil(total / limit), total } });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.post('/api/trash/sales/:id/restore', requireAuth, async (req, res) => {
+  try {
+    await prisma.sale.update({
+      where: { id: parseInt(req.params.id) },
+      data: { deletedAt: null }
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.delete('/api/trash/sales/:id/permanent', requireAuth, async (req, res) => {
+  try {
+    const id = parseInt(req.params.id);
+
+    // Eliminar registros relacionados primero
+    await prisma.productionOrder.deleteMany({ where: { saleId: id } });
+    await prisma.commission.deleteMany({ where: { saleId: id } });
+    await prisma.saleItem.deleteMany({ where: { saleId: id } });
+    await prisma.activity.deleteMany({ where: { saleId: id } });
+
+    // Ahora sí eliminar la venta
+    await prisma.sale.delete({ where: { id } });
+
+    res.json({ ok: true });
+  } catch (e) {
+    console.error('❌ Error eliminando venta permanentemente:', e);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+app.delete('/api/trash/sales/empty', requireAuth, async (req, res) => {
+  try {
+    const sales = await prisma.sale.findMany({
+      where: { deletedAt: { not: null } },
+      select: { id: true }
+    });
+
+    const ids = sales.map(s => s.id);
+
+    await prisma.productionOrder.deleteMany({ where: { saleId: { in: ids } } });
+    await prisma.commission.deleteMany({ where: { saleId: { in: ids } } });
+    await prisma.saleItem.deleteMany({ where: { saleId: { in: ids } } });
+    await prisma.activity.deleteMany({ where: { saleId: { in: ids } } });
+    await prisma.sale.deleteMany({ where: { deletedAt: { not: null } } });
+
+    res.json({ ok: true, count: ids.length });
+  } catch (e) {
+    console.error('❌ Error vaciando ventas:', e);
     res.status(500).json({ ok: false, error: e.message });
   }
 });
@@ -5871,7 +6315,7 @@ app.get('/api/reports/sales', async (req, res) => {
       const row = worksheet.addRow([
         sale.folio,
         sale.quote?.folio || '',
-        sale.createdAt.toLocaleDateString('es-MX'),
+        (sale.date || sale.createdAt).toLocaleDateString('es-MX'),
         sale.client?.name || 'Sin cliente',
         sale.client?.company || '',
         parseFloat(sale.total) || 0,
@@ -6073,7 +6517,7 @@ app.get('/api/sales/:id/pdf', async (req, res) => {
     // Preparar datos para el PDF (formato esperado por generatePdfBuffer)
     const pdfData = {
       folio: sale.folio,
-      fecha: sale.createdAt.toLocaleDateString('es-MX'),
+      fecha: (sale.date || sale.createdAt).toLocaleDateString('es-MX'),
       nombre: sale.client?.name || '',
       empresa: sale.client?.company || '',
       correo: sale.client?.email || '',
@@ -6497,14 +6941,22 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
 
       // ✅ DIBUJAR LÍNEA (JUSTIFICADA O NORMAL)
       const isLastLine = index === lines.length - 1;
-      
+
+      // ✅ boldFirstBlock: negritas hasta la primera línea vacía
+      let lineFont = fontToUse;
+      if (optionsLocal.boldFirstBlock) {
+        const firstEmptyIndex = lines.findIndex(l => l.trim() === '');
+        const boldUntil = firstEmptyIndex >= 0 ? firstEmptyIndex : lines.length;
+        lineFont = index < boldUntil ? fontBold : font;
+      }
+
       if (isJustified && !isLastLine && fieldWidthFrac > 0) {
         // Texto justificado (excepto última línea)
-        drawJustifiedLine(line, xDraw, yDraw, maxWidthPts, fontSize, fontToUse, page);
+        drawJustifiedLine(line, xDraw, yDraw, maxWidthPts, fontSize, lineFont, page);
       } else {
         // Texto normal
         if (xDraw < 0) xDraw = 0;
-        page.drawText(line, { x: xDraw, y: yDraw, size: fontSize, font: fontToUse });
+        page.drawText(line, { x: xDraw, y: yDraw, size: fontSize, font: lineFont });
       }
     });
 
@@ -6614,8 +7066,7 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
         let itemFontSize = 9;
 
         if (pageConfig.fields['item_modelo']) {
-          modeloX = Number(pageConfig.fields['item_modelo'].x);
-          itemFontSize = Number(pageConfig.fields['item_modelo'].fontSize) || 9;
+          drawTextWithAnchor(item.modelo || '', baseCoordModelo, { debug: options.debug }, page);
         }
         if (pageConfig.fields['item_descripcion']) descripcionX = Number(pageConfig.fields['item_descripcion'].x);
         if (pageConfig.fields['item_precio']) precioX = Number(pageConfig.fields['item_precio'].x);
@@ -6629,14 +7080,20 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
 
         console.log(`📦 Dibujando ${items.length} items en página ${pageNum}`);
 
+        // ⭐ Calcular altura dinámica por item según número de líneas
+        const itemHeights = items.map(item => {
+          const desc = item.descripcion || '';
+          const modelo = item.modelo || '';
+          const lineasDesc = desc ? desc.split('\n').length : 0;
+          const lineasModelo = modelo ? modelo.split('\n').length : 1;
+          const totalLineas = Math.max(lineasDesc, lineasModelo);
+          return Math.max(lineHeight, totalLineas * (lineHeight * 0.39));
+        });
+
+        let acumuladoY = 0;
         items.forEach((item, i) => {
-          // ⭐ DEBUG: Ver qué contiene la descripción
-          console.log('🔍 DEBUG ITEM:', item.modelo);
-          console.log('  📝 Descripción RAW:', JSON.stringify(item.descripcion));
-          console.log('  ✅ Tiene \\n:', item.descripcion?.includes('\n'));
-          console.log('  📊 Cantidad de \\n:', (item.descripcion?.match(/\n/g) || []).length);
-          console.log('  🔤 Primeros 100 chars:', item.descripcion?.substring(0, 100));
-          const yPerc = tableStartY - i * lineHeight;
+          const yPerc = tableStartY - acumuladoY;
+          acumuladoY += itemHeights[i];
           if (yPerc <= 0) return;
 
           const baseCoordModelo = { 
@@ -6704,8 +7161,10 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
             justify: false
           };
 
-          drawTextWithAnchor(item.modelo || '', baseCoordModelo, { debug: options.debug }, page);
-          drawTextWithAnchor(item.descripcion || '', baseCoordDesc, { debug: options.debug }, page);
+          if (pageConfig.fields['item_modelo']) {
+            drawTextWithAnchor(item.modelo || '', baseCoordModelo, { debug: options.debug }, page);
+          }
+          drawTextWithAnchor(item.descripcion || '', baseCoordDesc, { debug: options.debug, boldFirstBlock: true }, page);
           drawTextWithAnchor(item.precio || '', baseCoordPrecio, { debug: options.debug }, page);
           drawTextWithAnchor(item.cant || '1', baseCoordCant, { debug: options.debug }, page);
           drawTextWithAnchor(item.subtotal || '', baseCoordSubtotal, { debug: options.debug }, page);
@@ -7286,6 +7745,236 @@ app.post('/generate', async (req, res) => {
   } catch (e) {
     console.error('❌ Error generando PDF:', e);
     res.status(500).send(`Error: ${e.message}`);
+  }
+});
+
+// ============================================
+// POSTVENTA - SALDO
+// ============================================
+app.post('/api/postventa/saldo', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { quoteId, folio, monto, notas, fecha } = req.body;
+
+    if (!quoteId || !monto || monto <= 0) {
+      return res.status(400).json({ ok: false, error: 'Datos incompletos o monto inválido' });
+    }
+
+    // Obtener la cotización original para copiar datos
+    const quote = await prisma.quote.findUnique({
+      where: { id: parseInt(quoteId) },
+      include: { client: true, items: true }
+    });
+
+    if (!quote) return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+
+    // Generar folio con prefijo SALDO
+    const fechaVenta = fecha ? new Date(fecha) : new Date();
+    const mes = String(fechaVenta.getMonth() + 1).padStart(2, '0');
+    const anio = fechaVenta.getFullYear();
+    // ⭐ El saldo hereda el número del folio de la venta original (anticipo)
+    const ventaOriginal = await prisma.sale.findFirst({
+      where: { quoteId: parseInt(quoteId) }
+    });
+    const anio2Saldo = String(fechaVenta.getFullYear()).slice(-2);
+    const numOriginal = ventaOriginal
+      ? ventaOriginal.folio.split('-').pop()
+      : String(await generarFolioVenta()).split('-').pop();
+    const folioSaldo = `SALDO-${anio2Saldo}-${numOriginal}`;
+
+    // Crear registro de venta tipo saldo (sin orden de producción)
+    const saleRecord = await prisma.sale.create({
+      data: {
+        folio: folioSaldo,
+        date: fechaVenta,
+        client: quote.clientId ? { connect: { id: quote.clientId } } : undefined,
+        createdBy: { connect: { id: userId } },
+        items: {
+          create: quote.items.map(item => ({
+            modelo: item.modelo || '',
+            descripcion: item.descripcion || '',
+            unitPrice: 0,
+            qty: item.qty,
+            subtotal: item.subtotal || 0,
+            categoryType: item.categoryType || null,
+            providerCost: item.providerCost || null,
+          }))
+        },
+        subtotal: parseFloat(monto),
+        discount: 0,
+        tax: 0,
+        total: parseFloat(monto),
+        currency: 'MXN',
+        exchangeRate: 1,
+        netMxn: parseFloat(monto),
+        paymentStatus: 'completed',
+        deliveryStatus: 'completed',
+        tipoCaso: 'saldo',
+        notasCaso: notas || null,
+      }
+    });
+
+    // Marcar la cotización como saldo completado
+    await prisma.quote.update({
+      where: { id: quote.id },
+      data: { status: 'saldo_pagado' }
+    });
+
+    await logActivity({
+      type: 'saldo_registrado',
+      description: `Saldo registrado para cotización ${folio} — Monto: $${parseFloat(monto).toLocaleString('es-MX')}`,
+      quoteId: quote.id,
+      saleId: saleRecord.id,
+      userId,
+      metadata: { folio: folioSaldo, monto, folioOriginal: folio }
+    });
+
+    console.log(`✅ [POSTVENTA] Saldo registrado: ${folioSaldo}`);
+    res.json({ ok: true, folio: folioSaldo, sale: saleRecord });
+
+  } catch (e) {
+    console.error('❌ [POSTVENTA/SALDO] Error:', e.message);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ============================================
+// POSTVENTA - REPARACIÓN / MANTENIMIENTO
+// ============================================
+app.post('/api/postventa/servicio', requireAuth, async (req, res) => {
+  try {
+    const userId = req.user?.id;
+    const { quoteId, folio, tipo, monto, notas, fecha } = req.body;
+
+    if (!quoteId || !monto || monto <= 0 || !['reparacion', 'mantenimiento'].includes(tipo)) {
+      return res.status(400).json({ ok: false, error: 'Datos incompletos o tipo inválido' });
+    }
+
+    const quote = await prisma.quote.findUnique({
+      where: { id: parseInt(quoteId) },
+      include: { client: true, items: true }
+    });
+
+    if (!quote) return res.status(404).json({ ok: false, error: 'Cotización no encontrada' });
+
+    const fechaServicio = fecha ? new Date(fecha) : new Date();
+    const prefijo = tipo === 'reparacion' ? 'REP' : 'MANT';
+    const anio2Serv = String(fechaServicio.getFullYear()).slice(-2);
+    const folioVentaServ = await generarFolioVenta();
+    const folioServicio = `${prefijo}-${anio2Serv}-${folioVentaServ.split('-').pop()}`;
+
+    const saleRecord = await prisma.sale.create({
+      data: {
+        folio: folioServicio,
+        date: fechaServicio,
+        client: quote.clientId ? { connect: { id: quote.clientId } } : undefined,
+        createdBy: { connect: { id: userId } },
+        items: {
+        create: quote.items.map(item => ({
+            modelo: `${tipo === 'reparacion' ? 'Reparación' : 'Mantenimiento'} - ${item.descripcion || item.modelo}`,
+            descripcion: item.descripcion || '',
+            unitPrice: 0,
+            qty: item.qty,
+            subtotal: 0,
+            categoryType: item.categoryType || null,
+            providerCost: item.providerCost || null,
+          }))
+        },
+        subtotal: parseFloat(monto),
+        discount: 0,
+        tax: 0,
+        total: parseFloat(monto),
+        currency: 'MXN',
+        exchangeRate: 1,
+        netMxn: parseFloat(monto),
+        paymentStatus: 'completed',
+        deliveryStatus: 'completed',
+        tipoCaso: tipo,
+        reparacionMonto:     tipo === 'reparacion'    ? parseFloat(monto) : null,
+        mantenimientoMonto:  tipo === 'mantenimiento' ? parseFloat(monto) : null,
+        notasCaso: notas || null,
+      }
+    });
+
+    await logActivity({
+      type: `${tipo}_registrado`,
+      description: `${tipo === 'reparacion' ? 'Reparación' : 'Mantenimiento'} registrado para ${folio} — Monto: $${parseFloat(monto).toLocaleString('es-MX')}`,
+      quoteId: quote.id,
+      saleId: saleRecord.id,
+      userId,
+      metadata: { folio: folioServicio, monto, tipo, folioOriginal: folio }
+    });
+
+    console.log(`✅ [POSTVENTA] ${tipo} registrado: ${folioServicio}`);
+    res.json({ ok: true, folio: folioServicio, sale: saleRecord });
+
+  } catch (e) {
+    console.error(`❌ [POSTVENTA/${tipo?.toUpperCase()}] Error:`, e.message);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ⭐ Palabras clave para detección automática de comercialización
+const COMERCIALIZACION_KEYWORDS = [
+  { keywords: ['ups', 'no break', 'nobreak', 'no-break'],      tipo: 'ups' },
+  { keywords: ['regulador electrónico', 'regulador electronico', 'electronico'], tipo: 'regulador_electronico' },
+  { keywords: ['equipo ec', 'ec '],                             tipo: 'equipo_ec' },
+  { keywords: ['planta'],                                       tipo: 'planta' },
+  { keywords: ['transformador'],                                tipo: 'transformador' },
+  { keywords: ['instalacion', 'instalación'],                   tipo: 'instalacion' },
+  { keywords: ['supresor'],                                     tipo: 'supresor' },
+  { keywords: ['multimetro', 'multímetro'],                     tipo: 'multimetro' },
+  { keywords: ['extension de garantia', 'extensión de garantía', 'garantia extendida'], tipo: 'garantia' },
+];
+
+app.get('/api/comercializacion/detectar', requireAuth, (req, res) => {
+  const texto = (req.query.texto || '').toLowerCase().trim();
+  if (!texto) return res.json({ esComercializacion: false, tipo: null });
+
+  for (const entry of COMERCIALIZACION_KEYWORDS) {
+    if (entry.keywords.some(kw => texto.includes(kw))) {
+      return res.json({ esComercializacion: true, tipo: entry.tipo });
+    }
+  }
+  res.json({ esComercializacion: false, tipo: null });
+});
+
+// ⭐ Retorna la lista completa de keywords (para detección en frontend sin fetch)
+app.get('/api/comercializacion/keywords', requireAuth, (req, res) => {
+  res.json({ keywords: COMERCIALIZACION_KEYWORDS });
+});
+
+// ============================================
+// CONFIGURACIÓN DEL SISTEMA
+// ============================================
+
+// Obtener configuración
+app.get('/api/config', requireAuth, async (req, res) => {
+  try {
+    const configs = await prisma.config.findMany();
+    const result = {};
+    configs.forEach(c => result[c.clave] = c.valor);
+    res.json({ ok: true, config: result });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// Guardar configuración
+app.post('/api/config', requireAuth, async (req, res) => {
+  try {
+    const { clave, valor } = req.body;
+    if (!clave || valor === undefined) {
+      return res.status(400).json({ ok: false, error: 'Clave y valor requeridos' });
+    }
+    await prisma.config.upsert({
+      where: { clave },
+      update: { valor: String(valor) },
+      create: { clave, valor: String(valor) }
+    });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
   }
 });
 

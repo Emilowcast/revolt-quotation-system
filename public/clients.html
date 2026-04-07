@@ -638,6 +638,36 @@
     </div>
   </div>
 
+  <!-- Modal: Confirmar Eliminación -->
+  <div class="modal fade" id="modalEliminarCliente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width: 420px;">
+      <div class="modal-content">
+        <div class="modal-header" style="background:linear-gradient(135deg,#ef4444,#dc2626);">
+          <h5 class="modal-title d-flex align-items-center gap-2">
+            <i class="bi bi-trash3-fill"></i> Eliminar Cliente
+          </h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body text-center" style="padding:28px;">
+          <i class="bi bi-exclamation-triangle-fill" style="font-size:3.5rem;color:#ef4444;display:block;margin-bottom:15px;"></i>
+          <p style="font-size:1.1rem;font-weight:700;color:#1a1a1a;margin-bottom:8px;">¿Eliminar este cliente?</p>
+          <div id="modalClienteNombre" style="display:inline-block;background:#fee2e2;color:#991b1b;font-weight:700;padding:4px 16px;border-radius:20px;font-size:0.95rem;margin:8px 0 12px;"></div>
+          <p style="font-size:0.88rem;color:#666;margin:0;">Esta acción <strong>no se puede deshacer</strong>.</p>
+        </div>
+        <div class="modal-footer" style="border:none;padding:0 25px 25px;justify-content:center;gap:12px;">
+          <button type="button" class="btn" data-bs-dismiss="modal"
+            style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:10px 28px;font-weight:600;">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button type="button" id="btnConfirmDeleteCliente"
+            style="background:linear-gradient(135deg,#ef4444,#dc2626);color:white;border:none;border-radius:8px;padding:10px 28px;font-weight:600;">
+            <i class="bi bi-trash3-fill"></i> Sí, eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     let clients = [];
@@ -919,36 +949,46 @@
       }
     }
 
-    async function deleteClient(id) {
-      if (!confirm('¿Estás seguro de eliminar este cliente?\n\nEsta acción no se puede deshacer.')) return;
-      
-      try {
-        const response = await fetch(`/api/clients/${id}`, {
-          method: 'DELETE'
-        });
-        
-        const data = await response.json();
-        
-        if (data.ok) {
-          showToast('Cliente eliminado correctamente', 'success');
-          loadClients();
-        } else {
-          showToast('Error: ' + data.error, 'error');
-        }
-      } catch (e) {
-        console.error('Error:', e);
-        showToast('Error de conexión', 'error');
-      }
-    }
+    // ✅ DESPUÉS
+    let pendingDeleteClientId = null;
+    const bsModalEliminarCliente = new bootstrap.Modal(document.getElementById('modalEliminarCliente'));
 
-    async function logout() {
-      try {
-        await fetch('/api/auth/logout', { method: 'POST' });
-        window.location.href = '/login.html';
-      } catch (e) {
-        window.location.href = '/login.html';
+    async function deleteClient(id) {
+        const client = clients.find(c => c.id === id);
+        if (!client) return;
+
+        pendingDeleteClientId = id;
+        document.getElementById('modalClienteNombre').textContent = client.name;
+        bsModalEliminarCliente.show();
       }
+      async function logout() {
+        try {
+          await fetch('/api/auth/logout', { method: 'POST' });
+          window.location.href = '/login.html';
+        } catch (e) {
+          window.location.href = '/login.html';
+        }
+      }
+
+      document.getElementById('btnConfirmDeleteCliente').addEventListener('click', async () => {
+    bsModalEliminarCliente.hide();
+    if (!pendingDeleteClientId) return;
+
+    try {
+      const response = await fetch(`/api/clients/${pendingDeleteClientId}`, { method: 'DELETE' });
+      const data = await response.json();
+      if (data.ok) {
+        showToast('Cliente eliminado correctamente', 'success');
+        loadClients();
+      } else {
+        showToast('Error: ' + data.error, 'error');
+      }
+    } catch (e) {
+      showToast('Error de conexión', 'error');
+    } finally {
+      pendingDeleteClientId = null;
     }
+  });
   </script>
 </body>
 </html>

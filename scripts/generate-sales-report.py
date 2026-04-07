@@ -68,10 +68,17 @@ def generar_reporte(data_json, output_path, año):
     
     print("  [COMISIONES] Creando hoja COMISIONES...")
     crear_hoja_comisiones(wb, data['comisiones'], año)
+
+    # ⭐ NUEVO: Sincronizar ancho columna A
+    ws_general = wb["GENERAL"]
+    ws_comisiones = wb["Comisiones"]
+    ws_comisiones.column_dimensions['A'].width = ws_general.column_dimensions['A'].width
+
+    wb.save(output_path)
+    print(f"[OK] Excel generado: {output_path}")
     
-    # TODO: Implementar hoja COMERCIALIZACIÓN
-    # print("  [COMERCIALIZACION] Creando hoja COMERCIALIZACION...")
-    # crear_hoja_comercializacion(wb, data['comercializacion'], año)
+    print("  [COMERCIALIZACION] Creando hoja COMERCIALIZACION...")
+    crear_hoja_comercializacion(wb, data['comercializacion'], año)
     
     # Guardar
     wb.save(output_path)
@@ -395,6 +402,9 @@ def crear_hoja_general(wb, ventas, año):
             ws.cell(current_row, 8).value = vendedor
             
             ajustar_altura_fila(ws, current_row)
+            # ⭐ Colorear fila si es venta extranjera
+            if venta.get('country', 'MX') != 'MX':
+                colorear_fila_extranjero(ws, current_row, 8, BORDER_THIN)
             
             amount_sin_iva = venta['amountWithoutIVA']
             week_total += amount_sin_iva
@@ -690,6 +700,10 @@ def crear_hoja_comisiones(wb, ventas, año):
             ws.cell(current_row, 8).value = vendedor
             
             ajustar_altura_fila(ws, current_row)
+
+            # ⭐ Colorear fila si es venta extranjera
+            if venta.get('country', 'MX') != 'MX':
+                colorear_fila_extranjero(ws, current_row, 8, BORDER_THIN)
             
             amount_sin_iva = venta['amountWithoutIVA']
             week_total += amount_sin_iva
@@ -759,80 +773,6 @@ def crear_hoja_comisiones(wb, ventas, año):
         current_row += 1
     
     ajustar_anchos_columnas(ws)
-    ws = wb.create_sheet("Comercializacion")
-    
-    # Configurar anchos
-    ws.column_dimensions['A'].width = 12
-    ws.column_dimensions['B'].width = 30
-    ws.column_dimensions['C'].width = 40
-    ws.column_dimensions['D'].width = 12
-    ws.column_dimensions['E'].width = 12
-    ws.column_dimensions['F'].width = 12
-    ws.column_dimensions['G'].width = 12
-    ws.column_dimensions['H'].width = 15
-    ws.column_dimensions['I'].width = 12
-    ws.column_dimensions['J'].width = 15
-    
-    # Título
-    ws['A1'] = f"Comisions Mensual Equipo de Comercializa {año}"
-    ws['A1'].font = Font(size=11, bold=True)
-    ws['A2'] = "Reguladores Electrónicos, Equipos de EC, UPS, etc"
-    ws['A2'].font = Font(size=9, italic=True)
-    
-    # Agrupar por vendedor
-    ventas_por_vendedor = {}
-    for venta in ventas:
-        vendor = venta['vendor']
-        if vendor not in ventas_por_vendedor:
-            ventas_por_vendedor[vendor] = []
-        ventas_por_vendedor[vendor].append(venta)
-    
-    current_row = 5
-    
-    for vendor, ventas_vendor in ventas_por_vendedor.items():
-        # Título de sección
-        ws.merge_cells(f'A{current_row}:J{current_row}')
-        ws.cell(current_row, 1).value = f"Comisiones Equipos de Comercializacion - {vendor}"
-        ws.cell(current_row, 1).font = Font(bold=True)
-        current_row += 1
-        
-        # Encabezados
-        headers = ['Fecha', 'Cliente', 'Concepto', 'Con IVA', 'Sin IVA', 
-                   'Con IVA', 'Sin IVA', 'Base para', 'Comision', 'Vendedor']
-        headers_row2 = ['', '', '', 'Deposito', '', 'Precio Proveedor', '', 'Comision', '', '']
-        
-        for col_idx, header in enumerate(headers, start=1):
-            cell = ws.cell(current_row, col_idx)
-            cell.value = header if col_idx <= 3 else headers_row2[col_idx-1]
-            cell.font = FONT_HEADER
-            cell.fill = PatternFill(start_color=COLOR_HEADER_COM, end_color=COLOR_HEADER_COM, fill_type='solid')
-        current_row += 1
-        
-        # Datos
-        total_comision = 0
-        for venta in ventas_vendor:
-            ws.cell(current_row, 1).value = venta['fecha']
-            ws.cell(current_row, 2).value = venta['cliente']
-            ws.cell(current_row, 3).value = venta['concepto']
-            ws.cell(current_row, 4).value = venta['amountWithIVA']
-            ws.cell(current_row, 5).value = venta['amountWithoutIVA']
-            ws.cell(current_row, 6).value = venta.get('providerCost', 0) * 1.16
-            ws.cell(current_row, 7).value = venta.get('providerCost', 0)
-            base = venta['amountWithoutIVA'] - venta.get('providerCost', 0)
-            ws.cell(current_row, 8).value = base
-            ws.cell(current_row, 9).value = venta.get('commission', 0)
-            ws.cell(current_row, 10).value = vendor
-            
-            total_comision += venta.get('commission', 0)
-            current_row += 1
-        
-        # Total
-        ws.cell(current_row, 8).value = "TOTAL"
-        ws.cell(current_row, 8).font = FONT_TOTAL
-        ws.cell(current_row, 9).value = total_comision
-        ws.cell(current_row, 9).font = FONT_TOTAL
-        ws.cell(current_row, 9).number_format = '$#,##0.00'
-        current_row += 3
 
 # ============================================
 # FUNCIONES AUXILIARES
@@ -1082,6 +1022,260 @@ def agregar_total_mensual_comisiones(ws, row, data_mes, mes_nombre):
 # ============================================
 # MAIN
 # ============================================
+
+def crear_hoja_comercializacion(wb, ventas, año):
+    from openpyxl.styles import Font, Alignment, Border, Side, PatternFill
+    from openpyxl.utils import get_column_letter
+
+    ws = wb.create_sheet("Comercializacion")
+
+    COLOR_TITULO_PRINCIPAL = "0070C0"
+    COLOR_HEADER_FILA      = "1F4E79"
+    COLOR_HUGO             = "DDEBF7"
+    COLOR_MARLEN           = "FCE4D6"
+    COLOR_TOTAL_HUGO       = "BDD7EE"
+    COLOR_TOTAL_MARLEN     = "F4B8A0"
+
+    FONT_TITULO_DOC = Font(name='Calibri', size=16, bold=True)
+    FONT_SUBTITULO  = Font(name='Calibri', size=12, color='222222')
+    FONT_MES        = Font(name='Calibri', size=16, bold=True, color='FFFFFF', italic=True)
+    FONT_HEADER     = Font(name='Calibri', size=10, bold=True, color='FFFFFF')
+    FONT_NORMAL     = Font(name='Calibri', size=10)
+    FONT_TOTAL      = Font(name='Calibri', size=10, bold=True)
+    FONT_VENDEDOR   = Font(name='Calibri', size=10, bold=True)
+
+    THIN   = Side(style='thin', color='000000')
+    BORDER = Border(left=THIN, right=THIN, top=THIN, bottom=THIN)
+
+    ws.column_dimensions['A'].width = 11
+    ws.column_dimensions['B'].width = 30
+    ws.column_dimensions['C'].width = 35
+    ws.column_dimensions['D'].width = 13
+    ws.column_dimensions['E'].width = 12
+    ws.column_dimensions['F'].width = 13
+    ws.column_dimensions['G'].width = 13
+    ws.column_dimensions['H'].width = 13
+    ws.column_dimensions['I'].width = 12
+    ws.column_dimensions['J'].width = 13
+
+    ws.merge_cells('A1:J1')
+    ws['A1'].value = f"Comisions Mensual Equipo de Comercializacion {año}"
+    ws['A1'].font = FONT_TITULO_DOC
+    ws['A1'].alignment = Alignment(horizontal='right', vertical='center')
+    ws.row_dimensions[1].height = 20
+
+    ws.merge_cells('A2:J2')
+    ws['A2'].value = "Reguladores Electrónicos, Equipos de EC, UPS, No Breaks, Plantas, Transformadores, Instalaciones"
+    ws['A2'].font = FONT_SUBTITULO
+    ws['A2'].alignment = Alignment(horizontal='right', vertical='center')
+
+    ventas_por_mes = {}
+    for venta in ventas:
+        mes = venta.get('mes', 1)
+        if mes not in ventas_por_mes:
+            ventas_por_mes[mes] = []
+        ventas_por_mes[mes].append(venta)
+
+    mes_nombres = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO',
+                   'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+
+    current_row = 4
+
+    for mes in range(1, 13):
+        if mes not in ventas_por_mes:
+            continue
+
+        ventas_del_mes = ventas_por_mes[mes]
+        ventas_hugo   = [v for v in ventas_del_mes if 'hugo' in v.get('vendor', '').lower()]
+        ventas_marlen = [v for v in ventas_del_mes if 'hugo' not in v.get('vendor', '').lower()]
+        if not ventas_hugo and not ventas_marlen:
+            ventas_hugo = ventas_del_mes
+
+        # Título mes
+        ws.merge_cells(f'A{current_row}:J{current_row}')
+        c = ws.cell(current_row, 1)
+        c.value = f"Comisiones Equipos de Comercializacion {mes_nombres[mes]}"
+        c.font = FONT_MES
+        c.alignment = Alignment(horizontal='right', vertical='center')
+        c.fill = PatternFill(start_color=COLOR_TITULO_PRINCIPAL, end_color=COLOR_TITULO_PRINCIPAL, fill_type='solid')
+        ws.row_dimensions[current_row].height = 21
+        for col in range(1, 11):
+            ws.cell(current_row, col).border = BORDER
+        current_row += 1
+
+        # Headers nivel 1
+        for col, label in [(1,'Fecha'), (2,'Cliente'), (3,'Concepto')]:
+            ws.merge_cells(f'{get_column_letter(col)}{current_row}:{get_column_letter(col)}{current_row+1}')
+            c = ws.cell(current_row, col)
+            c.value = label
+            c.font = FONT_HEADER
+            c.alignment = Alignment(horizontal='center', vertical='center')
+            c.fill = PatternFill(start_color=COLOR_HEADER_FILA, end_color=COLOR_HEADER_FILA, fill_type='solid')
+            c.border = BORDER
+            ws.cell(current_row+1, col).border = BORDER
+
+        for col_start, col_end, label in [(4,5,'Deposito'), (6,7,'Precio Proveedor')]:
+            ws.merge_cells(f'{get_column_letter(col_start)}{current_row}:{get_column_letter(col_end)}{current_row}')
+            c = ws.cell(current_row, col_start)
+            c.value = label
+            c.font = FONT_HEADER
+            c.alignment = Alignment(horizontal='center', vertical='center')
+            c.fill = PatternFill(start_color=COLOR_HEADER_FILA, end_color=COLOR_HEADER_FILA, fill_type='solid')
+            c.border = BORDER
+            ws.cell(current_row, col_start+1).border = BORDER
+
+        for col, label in [(8,'Base para\nComisión'), (9,'Comision'), (10,'Vendedor')]:
+            ws.merge_cells(f'{get_column_letter(col)}{current_row}:{get_column_letter(col)}{current_row+1}')
+            c = ws.cell(current_row, col)
+            c.value = label
+            c.font = FONT_HEADER
+            c.alignment = Alignment(horizontal='center', vertical='center', wrap_text=True)
+            c.fill = PatternFill(start_color=COLOR_HEADER_FILA, end_color=COLOR_HEADER_FILA, fill_type='solid')
+            c.border = BORDER
+            ws.cell(current_row+1, col).border = BORDER
+        current_row += 1
+
+        # Headers nivel 2
+        for col, label in [(4,'Con IVA'), (5,'Sin IVA'), (6,'Con IVA'), (7,'Sin IVA')]:
+            c = ws.cell(current_row, col)
+            c.value = label
+            c.font = FONT_HEADER
+            c.alignment = Alignment(horizontal='center', vertical='center')
+            c.fill = PatternFill(start_color=COLOR_HEADER_FILA, end_color=COLOR_HEADER_FILA, fill_type='solid')
+            c.border = BORDER
+        current_row += 1
+
+        # Bloque Hugo
+        hugo_start = current_row
+        for venta in ventas_hugo:
+            _agregar_fila_comercializacion(ws, current_row, venta, FONT_NORMAL, BORDER, COLOR_HUGO, 0.05)
+            current_row += 1
+        if not ventas_hugo:
+            _agregar_fila_comercializacion(ws, current_row, None, FONT_NORMAL, BORDER, COLOR_HUGO, 0.05)
+            current_row += 1
+
+        hugo_total_row = current_row
+        _agregar_total_comercializacion(ws, current_row, hugo_start, current_row - 1, COLOR_TOTAL_HUGO, FONT_TOTAL, BORDER)
+        current_row += 1
+
+        if hugo_total_row > hugo_start:
+            ws.merge_cells(f'J{hugo_start}:J{hugo_total_row}')
+        c = ws.cell(hugo_start, 10)
+        c.value = 'Hugo'
+        c.font = FONT_VENDEDOR
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        c.fill = PatternFill(start_color=COLOR_HUGO, end_color=COLOR_HUGO, fill_type='solid')
+        c.border = BORDER
+
+        # Bloque Marlen
+        marlen_start = current_row
+        for venta in ventas_marlen:
+            _agregar_fila_comercializacion(ws, current_row, venta, FONT_NORMAL, BORDER, COLOR_MARLEN, 0.10)
+            current_row += 1
+        if not ventas_marlen:
+            _agregar_fila_comercializacion(ws, current_row, None, FONT_NORMAL, BORDER, COLOR_MARLEN, 0.10)
+            current_row += 1
+
+        marlen_total_row = current_row
+        _agregar_total_comercializacion(ws, current_row, marlen_start, current_row - 1, COLOR_TOTAL_MARLEN, FONT_TOTAL, BORDER)
+        current_row += 1
+
+        if marlen_total_row > marlen_start:
+            ws.merge_cells(f'J{marlen_start}:J{marlen_total_row}')
+        c = ws.cell(marlen_start, 10)
+        c.value = 'Marlen'
+        c.font = FONT_VENDEDOR
+        c.alignment = Alignment(horizontal='center', vertical='center')
+        c.fill = PatternFill(start_color=COLOR_MARLEN, end_color=COLOR_MARLEN, fill_type='solid')
+        c.border = BORDER
+
+        current_row += 1
+
+
+def _agregar_fila_comercializacion(ws, row, venta, font, border, color_fill, pct_comision):
+    from openpyxl.styles import Alignment, PatternFill
+    fill = PatternFill(start_color=color_fill, end_color=color_fill, fill_type='solid')
+
+    if venta is None:
+        for col in range(1, 11):
+            ws.cell(row, col).fill = fill
+            ws.cell(row, col).border = border
+        return
+
+    c = ws.cell(row, 1)
+    c.value = venta.get('fecha', '')
+    c.font = font; c.fill = fill; c.border = border
+    c.alignment = Alignment(horizontal='center', vertical='center')
+
+    cliente = venta.get('cliente', '')
+    empresa = venta.get('empresa', '')
+    c = ws.cell(row, 2)
+    c.value = f"{cliente} - {empresa}" if empresa else cliente
+    c.font = font; c.fill = fill; c.border = border
+    c.alignment = Alignment(wrap_text=True, vertical='top')
+
+    c = ws.cell(row, 3)
+    c.value = venta.get('concepto', '')
+    c.font = font; c.fill = fill; c.border = border
+    c.alignment = Alignment(wrap_text=True, vertical='top')
+
+    c = ws.cell(row, 4)
+    c.value = venta.get('amountWithIVA', 0)
+    c.number_format = '$#,##0.00'; c.font = font; c.fill = fill; c.border = border
+
+    c = ws.cell(row, 5)
+    c.value = f"=D{row}/1.16"
+    c.number_format = '$#,##0.00'; c.font = font; c.fill = fill; c.border = border
+
+    c = ws.cell(row, 6)
+    c.value = venta.get('providerCostWithIVA', 0)
+    c.number_format = '$#,##0.00'; c.font = font; c.fill = fill; c.border = border
+
+    c = ws.cell(row, 7)
+    c.value = f"=F{row}/1.16"
+    c.number_format = '$#,##0.00'; c.font = font; c.fill = fill; c.border = border
+
+    c = ws.cell(row, 8)
+    c.value = f"=E{row}-G{row}"
+    c.number_format = '$#,##0.00'; c.font = font; c.fill = fill; c.border = border
+
+    c = ws.cell(row, 9)
+    c.value = f"=H{row}*{pct_comision}"
+    c.number_format = '$#,##0.00'; c.font = font; c.fill = fill; c.border = border
+    # ⭐ Colorear fila si es venta extranjera
+    if venta.get('country', 'MX') != 'MX':
+        colorear_fila_extranjero(ws, row, 9, border)
+
+
+def _agregar_total_comercializacion(ws, row, start_row, end_row, color_total, font_total, border):
+    from openpyxl.styles import Alignment, PatternFill
+    fill = PatternFill(start_color=color_total, end_color=color_total, fill_type='solid')
+
+    for col in range(1, 11):
+        ws.cell(row, col).fill = fill
+        ws.cell(row, col).border = border
+
+    c = ws.cell(row, 8)
+    c.value = 'TOTAL'
+    c.font = font_total
+    c.alignment = Alignment(horizontal='right', vertical='center')
+
+    c = ws.cell(row, 9)
+    c.value = f"=SUM(I{start_row}:I{end_row})"
+    c.number_format = '$#,##0.00'
+    c.font = font_total
+
+def colorear_fila_extranjero(ws, row, num_cols, border):
+    """Si la venta es extranjera, pinta la fila de azul claro"""
+    from openpyxl.styles import PatternFill
+    COLOR_EXTRANJERO = "DDEEFF"
+    fill = PatternFill(start_color=COLOR_EXTRANJERO, end_color=COLOR_EXTRANJERO, fill_type='solid')
+    for col in range(1, num_cols + 1):
+        cell = ws.cell(row, col)
+        # Solo pintar si no tiene ya un color especial (totales, encabezados)
+        if cell.fill.fill_type == 'none' or cell.fill.fgColor.rgb in ['00000000', 'FFFFFFFF', COLOR_EXTRANJERO]:
+            cell.fill = fill
+            cell.border = border
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:

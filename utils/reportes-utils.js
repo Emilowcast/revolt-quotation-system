@@ -80,24 +80,67 @@ function categorizarProducto(modelo, descripcion = '') {
  * @param {object} sale - Objeto de venta con items
  * @returns {object} - {general: true, comisiones: boolean, comercializacion: boolean}
  */
+const CATEGORIAS_COMERCIALIZACION = [
+  'regulador_electronico', 'equipo_ec', 'ups', 'planta',
+  'transformador', 'instalacion', 'supresor', 'variador',
+  'multimetro', 'garantia'
+];
+
 function determinarHojaDestino(sale) {
-  const categorias = sale.items.map(item => 
+  const esReparacionOMantenimiento = sale.tipoCaso === 'reparacion' ||
+                                     sale.tipoCaso === 'mantenimiento';
+
+  // ⭐ Revisar categoryType por item (nuevo sistema)
+  if (sale.items && sale.items.some(item => item.categoryType)) {
+    const tieneComercializacion = sale.items.some(item =>
+      CATEGORIAS_COMERCIALIZACION.includes(item.categoryType)
+    );
+      const tieneRegulador = sale.items.some(item =>
+      !CATEGORIAS_COMERCIALIZACION.includes(item.categoryType) &&
+      item.modelo?.trim().toUpperCase().startsWith('RM')
+    );
+
+    return {
+      general: true,
+      comisiones: tieneRegulador || esReparacionOMantenimiento,
+      comercializacion: tieneComercializacion,
+      // ⭐ Items separados para el reporte
+      itemsComercializacion: sale.items.filter(item =>
+        CATEGORIAS_COMERCIALIZACION.includes(item.categoryType)
+      ),
+      itemsRegulador: sale.items.filter(item =>
+        !item.categoryType || !CATEGORIAS_COMERCIALIZACION.includes(item.categoryType)
+      )
+    };
+  }
+
+  // ⭐ Fallback: detección por texto (ventas antiguas sin categoryType por item)
+  const categorias = sale.items.map(item =>
     categorizarProducto(item.modelo, item.descripcion)
   );
-  
-  const tieneRegulador = categorias.includes(CATEGORIAS_PRODUCTOS.REGULADOR);
+
+  const tieneRegulador     = categorias.includes(CATEGORIAS_PRODUCTOS.REGULADOR);
   const tieneMantenimiento = categorias.includes(CATEGORIAS_PRODUCTOS.MANTENIMIENTO);
-  const tieneOtrosProductos = categorias.some(cat => 
+  const tieneOtrosProductos = categorias.some(cat =>
     cat === CATEGORIAS_PRODUCTOS.TRANSFORMADOR ||
     cat === CATEGORIAS_PRODUCTOS.SUPRESOR ||
-    cat === CATEGORIAS_PRODUCTOS.VARIADOR ||
     cat === CATEGORIAS_PRODUCTOS.UPS
   );
-  
+
   return {
-    general: true, // TODAS las ventas van a GENERAL
-    comisiones: tieneRegulador || tieneMantenimiento,
-    comercializacion: tieneOtrosProductos
+    general: true,
+    comisiones: tieneRegulador || tieneMantenimiento || esReparacionOMantenimiento,
+    comercializacion: tieneOtrosProductos,
+    itemsComercializacion: sale.items.filter(item =>
+      CATEGORIAS_COMERCIALIZACION.includes(
+        categorizarProducto(item.modelo, item.descripcion)
+      )
+    ),
+    itemsRegulador: sale.items.filter(item =>
+      !CATEGORIAS_COMERCIALIZACION.includes(
+        categorizarProducto(item.modelo, item.descripcion)
+      )
+    )
   };
 }
 
@@ -425,6 +468,8 @@ function prepararDatosVentaParaReporte(sale) {
     vaAGeneral: destino.general,
     vaAComisiones: destino.comisiones,
     vaAComercializacion: destino.comercializacion,
+    itemsComercializacion: destino.itemsComercializacion || [],
+    itemsRegulador: destino.itemsRegulador || [],
     
     // Comercialización
     costoProveedor: sale.providerCost || 0,

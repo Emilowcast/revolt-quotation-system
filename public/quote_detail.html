@@ -1063,6 +1063,46 @@
             </span>
             <span class="info-value" id="infoTotalMXN">-</span>
           </div>
+
+          <div class="info-row" id="rowTipoCaso">
+            <span class="info-label">
+              <i class="bi bi-tag"></i>
+              Tipo de Caso
+            </span>
+            <span id="infoTipoCaso">-</span>
+          </div>
+
+          <div class="info-row" id="rowAnticipo" style="display:none;">
+            <span class="info-label">
+              <i class="bi bi-cash-coin"></i>
+              Monto Anticipo
+            </span>
+            <span class="info-value" style="color:#92400e;font-weight:700;" id="infoAnticipo">-</span>
+          </div>
+
+          <div class="info-row" id="rowReparacion" style="display:none;">
+            <span class="info-label">
+              <i class="bi bi-tools"></i>
+              Monto Reparación
+            </span>
+            <span class="info-value" style="color:#92400e;font-weight:700;" id="infoReparacion">-</span>
+          </div>
+
+          <div class="info-row" id="rowMantenimiento" style="display:none;">
+            <span class="info-label">
+              <i class="bi bi-gear"></i>
+              Monto Mantenimiento
+            </span>
+            <span class="info-value" style="color:#5b21b6;font-weight:700;" id="infoMantenimiento">-</span>
+          </div>
+
+          <div class="info-row" id="rowNotasCaso" style="display:none;">
+            <span class="info-label">
+              <i class="bi bi-chat-left-text"></i>
+              Notas del Caso
+            </span>
+            <span class="info-value" id="infoNotasCaso">-</span>
+          </div>
         </div>
 
         <!-- Condiciones Comerciales -->
@@ -1479,6 +1519,50 @@
             document.getElementById('noCondiciones').style.display = 'block';
           }
 
+          // ── Tipo de caso ──
+          const tipoCasoLabels = {
+            venta:         '🛒 Venta',
+            reparacion:    '🔧 Reparación',
+            mantenimiento: '⚙️ Mantenimiento',
+            anticipo:      '💰 Anticipo'
+          };
+          const tipoCasoBadgeStyles = {
+            venta:         'background:#dbeafe;color:#1e40af;',
+            reparacion:    'background:#fef3c7;color:#92400e;',
+            mantenimiento: 'background:#ede9fe;color:#5b21b6;',
+            anticipo:      'background:#fef9c3;color:#854d0e;'
+          };
+          const tipoCaso = currentQuote.tipoCaso || 'venta';
+          const tipoCasoStyle = tipoCasoBadgeStyles[tipoCaso] || tipoCasoBadgeStyles['venta'];
+          document.getElementById('infoTipoCaso').innerHTML = `
+            <span style="${tipoCasoStyle}padding:4px 12px;border-radius:20px;font-size:0.8rem;font-weight:700;">
+              ${tipoCasoLabels[tipoCaso] || tipoCaso}
+            </span>
+          `;
+
+          if(tipoCaso === 'anticipo' && currentQuote.anticipoMonto) {
+            document.getElementById('infoAnticipo').textContent = 
+              '$' + Number(currentQuote.anticipoMonto).toLocaleString('es-MX', {minimumFractionDigits:2}) + ' MXN';
+            document.getElementById('rowAnticipo').style.display = 'flex';
+          }
+
+          if (tipoCaso === 'reparacion' && currentQuote.reparacionMonto) {
+            document.getElementById('infoReparacion').textContent =
+              '$' + Number(currentQuote.reparacionMonto).toLocaleString('es-MX', {minimumFractionDigits:2}) + ' MXN';
+            document.getElementById('rowReparacion').style.display = 'flex';
+          }
+
+          if (tipoCaso === 'mantenimiento' && currentQuote.mantenimientoMonto) {
+            document.getElementById('infoMantenimiento').textContent =
+              '$' + Number(currentQuote.mantenimientoMonto).toLocaleString('es-MX', {minimumFractionDigits:2}) + ' MXN';
+            document.getElementById('rowMantenimiento').style.display = 'flex';
+          }
+
+          if(currentQuote.notasCaso) {
+            document.getElementById('infoNotasCaso').textContent = currentQuote.notasCaso;
+            document.getElementById('rowNotasCaso').style.display = 'flex';
+          }
+
           document.getElementById('displaySubtotal').textContent = fmt(currentQuote.subtotal);
           document.getElementById('displayDiscount').textContent = '-' + fmt(currentQuote.discount);
           document.getElementById('displayTax').textContent = fmt(currentQuote.tax);
@@ -1614,13 +1698,48 @@
           }
         }
 
-        let confirmMsg = `¿Enviar cotización ${currentQuote.folio} por email?\n\nPara: ${emailTo}`;
-        if (emailCC) confirmMsg += `\nCC: ${emailCC}`;
-        if (emailBCC) confirmMsg += `\nCCO: ${emailBCC}`;
+      // ⭐ MODAL DE CONFIRMACIÓN PERSONALIZADO
+      const details = document.getElementById('confirmEmailDetails');
+      document.getElementById('confirmFolio').textContent = `Cotización ${currentQuote.folio}`;
 
-        if (!confirm(confirmMsg)) {
-          return;
-        }
+      details.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;background:white;padding:10px 14px;border-radius:8px;">
+          <i class="bi bi-person-fill" style="color:#3b82f6;"></i>
+          <span style="color:#666;font-weight:600;min-width:40px;">Para:</span>
+          <span style="font-weight:700;color:var(--revolt-dark);">${emailTo}</span>
+        </div>
+        ${emailCC ? `
+        <div style="display:flex;align-items:center;gap:8px;background:white;padding:10px 14px;border-radius:8px;">
+          <i class="bi bi-people-fill" style="color:#8b5cf6;"></i>
+          <span style="color:#666;font-weight:600;min-width:40px;">CC:</span>
+          <span style="font-weight:700;color:var(--revolt-dark);">${emailCC}</span>
+        </div>` : ''}
+        ${emailBCC ? `
+        <div style="display:flex;align-items:center;gap:8px;background:white;padding:10px 14px;border-radius:8px;">
+          <i class="bi bi-shield-lock-fill" style="color:#10b981;"></i>
+          <span style="color:#666;font-weight:600;min-width:40px;">CCO:</span>
+          <span style="font-weight:700;color:var(--revolt-dark);">${emailBCC}</span>
+        </div>` : ''}
+      `;
+
+      document.getElementById('confirmEmailModal').classList.add('show');
+
+      const confirmed = await new Promise(resolve => {
+        document.getElementById('btnConfirmEmailFinal').onclick = () => {
+          document.getElementById('confirmEmailModal').classList.remove('show');
+          resolve(true);
+        };
+        document.querySelector('#confirmEmailModal .btn-close-custom').onclick = () => {
+          document.getElementById('confirmEmailModal').classList.remove('show');
+          resolve(false);
+        };
+        document.querySelector('#confirmEmailModal .btn-secondary-custom').onclick = () => {
+          document.getElementById('confirmEmailModal').classList.remove('show');
+          resolve(false);
+        };
+      });
+
+      if (!confirmed) return;
 
         btn.disabled = true;
         icon.className = 'loading-spinner';
@@ -1886,5 +2005,44 @@
 
     })();
   </script>
+  <!-- Modal: Confirmar Envío Email -->
+<div id="confirmEmailModal" class="custom-modal-overlay">
+  <div class="custom-modal" style="max-width:480px;">
+    <div class="custom-modal-header">
+      <h3>
+        <i class="bi bi-send-fill" style="color:var(--revolt-red);"></i>
+        Confirmar Envío
+      </h3>
+      <button class="btn-close-custom" onclick="document.getElementById('confirmEmailModal').classList.remove('show')">×</button>
+    </div>
+
+    <div style="background:linear-gradient(to right,#f0f9ff,#e0f2fe);border:2px solid #bae6fd;border-radius:12px;padding:20px;margin-bottom:20px;">
+      <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+        <div style="width:40px;height:40px;background:linear-gradient(135deg,#3b82f6,#2563eb);border-radius:10px;display:flex;align-items:center;justify-content:center;">
+          <i class="bi bi-envelope-fill" style="color:white;font-size:1.1rem;"></i>
+        </div>
+        <div>
+          <div style="font-weight:700;color:var(--revolt-dark);font-size:1rem;" id="confirmFolio">Cotización XXXX</div>
+          <div style="font-size:0.8rem;color:#666;">Lista para enviar</div>
+        </div>
+      </div>
+      <div id="confirmEmailDetails" style="display:flex;flex-direction:column;gap:8px;font-size:0.9rem;"></div>
+    </div>
+
+    <p style="color:#666;font-size:0.9rem;text-align:center;margin-bottom:20px;">
+      <i class="bi bi-info-circle"></i>
+      El PDF de la cotización se adjuntará automáticamente.
+    </p>
+
+    <div style="display:flex;gap:12px;">
+      <button class="btn-secondary-custom" onclick="document.getElementById('confirmEmailModal').classList.remove('show')" style="flex:1;">
+        <i class="bi bi-x-lg"></i> Cancelar
+      </button>
+      <button class="btn-success" id="btnConfirmEmailFinal" style="flex:1;">
+        <i class="bi bi-send-fill"></i> Confirmar y Enviar
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
