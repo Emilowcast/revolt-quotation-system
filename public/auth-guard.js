@@ -151,9 +151,8 @@ function checkPagePermissions(user) {
   const currentPage = window.location.pathname;
   
   // Verificar si la página es solo para admins
-  if (adminOnlyPages.includes(currentPage) && user.role !== 'admin') {
-    alert('No tienes permiso para acceder a esta página');
-    window.location.href = '/dashboard.html';
+if (adminOnlyPages.includes(currentPage) && user.role !== 'admin') {
+    // El modal de cada página maneja la restricción
   }
 }
 
