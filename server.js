@@ -70,7 +70,7 @@ app.use(cookieParser());
 
 const loginLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutos
-  max: 5, // 5 intentos
+  max: 20, // 20 intentos
   message: 'Demasiados intentos de login. Intenta de nuevo en 15 minutos.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -2359,7 +2359,7 @@ app.post('/api/quotes/:id/generar-op', requireAuth, async (req, res) => {
 
     await new Promise((resolve, reject) => {
       execFile(
-        'python',
+        'python3',
         [pythonScript, tempJsonPath, templatePath, outputPath],
         { timeout: 60000 },
         (err, stdout, stderr) => {
@@ -2638,7 +2638,7 @@ app.post('/api/quotes/:id/generate-production-order', requireAuth, async (req, r
 
     await new Promise((resolve, reject) => {
       execFile(
-        'python',
+        'python3',
         [pythonScript, JSON.stringify(orderData), templatePath, outputPath],
         { timeout: 15000 },
         (err, stdout, stderr) => {
@@ -3618,7 +3618,7 @@ app.get('/api/production-orders/:id/download', requireAuth, async (req, res) => 
     const { execFile } = require('child_process');
     await new Promise((resolve, reject) => {
       execFile(
-        'python',
+        'python3',
         [pythonScript, tempJsonPath, templatePath, outputPath],
         { timeout: 60000 },
         (err, stdout, stderr) => {

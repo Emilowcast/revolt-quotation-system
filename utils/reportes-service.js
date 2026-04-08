@@ -429,7 +429,7 @@ function ejecutarScriptPython(scriptPath, dataJson, outputPath, año) {
     }
     
     // ⭐ SOLO PASAR AÑO (sin mes)
-    const pythonProcess = spawn('python', [
+    const pythonProcess = spawn('python3', [
       `"${scriptPath}"`,
       `"${tempJsonPath}"`,
       `"${outputPath}"`,
