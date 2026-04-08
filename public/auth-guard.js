@@ -147,7 +147,7 @@ function updateNavbarUser(user) {
  * Verificar permisos de página según rol
  */
 function checkPagePermissions(user) {
-  const adminOnlyPages = ['/users.html'];
+  const adminOnlyPages = ['/users.html', '/sales.html'];
   const currentPage = window.location.pathname;
   
   // Verificar si la página es solo para admins
