@@ -562,7 +562,23 @@
     // ============================================
     // INIT
     // ============================================
-    document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
+      // Verificar rol antes de cargar
+      try {
+        const res = await fetch('/api/auth/me', { credentials: 'include' });
+        const data = await res.json();
+        if (data.ok && data.user.role !== 'admin') {
+          const modal = new bootstrap.Modal(document.getElementById('modalSinPermiso'), { backdrop: 'static' });
+          modal.show();
+          document.getElementById('btnSinPermisoOk').onclick = () => {
+            window.location.href = '/dashboard.html';
+          };
+          return;
+        }
+      } catch(e) {
+        window.location.href = '/login.html';
+        return;
+      }
       loadSales();
     });
 
@@ -1205,5 +1221,28 @@ async function confirmDeleteSale() {
       toast.show();
     }
   </script>
+  <!-- Modal: Sin Permiso -->
+  <div class="modal fade" id="modalSinPermiso" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+      <div class="modal-content" style="border:none;border-radius:12px;box-shadow:0 20px 60px rgba(0,0,0,0.3);">
+        <div class="modal-header" style="background:linear-gradient(135deg,#f59e0b,#d97706);border-radius:12px 12px 0 0;border:none;padding:20px 25px;">
+          <h5 class="modal-title d-flex align-items-center gap-2" style="color:white;font-weight:700;">
+            <i class="bi bi-shield-exclamation"></i> Acceso Restringido
+          </h5>
+        </div>
+        <div class="modal-body text-center" style="padding:28px;">
+          <i class="bi bi-lock-fill" style="font-size:3.5rem;color:#f59e0b;display:block;margin-bottom:15px;"></i>
+          <p style="font-size:1.05rem;font-weight:700;color:#1a1a1a;margin-bottom:8px;">Sin permisos de acceso</p>
+          <p style="font-size:0.88rem;color:#666;margin:0;">No tienes permiso para acceder a esta página. Serás redirigido al Dashboard.</p>
+        </div>
+        <div class="modal-footer" style="border:none;padding:0 25px 25px;justify-content:center;">
+          <button type="button" id="btnSinPermisoOk"
+            style="background:linear-gradient(135deg,#f59e0b,#d97706);color:white;border:none;border-radius:8px;padding:10px 32px;font-weight:600;">
+            <i class="bi bi-arrow-left-circle"></i> Entendido
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
