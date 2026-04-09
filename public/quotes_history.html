@@ -572,11 +572,30 @@
     @media (max-width: 1400px) { .container-main { max-width: 90%; } }
 
     @media (max-width: 768px) {
-      .container-main { padding: 15px; max-width: 100%; }
-      .page-header h1 { font-size: 1.5rem; }
-      .stat-value { font-size: 1.5rem; }
-      .table { font-size: 0.85rem; }
-      .action-btn { padding: 4px 8px; font-size: 0.75rem; }
+      .container-main { padding: 12px; max-width: 100%; margin-top: 8px; border-radius: 10px; }
+      .page-header { padding-bottom: 15px; margin-bottom: 15px; }
+      .page-header h1 { font-size: 1.2rem; }
+      .page-header p { font-size: 0.8rem; display: none; }
+      .stat-card { padding: 12px; }
+      .stat-icon { font-size: 1.4rem; margin-bottom: 4px; }
+      .stat-label { font-size: 0.75rem; }
+      .stat-value { font-size: 1.3rem; }
+      .filters-card { padding: 12px; }
+      .table { font-size: 0.78rem; }
+      .action-btn { padding: 3px 6px; font-size: 0.72rem; }
+
+      /* Ocultar columnas menos importantes en móvil */
+      .table th:nth-child(3),
+      .table td:nth-child(3),
+      .table th:nth-child(4),
+      .table td:nth-child(4),
+      .table th:nth-child(8),
+      .table td:nth-child(8) { display: none; }
+    }
+
+    @media (max-width: 480px) {
+      .table th:nth-child(6),
+      .table td:nth-child(6) { display: none; }
     }
   </style>
 </head>
@@ -629,40 +648,42 @@
           </h1>
           <p>Consulta, busca y gestiona todas tus cotizaciones con filtros avanzados</p>
         </div>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
           <button class="btn-outline-revolt" id="btnRefresh">
-            <i class="bi bi-arrow-clockwise"></i> Actualizar
+            <i class="bi bi-arrow-clockwise"></i>
+            <span class="d-none d-md-inline"> Actualizar</span>
           </button>
           <button class="btn-revolt" onclick="window.location.href='/new_quote.html'">
-            <i class="bi bi-plus-circle"></i> Nueva Cotización
+            <i class="bi bi-plus-circle"></i>
+            <span class="d-none d-md-inline"> Nueva Cotización</span>
           </button>
         </div>
       </div>
     </div>
 
     <div class="row stats-row g-3 mb-4">
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stat-card stat-card-1">
           <div class="stat-icon"><i class="bi bi-file-earmark-text"></i></div>
           <div class="stat-label">Total Cotizaciones</div>
           <div class="stat-value" id="statTotal">0</div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stat-card stat-card-2">
           <div class="stat-icon"><i class="bi bi-check-circle"></i></div>
           <div class="stat-label">Vigentes</div>
           <div class="stat-value" id="statVigentes">0</div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stat-card stat-card-3">
           <div class="stat-icon"><i class="bi bi-briefcase"></i></div>
           <div class="stat-label">Convertidas</div>
           <div class="stat-value" id="statConvertidas">0</div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stat-card stat-card-4">
           <div class="stat-icon"><i class="bi bi-currency-dollar"></i></div>
           <div class="stat-label">Total Valor</div>
@@ -673,11 +694,11 @@
 
     <div class="filters-card">
       <div class="row g-3 mb-3">
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
           <label class="filter-label"><i class="bi bi-search"></i> Buscar</label>
           <input type="text" class="form-control" id="filterSearch" placeholder="Folio, cliente, empresa...">
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
           <label class="filter-label"><i class="bi bi-flag"></i> Estado</label>
           <select class="form-select" id="filterStatus">
             <option value="">Todos</option>
@@ -688,11 +709,11 @@
             <option value="papelera">Papelera</option>
           </select>
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
           <label class="filter-label"><i class="bi bi-calendar"></i> Desde</label>
           <input type="date" class="form-control" id="filterDateFrom">
         </div>
-        <div class="col-md-3">
+        <div class="col-6 col-md-3">
           <label class="filter-label"><i class="bi bi-calendar-check"></i> Hasta</label>
           <input type="date" class="form-control" id="filterDateTo">
         </div>
