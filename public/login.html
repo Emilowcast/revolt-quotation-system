@@ -591,43 +591,73 @@
     }
 
     /* ⭐ RESPONSIVE - VERSIÓN MÓVIL */
-    @media (max-width: 900px) {
+@media (max-width: 900px) {
+      body {
+        padding: 0;
+        align-items: stretch;
+      }
+
       .login-wrapper {
         grid-template-columns: 1fr;
-        max-width: 500px;
+        max-width: 100%;
+        width: 100%;
+        min-height: 100vh;
+        border-radius: 0;
+        box-shadow: none;
       }
 
+      /* En móvil mostramos el branding arriba pero compacto */
       .branding-panel {
-        display: none;
+        display: flex;
+        padding: 30px 24px 20px;
+        min-height: auto;
+        justify-content: center;
+        align-items: center;
       }
+
+      .branding-content {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        width: 100%;
+      }
+
+      .logo-hero { margin-bottom: 12px; }
+
+      .logo-icon {
+        width: 70px;
+        height: 70px;
+        font-size: 2rem;
+        border-radius: 18px;
+        margin-bottom: 10px;
+      }
+
+      .logo-text h1 { font-size: 1.6rem; }
+      .logo-text p { font-size: 0.78rem; }
+
+      /* Ocultar sección de features en móvil */
+      .features-list,
+      .branding-footer { display: none; }
 
       .form-panel {
-        padding: 50px 35px;
+        padding: 28px 24px 40px;
+        border-radius: 0;
       }
 
-      .form-header h2 {
-        font-size: 1.8rem;
-      }
+      .form-header { margin-bottom: 20px; }
+      .form-header h2 { font-size: 1.4rem; }
+      .form-header p { font-size: 0.82rem; }
     }
 
-    @media (max-width: 500px) {
-      .form-panel {
-        padding: 40px 25px;
-      }
-
-      .form-header h2 {
-        font-size: 1.6rem;
-      }
-
-      .form-group input {
-        padding: 14px 18px;
-        font-size: 0.95rem;
-      }
-
-      .btn-login {
-        padding: 16px;
-        font-size: 1rem;
-      }
+    @media (max-width: 480px) {
+      .branding-panel { padding: 20px 16px 16px; }
+      .logo-icon { width: 58px; height: 58px; font-size: 1.6rem; }
+      .logo-text h1 { font-size: 1.3rem; }
+      .form-panel { padding: 20px 16px 36px; }
+      .form-header h2 { font-size: 1.2rem; }
+      .form-group input { padding: 12px 15px; font-size: 0.9rem; }
+      .btn-login { padding: 14px; font-size: 0.95rem; }
     }
 
     @media (max-width: 380px) {
