@@ -769,45 +769,6 @@
       z-index: 9999;
     }
 
-    .toast {
-      min-width: 350px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      border-left: 5px solid var(--revolt-red);
-      background: white;
-      padding: 18px 22px;
-      margin-bottom: 12px;
-      animation: slideIn 0.3s ease;
-      font-weight: 500;
-      font-size: 0.95rem;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .toast.success {
-      border-left-color: #10b981;
-    }
-
-    .toast.error {
-      border-left-color: #ef4444;
-    }
-
-    .toast.info {
-      border-left-color: #3b82f6;
-    }
-
-    .toast.warning {
-      border-left-color: #f59e0b;
-    }
 
     /* ⭐ PREVIEW MODAL */
     .preview-modal {
@@ -877,7 +838,7 @@
       border-radius: 0 0 16px 16px;
     }
 
-    @media (max-width: 1200px) {
+@media (max-width: 1200px) {
       .detail-grid {
         grid-template-columns: 1fr;
       }
@@ -894,22 +855,88 @@
     }
 
     @media (max-width: 768px) {
-      .page-header-info h1 {
-        font-size: 1.5rem;
+      .container-main { padding: 0 10px; }
+
+      .page-header-actions {
+        padding: 14px;
+        margin-bottom: 14px;
+        border-radius: 10px;
+        gap: 12px;
+      }
+
+      .page-header-info h1 { font-size: 1.1rem; gap: 8px; }
+      .page-header-info p { font-size: 0.78rem; }
+
+      /* Botones en grid 2x2 */
+      .actions-toolbar {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+        width: 100%;
+      }
+
+      .actions-toolbar > * {
+        justify-content: center;
+        font-size: 0.78rem !important;
+        padding: 8px 10px !important;
+        border-radius: 8px !important;
+      }
+
+      /* Dropdown ocupa columna completa */
+      .actions-toolbar .dropdown-custom {
+        grid-column: span 2;
+      }
+
+      .actions-toolbar .dropdown-custom .btn-success {
+        width: 100%;
+        justify-content: center;
       }
 
       .detail-card {
-        padding: 20px;
+        padding: 14px;
+        border-radius: 12px;
+        margin-bottom: 14px;
       }
 
-      .table-modern {
-        font-size: 0.85rem;
-      }
+      .card-header-custom { margin-bottom: 14px; padding-bottom: 12px; gap: 10px; }
+      .card-icon-custom { width: 36px; height: 36px; font-size: 1.1rem; border-radius: 8px; }
+      .card-title-custom { font-size: 1rem; }
 
-      .table-modern thead th,
-      .table-modern tbody td {
-        padding: 10px 8px;
-      }
+      .info-row { padding: 10px; }
+      .info-label { font-size: 0.82rem; gap: 6px; }
+      .info-value { font-size: 0.88rem; }
+
+      /* Tabla */
+      .table-modern { font-size: 0.75rem; }
+      .table-modern thead th { padding: 8px 6px; }
+      .table-modern tbody td { padding: 8px 6px; }
+
+      /* Ocultar descripción en móvil */
+      .table-modern thead th:nth-child(2),
+      .table-modern tbody td:nth-child(2) { display: none; }
+
+      .totals-section { padding: 16px; border-radius: 10px; }
+      .totals-row { font-size: 0.88rem; margin-bottom: 8px; }
+      .totals-row:last-child { font-size: 1rem; }
+      .totals-value.highlight { font-size: 1.2rem; }
+
+      /* Timeline */
+      .timeline { padding-left: 28px; }
+      .timeline-content { padding: 12px; }
+      .timeline-type { font-size: 0.7rem; }
+      .timeline-description { font-size: 0.85rem; }
+      .timeline-meta { font-size: 0.75rem; gap: 8px; }
+
+      /* Modal responsive */
+      .custom-modal { padding: 16px; border-radius: 12px; }
+      .custom-modal-header h3 { font-size: 1rem; }
+      .form-group input, .form-group textarea { padding: 10px 12px; font-size: 0.88rem; }
+
+      /* Preview modal */
+      .preview-header { padding: 12px 16px; }
+      .preview-header h3 { font-size: 0.95rem; }
+      .preview-footer { padding: 12px 16px; gap: 8px; flex-wrap: wrap; }
+      .preview-footer > * { flex: 1; justify-content: center; font-size: 0.82rem; padding: 8px 10px; }
     }
   </style>
 </head>
@@ -1420,12 +1447,24 @@
 
       function showToast(msg, type='success'){
         const toastContainer = document.querySelector('.toast-container');
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-        const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
-        toast.innerHTML = `<strong>${icons[type]}</strong> ${msg}`;
-        toastContainer.appendChild(toast);
-        setTimeout(()=>toast.remove(),3500);
+        if (!toastContainer) return;
+        const toastId = 'toast-' + Date.now();
+        const icons  = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+        const colors = { success: '#10b981', error: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
+        const labels = { success: 'Éxito', error: 'Error', warning: 'Advertencia', info: 'Información' };
+        const toastHTML = `
+          <div class="toast" id="${toastId}" role="alert">
+            <div class="toast-header" style="background: ${colors[type]};">
+              <strong class="me-auto">${icons[type]} ${labels[type]}</strong>
+              <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+            </div>
+            <div class="toast-body">${msg}</div>
+          </div>`;
+        toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+        const toastEl = document.getElementById(toastId);
+        const toast   = new bootstrap.Toast(toastEl, { autohide: true, delay: 3500 });
+        toast.show();
+        toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
       }
 
       const params = new URLSearchParams(location.search);
