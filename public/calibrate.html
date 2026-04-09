@@ -906,8 +906,17 @@
         padding: 4px 6px;
       }
 
-      /* Ocultar canvas en móvil */
-      .canvas-container { display: none !important; }
+/* Canvas con scroll horizontal en móvil */
+      .canvas-container { 
+        display: block !important;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        width: 100%;
+      }
+
+      .canvas-wrapper {
+        min-width: 600px;
+      }
     }
   </style>
 </head>
