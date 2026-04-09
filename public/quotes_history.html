@@ -208,7 +208,7 @@
     .badge-custom { padding: 6px 12px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
     .badge-vigente { background: #d1fae5; color: #065f46; }
     .badge-convertida { background: #dbeafe; color: #1e40af; }
-    .badge-saldo_pagado { background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; }
+    .badge-saldo_pagado { background: #f0fdf4; color: #166534; border: 1.5px solid #86efac; white-space: nowrap; }
     .badge-enviada { background: #fef3c7; color: #92400e; }
     .badge-papelera { background: #fee2e2; color: #991b1b; }
 
@@ -1280,7 +1280,7 @@
         const statusBadges = {
           vigente:     '<span class="badge-custom badge-vigente">Vigente</span>',
           convertida:  '<span class="badge-custom badge-convertida">Convertida</span>',
-          saldo_pagado:'<span class="badge-custom badge-saldo_pagado">✅ Saldo Pagado</span>',
+          saldo_pagado:'<span class="badge-custom badge-saldo_pagado d-none d-md-inline">✅ Saldo Pagado</span><span class="badge-custom badge-saldo_pagado d-md-none">✅ Saldo</span>',
           enviada:    '<span class="badge-custom badge-enviada">Enviada</span>',
           papelera:   '<span class="badge-custom badge-papelera">Papelera</span>'
         };
