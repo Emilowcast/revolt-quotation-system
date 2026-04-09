@@ -8,6 +8,24 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
   <script src="/auth-guard.js"></script>
   <style>
+
+    .bs-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 14px 20px;
+      background: none;
+      border: none;
+      font-size: 0.95rem;
+      color: #1a1a1a;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+    }
+    .bs-item:hover { background: #f3f4f6; }
+    .bs-item i { font-size: 1.1rem; width: 22px; }
+    
     :root {
       --revolt-red: #F62E41;
       --revolt-dark: #1a1a1a;
@@ -302,6 +320,18 @@
       color: white;
       border-color: var(--revolt-red);
     }
+
+    @media (max-width: 768px) {
+      .container-fluid { padding: 8px !important; }
+      .table { font-size: 0.78rem; }
+      .btn-action { padding: 3px 6px; font-size: 0.72rem; }
+
+      /* Ocultar columnas menos importantes */
+      .table th:nth-child(3),
+      .table td:nth-child(3),
+      .table th:nth-child(6),
+      .table td:nth-child(6) { display: none; }
+    }
   </style>
 </head>
 <body>
@@ -323,25 +353,25 @@
 
     <!-- Stats Cards -->
     <div class="row">
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stats-card">
           <h3 id="totalSales">0</h3>
           <p><i class="bi bi-receipt"></i> Total de Ventas</p>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stats-card">
           <h3 id="totalAmount">$0</h3>
           <p><i class="bi bi-currency-dollar"></i> Monto Total</p>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stats-card">
           <h3 id="salesThisMonth">0</h3>
           <p><i class="bi bi-calendar-month"></i> Ventas del Mes</p>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stats-card">
           <h3 id="pendingOrders">0</h3>
           <p><i class="bi bi-hourglass-split"></i> Órdenes Pendientes</p>
@@ -806,8 +836,18 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td><strong>$${parseFloat(sale.total || 0).toLocaleString('es-MX', {minimumFractionDigits: 2})}</strong></td>
             <td>${getTipoCasoBadge(sale.quote, sale)}</td>
             <td><span class="badge-status ${ordenClass}">${ordenStatus}</span></td>
-            <td class="text-center actions-cell">
-              ${actionButtons}
+          <td class="text-center actions-cell">
+              <!-- PC -->
+              <div class="d-none d-md-flex gap-1 justify-content-center">
+                ${actionButtons}
+              </div>
+              <!-- Móvil: bottom sheet -->
+              <div class="d-md-none">
+                <button class="btn btn-sm btn-dark"
+                  onclick="abrirBSSale(${sale.id}, '${sale.folio}', '${sale.tipoCaso}', ${orderId || 'null'}, ${tieneOrdenes})">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+              </div>
             </td>
           </tr>
         `;
@@ -1220,6 +1260,62 @@ async function confirmDeleteSale() {
       const toast = new bootstrap.Toast(toastEl);
       toast.show();
     }
+    // ── BOTTOM SHEET SALES ──
+    let bsSaleId = null, bsSaleOrdenId = null;
+
+    function abrirBSSale(id, folio, tipoCaso, orderId, tieneOrdenes) {
+      bsSaleId      = id;
+      bsSaleOrdenId = orderId;
+      document.getElementById('bsSaleFolio').textContent = folio;
+
+      let opciones = `
+        <button onclick="bsSaleAccion('ver')" class="bs-item">
+          <i class="bi bi-eye" style="color:#3b82f6;"></i> Ver detalle
+        </button>`;
+
+      if (tipoCaso === 'saldo') {
+        opciones += `<button onclick="bsSaleAccion('eliminar')" class="bs-item" style="color:#ef4444;">
+          <i class="bi bi-trash" style="color:#ef4444;"></i> Eliminar
+        </button>`;
+      } else if (!tieneOrdenes) {
+        opciones += `<button onclick="bsSaleAccion('crearOrden')" class="bs-item">
+          <i class="bi bi-gear" style="color:#10b981;"></i> Crear Orden
+        </button>`;
+      } else {
+        if (orderId) {
+          opciones += `
+            <button onclick="bsSaleAccion('estado')" class="bs-item">
+              <i class="bi bi-arrow-repeat" style="color:#f59e0b;"></i> Actualizar Estado
+            </button>
+            <button onclick="bsSaleAccion('descargar')" class="bs-item">
+              <i class="bi bi-download" style="color:#10b981;"></i> Descargar OP
+            </button>`;
+        }
+        opciones += `
+          <div style="height:1px;background:#e5e7eb;margin:4px 0;"></div>
+          <button onclick="bsSaleAccion('eliminar')" class="bs-item" style="color:#ef4444;">
+            <i class="bi bi-trash" style="color:#ef4444;"></i> Eliminar
+          </button>`;
+      }
+
+      document.getElementById('bsSaleOpciones').innerHTML = opciones;
+      document.getElementById('bsSaleOverlay').style.display = 'block';
+      document.getElementById('bsSaleSheet').style.display  = 'block';
+    }
+
+    function cerrarBSSale() {
+      document.getElementById('bsSaleOverlay').style.display = 'none';
+      document.getElementById('bsSaleSheet').style.display   = 'none';
+    }
+
+    function bsSaleAccion(accion) {
+      cerrarBSSale();
+      if (accion === 'ver')        viewSaleDetail(bsSaleId);
+      if (accion === 'eliminar')   deleteSale(bsSaleId);
+      if (accion === 'crearOrden') openProductionOrderModal(bsSaleId);
+      if (accion === 'estado')     openUpdateOrderStatusModal(bsSaleOrdenId);
+      if (accion === 'descargar')  downloadOrderExcel(bsSaleOrdenId);
+    }
   </script>
   <!-- Modal: Sin Permiso -->
   <div class="modal fade" id="modalSinPermiso" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
@@ -1243,6 +1339,16 @@ async function confirmDeleteSale() {
         </div>
       </div>
     </div>
+  </div>
+  <!-- Bottom Sheet Móvil Sales -->
+  <div id="bsSaleOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;" onclick="cerrarBSSale()"></div>
+  <div id="bsSaleSheet" style="display:none;position:fixed;bottom:0;left:0;width:100%;background:white;border-radius:16px 16px 0 0;z-index:9999;box-shadow:0 -4px 20px rgba(0,0,0,0.2);">
+    <div style="padding:12px 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-weight:700;color:#1a1a1a;font-size:0.95rem;" id="bsSaleFolio"></div>
+      <button onclick="cerrarBSSale()" style="background:none;border:none;font-size:1.4rem;color:#6b7280;">×</button>
+    </div>
+    <div style="padding:8px 0;" id="bsSaleOpciones"></div>
+    <div style="height:env(safe-area-inset-bottom, 16px);"></div>
   </div>
 </body>
 </html>
