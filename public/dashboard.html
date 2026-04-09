@@ -320,11 +320,37 @@
     }
 
     @media (max-width: 768px) {
-      .container-main { padding: 20px; max-width: 100%; }
-      .dashboard-header h1 { font-size: 1.8rem; }
-      .section-title { font-size: 1.4rem; }
-      .card-desc { min-height: auto; }
-      .stat-value { font-size: 2.2rem; }
+      .container-main {
+        padding: 16px;
+        max-width: 100%;
+        margin-top: 10px;
+        border-radius: 10px;
+      }
+      .dashboard-header {
+        margin-bottom: 25px;
+        padding-bottom: 20px;
+      }
+      .dashboard-header h1 { font-size: 1.4rem; }
+      .dashboard-header p { font-size: 0.85rem; }
+      .section-title { font-size: 1.1rem; margin: 25px 0 15px; }
+      .card-desc { min-height: auto; font-size: 0.82rem; }
+      .stat-value { font-size: 1.8rem; }
+      .stat-card { padding: 18px; }
+      .stat-icon { font-size: 2rem; }
+      .stat-label { font-size: 0.82rem; }
+      .dashboard-card { padding: 16px; }
+      .card-icon { font-size: 2rem; margin-bottom: 8px; }
+      .card-title { font-size: 1rem; }
+      .navbar-brand { font-size: 1.2rem; }
+
+      /* Stats de 2 en 2 en móvil */
+      .stats-row .col-md-3 { width: 50% !important; }
+    }
+
+    @media (max-width: 400px) {
+      .dashboard-header h1 { font-size: 1.2rem; }
+      .card-title { font-size: 0.9rem; }
+      .card-desc { display: none; }
     }
   </style>
 </head>
@@ -433,7 +459,7 @@
       Gestión de Cotizaciones
     </h2>
     <div class="row g-4 mb-4">
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/quotes_history.html" class="dashboard-card">
           <div class="card-icon">📋</div>
           <div class="card-title">Historial de Cotizaciones</div>
@@ -444,7 +470,7 @@
           </div>
         </a>
       </div>
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/new_quote.html" class="dashboard-card">
           <div class="card-icon">➕</div>
           <div class="card-title">Nueva Cotización</div>
@@ -455,7 +481,7 @@
           </div>
         </a>
       </div>
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/old_index.html" class="dashboard-card">
           <div class="card-icon">🎨</div>
           <div class="card-title">Plantillas PDF</div>
@@ -473,7 +499,7 @@
       Ventas y Producción
     </h2>
     <div class="row g-4 mb-4">
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/sales.html" class="dashboard-card">
           <div class="card-icon">💼</div>
           <div class="card-title">Gestionar Ventas</div>
@@ -484,7 +510,7 @@
           </div>
         </a>
       </div>
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/postventa.html" class="dashboard-card">
           <div class="card-icon">💳</div>
           <div class="card-title">Saldos</div>
@@ -495,7 +521,7 @@
           </div>
         </a>
       </div>
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/reports.html" class="dashboard-card">
           <div class="card-icon">📊</div>
           <div class="card-title">Reportes y Análisis</div>
@@ -513,7 +539,7 @@
       Gestión de Datos
     </h2>
     <div class="row g-4 mb-4">
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/clients.html" class="dashboard-card">
           <div class="card-icon">👥</div>
           <div class="card-title">Gestión de Clientes</div>
@@ -524,7 +550,7 @@
           </div>
         </a>
       </div>
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/products.html" class="dashboard-card">
           <div class="card-icon">📦</div>
           <div class="card-title">Catálogo de Productos</div>
@@ -535,7 +561,7 @@
           </div>
         </a>
       </div>
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/import_products.html" class="dashboard-card">
           <div class="card-icon">📥</div>
           <div class="card-title">Importar Productos</div>
@@ -555,7 +581,7 @@
       Administración
     </h2>
     <div class="row g-4 mb-5">
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/trash.html" class="dashboard-card">
           <div class="card-icon">🗑️</div>
           <div class="card-title">Papelera</div>
@@ -566,7 +592,7 @@
           </div>
         </a>
       </div>
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/profile.html" class="dashboard-card">
           <div class="card-icon">👤</div>
           <div class="card-title">Mi Perfil</div>
@@ -577,7 +603,7 @@
           </div>
         </a>
       </div>
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/users.html" class="dashboard-card">
           <div class="card-icon">👥</div>
           <div class="card-title">Gestión de Usuarios</div>
@@ -588,7 +614,7 @@
           </div>
         </a>
       </div>
-      <div class="col-md-4">
+      <div class="col-6 col-md-4">
         <a href="/settings.html" class="dashboard-card">
           <div class="card-icon">⚙️</div>
           <div class="card-title">Configuración</div>
@@ -606,7 +632,7 @@
       Estadísticas del Mes
     </h2>
     <div class="row stats-row g-4">
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stat-card">
           <div class="stat-icon">📋</div>
           <div class="stat-label">Cotizaciones del mes</div>
@@ -614,7 +640,7 @@
           <div class="stat-change positive">↗ +12% vs mes anterior</div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stat-card">
           <div class="stat-icon">💰</div>
           <div class="stat-label">Ventas del mes</div>
@@ -622,7 +648,7 @@
           <div class="stat-change positive">↗ +8% vs mes anterior</div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stat-card">
           <div class="stat-icon">📈</div>
           <div class="stat-label">Tasa de conversión</div>
@@ -630,7 +656,7 @@
           <div class="stat-change negative">↘ -3% vs mes anterior</div>
         </div>
       </div>
-      <div class="col-md-3">
+      <div class="col-6 col-md-3">
         <div class="stat-card">
           <div class="stat-icon">🎯</div>
           <div class="stat-label">Total generado</div>
