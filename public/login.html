@@ -592,71 +592,44 @@
 
     /* ⭐ RESPONSIVE - VERSIÓN MÓVIL */
 @media (max-width: 900px) {
-      body {
-        padding: 0;
-        align-items: stretch;
-      }
+      body { padding: 16px; }
 
       .login-wrapper {
         grid-template-columns: 1fr;
-        max-width: 100%;
-        width: 100%;
-        min-height: 100vh;
-        border-radius: 0;
-        box-shadow: none;
-      }
-
-      /* En móvil mostramos el branding arriba pero compacto */
-      .branding-panel {
-        display: flex;
-        padding: 30px 24px 20px;
+        max-width: 420px;
         min-height: auto;
-        justify-content: center;
-        align-items: center;
+        border-radius: 24px;
       }
 
-      .branding-content {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
+      /* Ocultar panel izquierdo completo */
+      .branding-panel { display: none; }
+
+      .form-panel { padding: 36px 28px; }
+
+      /* Agregar logo pequeño arriba del formulario */
+      .form-panel::before {
+        content: '⚡ REVOLT';
+        display: block;
         text-align: center;
-        width: 100%;
+        font-size: 1.4rem;
+        font-weight: 900;
+        color: var(--revolt-red);
+        margin-bottom: 20px;
+        letter-spacing: 2px;
       }
 
-      .logo-hero { margin-bottom: 12px; }
-
-      .logo-icon {
-        width: 70px;
-        height: 70px;
-        font-size: 2rem;
-        border-radius: 18px;
-        margin-bottom: 10px;
-      }
-
-      .logo-text h1 { font-size: 1.6rem; }
-      .logo-text p { font-size: 0.78rem; }
-
-      /* Ocultar sección de features en móvil */
-      .features-list,
-      .branding-footer { display: none; }
-
-      .form-panel {
-        padding: 28px 24px 40px;
-        border-radius: 0;
-      }
-
-      .form-header { margin-bottom: 20px; }
-      .form-header h2 { font-size: 1.4rem; }
-      .form-header p { font-size: 0.82rem; }
+      .form-header { text-align: center; margin-bottom: 20px; }
+      .form-header h2 { font-size: 1.5rem; }
+      .form-header p { font-size: 0.85rem; }
     }
 
     @media (max-width: 480px) {
-      .branding-panel { padding: 20px 16px 16px; }
-      .logo-icon { width: 58px; height: 58px; font-size: 1.6rem; }
-      .logo-text h1 { font-size: 1.3rem; }
-      .form-panel { padding: 20px 16px 36px; }
-      .form-header h2 { font-size: 1.2rem; }
-      .form-group input { padding: 12px 15px; font-size: 0.9rem; }
+      body { padding: 12px; }
+      .login-wrapper { border-radius: 18px; }
+      .form-panel { padding: 28px 20px; }
+      .form-panel::before { font-size: 1.2rem; }
+      .form-header h2 { font-size: 1.3rem; }
+      .form-group input { padding: 13px 16px; font-size: 0.9rem; }
       .btn-login { padding: 14px; font-size: 0.95rem; }
     }
 
