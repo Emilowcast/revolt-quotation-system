@@ -600,15 +600,15 @@
       .table-modern thead th { padding: 10px 6px; }
       .table-modern tbody td { padding: 8px 6px; }
 
-      /* Ocultar columnas menos importantes */
-      .table-modern thead th:nth-child(2),
-      .table-modern tbody td:nth-child(2),
-      .table-modern thead th:nth-child(5),
-      .table-modern tbody td:nth-child(5),
-      .table-modern thead th:nth-child(6),
-      .table-modern tbody td:nth-child(6),
-      .table-modern thead th:nth-child(7),
-      .table-modern tbody td:nth-child(7) { display: none; }
+  /* Scroll horizontal en móvil */
+      .table-card {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .table-modern {
+        min-width: 500px;
+      }
 
       .badge-custom { padding: 4px 8px; font-size: 0.7rem; }
       .stat-badge { min-width: 28px; height: 28px; font-size: 0.78rem; }
