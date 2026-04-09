@@ -1458,12 +1458,17 @@
         bsCurrentFolio = null;
       }
 
-      function bsAccion(accion) {
+    function bsAccion(accion) {
+        const id    = bsCurrentId;
+        const folio = bsCurrentFolio;
         cerrarBottomSheet();
-        if (accion === 'ver')      viewDetail(bsCurrentId);
-        if (accion === 'editar')   editQuote(bsCurrentId);
-        if (accion === 'venta')    convertToSale(bsCurrentId, bsCurrentFolio);
-        if (accion === 'eliminar') deleteQuote(bsCurrentId, bsCurrentFolio);
+        // ⭐ Esperar que el bottom sheet cierre antes de mostrar modal
+        setTimeout(() => {
+          if (accion === 'ver')      viewDetail(id);
+          if (accion === 'editar')   editQuote(id);
+          if (accion === 'venta')    convertToSale(id, folio);
+          if (accion === 'eliminar') deleteQuote(id, folio);
+        }, 300);
       }
 
   </script>
