@@ -696,7 +696,7 @@
       }
     }
 
-@media (max-width: 768px) {
+    @media (max-width: 768px) {
       .container-main {
         max-width: 100%;
         margin: 8px auto;
@@ -746,6 +746,50 @@
 
       /* Totales */
       .totals-section { font-size: 0.88rem; }
+
+      /* Ocultar tabla, mostrar tarjetas en móvil */
+      .table-responsive.table-modern { display: none !important; }
+      #itemsCards { display: flex !important; flex-direction: column; gap: 10px; }
+
+      .item-card {
+        background: #f8fafc;
+        border: 1px solid #e2e8f0;
+        border-radius: 10px;
+        padding: 12px;
+      }
+      .item-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 8px;
+      }
+      .item-card-modelo {
+        font-weight: 700;
+        color: #1a1a1a;
+        font-size: 0.9rem;
+        flex: 1;
+      }
+      .item-card-desc {
+        font-size: 0.78rem;
+        color: #6b7280;
+        margin-bottom: 8px;
+      }
+      .item-card-footer {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        flex-wrap: wrap;
+      }
+      .item-card-price {
+        font-size: 0.82rem;
+        color: #374151;
+        flex: 1;
+      }
+      .item-card-subtotal {
+        font-weight: 700;
+        color: var(--revolt-red);
+        font-size: 0.9rem;
+      }
     }
 
     /* =============================================
@@ -1251,9 +1295,11 @@
                   </th>
                 </tr>
               </thead>
-              <tbody id="itemsBody"></tbody>
+          <tbody id="itemsBody"></tbody>
             </table>
           </div>
+          <!-- Vista tarjetas móvil -->
+          <div id="itemsCards" class="d-md-none" style="display:none!important;"></div>
 
           <!-- ⭐ TOTALES COMPACTOS -->
           <div class="totals-compact">
@@ -1892,6 +1938,39 @@
       recalc();
     }
 
+    // ── TARJETAS MÓVIL ──
+    function sincronizarTarjetas() {
+      if (window.innerWidth >= 768) return;
+      const cards = document.getElementById('itemsCards');
+      cards.innerHTML = '';
+      $$('#itemsBody tr.item-main-row').forEach(tr => {
+        const modelo      = tr.querySelector('.modelo').value || 'Sin modelo';
+        const descripcion = tr.querySelector('.descripcion').value || '';
+        const precio      = parseFloat(tr.querySelector('.precio').value) || 0;
+        const cant        = parseInt(tr.querySelector('.cant').value) || 1;
+        const subtotal    = precio * cant;
+
+        const card = document.createElement('div');
+        card.className = 'item-card';
+        card.innerHTML = `
+          <div class="item-card-header">
+            <div class="item-card-modelo">${modelo}</div>
+            <button class="btn btn-sm btn-danger ms-2" onclick="this.closest('.item-card').remove(); recalc();">
+              <i class="bi bi-trash"></i>
+            </button>
+          </div>
+          ${descripcion ? `<div class="item-card-desc">${descripcion.substring(0,80)}${descripcion.length>80?'...':''}</div>` : ''}
+          <div class="item-card-footer">
+            <div class="item-card-price">
+              $${precio.toFixed(2)} × ${cant}
+            </div>
+            <div class="item-card-subtotal">= $${subtotal.toFixed(2)}</div>
+          </div>
+        `;
+        cards.appendChild(card);
+      });
+    }
+
     $('#addRowBtn').onclick = () => addRow();
 
     function recalc(){
@@ -1919,6 +1998,7 @@
       const mxn = Number((total * fx).toFixed(2));
       $('#displayMXN').textContent = fmt(mxn);
       
+    sincronizarTarjetas();
       return {subtotal,discount,tax,total,mxn};
     }
 
