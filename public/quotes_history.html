@@ -9,6 +9,23 @@
 
 <style>
 
+  .bs-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 14px 20px;
+      background: none;
+      border: none;
+      font-size: 0.95rem;
+      color: #1a1a1a;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+    }
+    .bs-item:hover { background: #f3f4f6; }
+    .bs-item i { font-size: 1.1rem; width: 22px; }
+
   /* Fix dropdown en tabla móvil */
     @media (max-width: 768px) {
       .table-responsive {
@@ -21,7 +38,7 @@
         z-index: 9999;
       }
     }
-    
+
     :root {
       --revolt-red: #F62E41;
       --revolt-dark: #1a1a1a;
@@ -1335,20 +1352,12 @@
                   <i class="bi bi-trash"></i>
                 </button>
               </div>
-              <!-- Móvil: dropdown -->
-              <div class="d-md-none dropdown">
-                <button class="btn btn-sm btn-dark dropdown-toggle" data-bs-toggle="dropdown">
+            <!-- Móvil: bottom sheet -->
+              <div class="d-md-none">
+                <button class="btn btn-sm btn-dark" 
+                  onclick="abrirBottomSheet(${q.id}, '${q.folio}', '${(q.client?.name || '').replace(/'/g, '')}', '${q.status}')">
                   <i class="bi bi-three-dots-vertical"></i>
                 </button>
-                <ul class="dropdown-menu dropdown-menu-end">
-                  <li><a class="dropdown-item" onclick="viewDetail(${q.id})"><i class="bi bi-eye me-2"></i>Ver detalle</a></li>
-                  <li><a class="dropdown-item" onclick="editQuote(${q.id})"><i class="bi bi-pencil me-2"></i>Editar</a></li>
-                  ${q.status !== 'convertida' && q.status !== 'saldo_pagado' ? `
-                  <li><a class="dropdown-item text-success" onclick="convertToSale(${q.id}, '${q.folio}')"><i class="bi bi-check-circle me-2"></i>Convertir a venta</a></li>
-                  ` : ''}
-                  <li><hr class="dropdown-divider"></li>
-                  <li><a class="dropdown-item text-danger" onclick="deleteQuote(${q.id}, '${q.folio}')"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
-                </ul>
               </div>
             </td>
           </tr>
@@ -1438,7 +1447,66 @@
         document.getElementById('opObservacionesCount').textContent = `${usadas} / 3 líneas`;
       }
 
+      // ── BOTTOM SHEET ──
+      let bsCurrentId = null;
+      let bsCurrentFolio = null;
+
+      function abrirBottomSheet(id, folio, cliente, status) {
+        bsCurrentId    = id;
+        bsCurrentFolio = folio;
+        document.getElementById('bsQuoteFolio').textContent  = folio;
+        document.getElementById('bsQuoteCliente').textContent = cliente;
+        // Mostrar/ocultar botón venta
+        const btnVenta = document.getElementById('bsBtnVenta');
+        btnVenta.style.display = (status !== 'convertida' && status !== 'saldo_pagado') ? 'flex' : 'none';
+        // Mostrar
+        document.getElementById('bottomSheetOverlay').style.display = 'block';
+        document.getElementById('bottomSheet').style.display = 'block';
+      }
+
+      function cerrarBottomSheet() {
+        document.getElementById('bottomSheetOverlay').style.display = 'none';
+        document.getElementById('bottomSheet').style.display = 'none';
+        bsCurrentId    = null;
+        bsCurrentFolio = null;
+      }
+
+      function bsAccion(accion) {
+        cerrarBottomSheet();
+        if (accion === 'ver')      viewDetail(bsCurrentId);
+        if (accion === 'editar')   editQuote(bsCurrentId);
+        if (accion === 'venta')    convertToSale(bsCurrentId, bsCurrentFolio);
+        if (accion === 'eliminar') deleteQuote(bsCurrentId, bsCurrentFolio);
+      }
+
   </script>
   <script src="/auth-guard.js"></script>
+  <!-- Bottom Sheet Móvil -->
+  <div id="bottomSheetOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;" onclick="cerrarBottomSheet()"></div>
+  <div id="bottomSheet" style="display:none;position:fixed;bottom:0;left:0;width:100%;background:white;border-radius:16px 16px 0 0;z-index:9999;padding:0;box-shadow:0 -4px 20px rgba(0,0,0,0.2);transition:transform 0.3s ease;">
+    <div style="padding:12px 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <div style="font-weight:700;color:#1a1a1a;font-size:0.95rem;" id="bsQuoteFolio"></div>
+        <div style="font-size:0.8rem;color:#6b7280;" id="bsQuoteCliente"></div>
+      </div>
+      <button onclick="cerrarBottomSheet()" style="background:none;border:none;font-size:1.4rem;color:#6b7280;padding:4px;">×</button>
+    </div>
+    <div style="padding:8px 0;">
+      <button onclick="bsAccion('ver')" class="bs-item">
+        <i class="bi bi-eye" style="color:#3b82f6;"></i> Ver detalle
+      </button>
+      <button onclick="bsAccion('editar')" class="bs-item">
+        <i class="bi bi-pencil" style="color:#10b981;"></i> Editar
+      </button>
+      <button onclick="bsAccion('venta')" class="bs-item" id="bsBtnVenta">
+        <i class="bi bi-check-circle" style="color:#059669;"></i> Convertir a venta
+      </button>
+      <div style="height:1px;background:#e5e7eb;margin:4px 0;"></div>
+      <button onclick="bsAccion('eliminar')" class="bs-item" style="color:#ef4444;">
+        <i class="bi bi-trash" style="color:#ef4444;"></i> Eliminar
+      </button>
+    </div>
+    <div style="height:env(safe-area-inset-bottom, 16px);"></div>
+  </div>
 </body>
 </html>
