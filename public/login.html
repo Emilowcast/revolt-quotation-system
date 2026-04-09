@@ -593,9 +593,12 @@
     /* ⭐ RESPONSIVE - VERSIÓN MÓVIL */
 @media (max-width: 900px) {
       body { 
-        padding: 20px; 
-        align-items: center;
+        padding: 20px;
+        overflow: hidden; /* Solo fondo estático, sin partículas visibles */
       }
+
+      /* Ocultar partículas en móvil */
+      .particle { display: none; }
 
       .login-wrapper {
         grid-template-columns: 1fr;
@@ -607,7 +610,7 @@
       /* Ocultar panel de branding */
       .branding-panel { display: none; }
 
-      /* Formulario limpio y elegante */
+      /* Formulario */
       .form-panel {
         padding: 48px 36px;
         border-radius: 24px;
@@ -618,7 +621,6 @@
         margin-bottom: 32px;
       }
 
-      /* Mini logo encima del título */
       .form-header::before {
         content: '⚡';
         display: block;
@@ -628,15 +630,14 @@
         animation: logoFloat 4s ease-in-out infinite;
       }
 
-      .form-header h2 { 
-        font-size: 1.6rem;
-        margin-bottom: 6px;
-      }
+      .form-header h2 { font-size: 1.6rem; margin-bottom: 6px; }
       .form-header p { font-size: 0.88rem; }
-
       .form-group { margin-bottom: 22px; }
       .form-group input { padding: 14px 18px; font-size: 0.95rem; }
       .btn-login { padding: 15px; font-size: 1rem; margin-top: 4px; }
+
+      /* Centrar enlace de problemas */
+      .form-footer { text-align: center; }
     }
 
     @media (max-width: 480px) {
