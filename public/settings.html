@@ -174,6 +174,46 @@
       right: 20px;
       z-index: 9999;
     }
+
+    @media (max-width: 768px) {
+      .container-main {
+        padding: 16px;
+        margin-top: 10px;
+        border-radius: 10px;
+      }
+
+      .page-header { margin-bottom: 20px; padding-bottom: 16px; }
+      .page-header h1 { font-size: 1.2rem; }
+      .page-header p { font-size: 0.82rem; }
+
+      .section-title { font-size: 0.95rem; margin-bottom: 12px; }
+
+      .info-badge { font-size: 0.78rem; padding: 6px 10px; margin-bottom: 14px; }
+
+      .config-card { padding: 16px; margin-bottom: 14px; border-radius: 8px; }
+      .config-card .form-label { font-size: 0.82rem; }
+      .config-card .form-control { font-size: 0.88rem; }
+      .config-card .form-text { font-size: 0.75rem; }
+      .folio-preview { font-size: 0.85rem; padding: 5px 10px; }
+
+      .d-flex.justify-content-end.gap-3 {
+        flex-direction: column;
+        gap: 8px !important;
+      }
+
+      .btn-guardar, .btn-volver {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.88rem;
+        padding: 10px 16px;
+      }
+
+      .navbar .btn-volver {
+        width: auto;
+        font-size: 0.82rem;
+        padding: 6px 12px;
+      }
+    }
   </style>
 </head>
 <body>
