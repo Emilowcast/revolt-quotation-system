@@ -1221,8 +1221,16 @@ async function loadProducts(page = 1) {
     if (!editingProductId) return;
 
     await new Promise((resolve, reject) => {
-      const modal = new bootstrap.Modal(document.getElementById('modalEliminarFicha'));
+      const modalEl = document.getElementById('modalEliminarFicha');
+      const modal = new bootstrap.Modal(modalEl);
       modal.show();
+      // ⭐ Forzar z-index alto después de mostrar
+      modalEl.addEventListener('shown.bs.modal', () => {
+        modalEl.style.zIndex = '9999';
+        document.querySelectorAll('.modal-backdrop').forEach((backdrop, i, arr) => {
+          if (i === arr.length - 1) backdrop.style.zIndex = '9998';
+        });
+      }, { once: true });
       document.getElementById('btnEliminarFichaConfirmar').onclick = () => { modal.hide(); resolve(); };
     }).catch(() => { return; });
 
