@@ -545,27 +545,80 @@
       }
     }
 
-    @media (max-width: 768px) {
+@media (max-width: 768px) {
+      .container-main { padding: 0 10px; }
+
+      .profile-header-card {
+        padding: 20px 16px;
+        margin-bottom: 14px;
+        border-radius: 12px;
+      }
+
       .profile-header {
         flex-direction: column;
         text-align: center;
+        gap: 16px;
+        margin-bottom: 20px;
+        padding-bottom: 20px;
       }
 
-      .profile-info h1 {
-        font-size: 1.5rem;
-      }
+      .profile-avatar { width: 75px; height: 75px; font-size: 2rem; }
+      .profile-info h1 { font-size: 1.4rem; margin-bottom: 4px; }
+      .profile-info p { font-size: 0.88rem; }
+      .profile-badge { font-size: 0.78rem; padding: 6px 12px; }
+
+      .info-grid { grid-template-columns: 1fr; gap: 10px; }
+      .info-item { padding: 14px; border-radius: 8px; }
+      .info-item-label { font-size: 0.75rem; }
+      .info-item-value { font-size: 0.95rem; }
 
       .section-card {
-        padding: 25px 20px;
+        padding: 16px;
+        margin-bottom: 14px;
+        border-radius: 12px;
       }
 
-      .info-grid {
-        grid-template-columns: 1fr;
-      }
+      .section-header { margin-bottom: 16px; padding-bottom: 14px; gap: 10px; }
+      .section-icon { width: 40px; height: 40px; font-size: 1.2rem; border-radius: 10px; }
+      .section-title h2 { font-size: 1.1rem; }
+      .section-title p { font-size: 0.78rem; }
+
+      .signature-preview { padding: 24px 16px; border-radius: 10px; }
+      .signature-preview img { max-width: 100%; }
+      .signature-empty { padding: 20px 10px; }
+      .signature-empty i { font-size: 2.5rem; margin-bottom: 12px; }
+      .signature-empty h3 { font-size: 1rem; }
 
       .signature-actions {
         flex-direction: column;
+        gap: 8px;
+        align-items: stretch;
       }
+
+      .signature-actions .btn-revolt,
+      .signature-actions .btn-danger-custom {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .info-box { padding: 14px; border-radius: 8px; }
+      .info-box h4 { font-size: 0.85rem; }
+      .info-box ul { font-size: 0.8rem; }
+
+      .security-alert { padding: 16px; gap: 12px; border-radius: 8px; }
+      .security-alert-icon { font-size: 1.8rem; }
+      .security-alert-content h4 { font-size: 0.95rem; }
+      .security-alert-content p { font-size: 0.82rem; }
+
+      .password-field { margin-bottom: 18px; }
+      .password-field label { font-size: 0.85rem; }
+      .input-wrapper input { padding: 12px 45px 12px 14px; font-size: 0.9rem; }
+
+      .password-requirements { padding: 14px; border-radius: 8px; }
+      .password-requirements h4 { font-size: 0.85rem; }
+      .password-requirements li { font-size: 0.82rem; }
+
+      .btn-revolt.btn-large { padding: 13px 24px; font-size: 0.95rem; }
     }
   </style>
 </head>
