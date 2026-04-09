@@ -748,8 +748,8 @@
       .totals-section { font-size: 0.88rem; }
 
       /* Ocultar tabla, mostrar tarjetas en móvil */
-      .table-responsive.table-modern { display: none !important; }
-      #itemsCards { display: flex !important; flex-direction: column; gap: 10px; }
+      .table-responsive { display: none !important; }
+      #itemsCards { display: flex; flex-direction: column; gap: 10px; }
 
       .item-card {
         background: #f8fafc;
@@ -1263,10 +1263,12 @@
 
         <!-- Productos/Servicios -->
         <div class="card-modern">
-          <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
-            <div style="display:flex;align-items:center;gap:12px;">
-              <i class="bi bi-box-seam" style="color:var(--revolt-red);font-size:1.5rem;"></i>
-              <h3 style="margin:0;font-size:1.3rem;font-weight:bold;color:var(--revolt-dark);">Productos/Servicios</h3>
+<div class="mb-4 pb-3 border-bottom">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <i class="bi bi-box-seam" style="color:var(--revolt-red);font-size:1.5rem;"></i>
+                <h3 style="margin:0;font-size:1.3rem;font-weight:bold;color:var(--revolt-dark);">Productos/Servicios</h3>
+              </div>
             </div>
             <div class="quick-actions mb-0">
               <button class="btn-outline-revolt" id="addRowBtn">
@@ -1299,7 +1301,7 @@
             </table>
           </div>
           <!-- Vista tarjetas móvil -->
-          <div id="itemsCards" class="d-md-none" style="display:none!important;"></div>
+          <div id="itemsCards"></div>
 
           <!-- ⭐ TOTALES COMPACTOS -->
           <div class="totals-compact">
