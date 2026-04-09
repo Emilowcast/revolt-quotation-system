@@ -1024,9 +1024,13 @@
       return;
     }
 
-    if(!confirm(`¿Confirmar importación de ${previewData.length} productos?\n\nEsta acción no se puede deshacer.`)) {
-      return;
-    }
+    await new Promise((resolve, reject) => {
+      document.getElementById('modalImportMsg').textContent = `¿Confirmar importación de ${previewData.length} productos?`;
+      const modal = new bootstrap.Modal(document.getElementById('modalConfirmarImport'));
+      modal.show();
+      document.getElementById('btnImportConfirmar').onclick = () => { modal.hide(); resolve(); };
+      document.getElementById('btnImportCancelar').onclick = () => { modal.hide(); reject(); };
+    }).catch(() => { return Promise.reject('cancelado'); });
 
     btnConfirm.disabled = true;
     btnConfirm.innerHTML = '<span class="loading-spinner"></span> Importando...';
@@ -1065,8 +1069,13 @@
   };
 
   // ⭐ CANCELAR
-  btnCancel.onclick = () => {
-    if(!confirm('¿Cancelar la importación? Se perderán los datos cargados.')) return;
+  btnCancel.onclick = async () => {
+    await new Promise((resolve, reject) => {
+      const modal = new bootstrap.Modal(document.getElementById('modalCancelarImport'));
+      modal.show();
+      document.getElementById('btnCancelarSi').onclick = () => { modal.hide(); resolve(); };
+      document.getElementById('btnCancelarNo').onclick = () => { modal.hide(); reject(); };
+    }).catch(() => { return; });
 
     previewCard.style.display = 'none';
     previewData = null;
@@ -1096,5 +1105,60 @@
 </script>
 
   <script src="/auth-guard.js"></script>
+  <!-- Modal: Confirmar Importación -->
+  <div class="modal fade" id="modalConfirmarImport" tabindex="-1" data-bs-backdrop="static" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+      <div class="modal-content" style="border:none;border-radius:12px;box-shadow:0 20px 60px rgba(16,185,129,0.3);">
+        <div class="modal-header" style="background:linear-gradient(135deg,#10b981,#059669);border-radius:12px 12px 0 0;border:none;padding:20px 25px;">
+          <h5 class="modal-title d-flex align-items-center gap-2" style="color:white;font-weight:700;">
+            <i class="bi bi-box-arrow-in-down"></i> Confirmar Importación
+          </h5>
+        </div>
+        <div class="modal-body text-center" style="padding:28px;">
+          <i class="bi bi-file-earmark-excel-fill" style="font-size:3.5rem;color:#10b981;display:block;margin-bottom:15px;"></i>
+          <p style="font-size:1.05rem;font-weight:700;color:#1a1a1a;margin-bottom:8px;" id="modalImportMsg">¿Confirmar importación?</p>
+          <p style="font-size:0.88rem;color:#666;margin:0;">Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer" style="border:none;padding:0 25px 25px;justify-content:center;gap:12px;">
+          <button type="button" id="btnImportCancelar"
+            style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:10px 22px;font-weight:600;">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button type="button" id="btnImportConfirmar"
+            style="background:linear-gradient(135deg,#10b981,#059669);color:white;border:none;border-radius:8px;padding:10px 22px;font-weight:600;">
+            <i class="bi bi-check-circle-fill"></i> Confirmar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Cancelar Importación -->
+  <div class="modal fade" id="modalCancelarImport" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+      <div class="modal-content" style="border:none;border-radius:12px;box-shadow:0 20px 60px rgba(246,46,65,0.3);">
+        <div class="modal-header" style="background:linear-gradient(135deg,#F62E41,#d41f33);border-radius:12px 12px 0 0;border:none;padding:20px 25px;">
+          <h5 class="modal-title d-flex align-items-center gap-2" style="color:white;font-weight:700;">
+            <i class="bi bi-x-circle"></i> Cancelar Importación
+          </h5>
+        </div>
+        <div class="modal-body text-center" style="padding:28px;">
+          <i class="bi bi-exclamation-triangle-fill" style="font-size:3.5rem;color:#F62E41;display:block;margin-bottom:15px;"></i>
+          <p style="font-size:1.05rem;font-weight:700;color:#1a1a1a;margin-bottom:8px;">¿Cancelar la importación?</p>
+          <p style="font-size:0.88rem;color:#666;margin:0;">Se perderán los datos cargados.</p>
+        </div>
+        <div class="modal-footer" style="border:none;padding:0 25px 25px;justify-content:center;gap:12px;">
+          <button type="button" id="btnCancelarNo" data-bs-dismiss="modal"
+            style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:10px 22px;font-weight:600;">
+            <i class="bi bi-arrow-left"></i> Volver
+          </button>
+          <button type="button" id="btnCancelarSi"
+            style="background:linear-gradient(135deg,#F62E41,#d41f33);color:white;border:none;border-radius:8px;padding:10px 22px;font-weight:600;">
+            <i class="bi bi-x-circle-fill"></i> Sí, cancelar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
