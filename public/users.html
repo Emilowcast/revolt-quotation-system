@@ -600,15 +600,15 @@
       .table-modern thead th { padding: 10px 6px; }
       .table-modern tbody td { padding: 8px 6px; }
 
-  /* Scroll horizontal en móvil */
-      .table-card {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-
-      .table-modern {
-        min-width: 500px;
-      }
+      /* Ocultar columnas menos importantes */
+      .table-modern thead th:nth-child(2),
+      .table-modern tbody td:nth-child(2),
+      .table-modern thead th:nth-child(5),
+      .table-modern tbody td:nth-child(5),
+      .table-modern thead th:nth-child(6),
+      .table-modern tbody td:nth-child(6),
+      .table-modern thead th:nth-child(7),
+      .table-modern tbody td:nth-child(7) { display: none; }
 
       .badge-custom { padding: 4px 8px; font-size: 0.7rem; }
       .stat-badge { min-width: 28px; height: 28px; font-size: 0.78rem; }
@@ -1025,7 +1025,12 @@ async function checkAuth() {
           <td>${user.email}</td>
           <td>
             <span class="badge-custom badge-${user.role}">
-              ${user.role === 'admin' ? '<i class="bi bi-shield-fill-check"></i> Admin' : '<i class="bi bi-person-fill"></i> Vendedor'}
+              <span class="d-none d-md-inline">
+                ${user.role === 'admin' ? '<i class="bi bi-shield-fill-check"></i> Admin' : '<i class="bi bi-person-fill"></i> Vendedor'}
+              </span>
+              <span class="d-md-none" title="${user.role}">
+                ${user.role === 'admin' ? '<i class="bi bi-shield-fill-check"></i>' : '<i class="bi bi-person-fill"></i>'}
+              </span>
             </span>
           </td>
           <td>
