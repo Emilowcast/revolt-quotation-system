@@ -356,12 +356,6 @@
       .btn-action { padding: 3px 6px; font-size: 0.72rem; }
       .btn.btn-revolt { font-size: 0.8rem; padding: 6px 10px; }
       .btn.btn-revolt i + span, .btn.btn-revolt span { display: none; }
-
-/* Ocultar columnas menos importantes — mantener acciones visible */
-      .table th:nth-child(3),
-      .table td:nth-child(3),
-      .table th:nth-child(5),
-      .table td:nth-child(5) { display: none; }
     }
   </style>
 </head>
@@ -456,7 +450,8 @@
 
       <!-- Table -->
       <div id="salesTableContainer" style="display: none;">
-        <div class="table-container">
+      <div class="table-container">
+          <div class="table-responsive">
           <table class="table table-hover">
             <thead>
               <tr>
@@ -472,7 +467,8 @@
             <tbody id="salesTableBody">
               <!-- Rows populated by JS -->
             </tbody>
-          </table>
+            </table>
+          </div>
         </div>
 
         <!-- Pagination -->
