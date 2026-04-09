@@ -559,35 +559,51 @@
       border-left-color: #ef4444;
     }
 
-    @media (max-width: 768px) {
+@media (max-width: 768px) {
+      .container-main {
+        padding: 12px;
+        margin-top: 8px;
+        border-radius: 10px;
+      }
+
       .page-header-secondary {
-        padding: 20px;
+        padding: 12px 15px;
       }
 
       .page-header-secondary h1 {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
       }
 
+      .page-header-secondary p { display: none; }
+
       .upload-card {
-        padding: 25px;
+        padding: 16px;
+        border-radius: 10px;
       }
 
       .dropzone {
-        padding: 40px 20px;
+        padding: 30px 16px;
+        border-radius: 10px;
       }
 
-      .dropzone-icon {
-        font-size: 3rem;
-      }
+      .dropzone-icon { font-size: 2.5rem; }
+      .dropzone-title { font-size: 1rem; }
+      .dropzone-desc { font-size: 0.82rem; }
+      .dropzone-hint { font-size: 0.75rem; }
 
       .upload-actions {
         flex-direction: column;
+        gap: 8px;
       }
 
       .upload-actions button {
         width: 100%;
         justify-content: center;
+        font-size: 0.88rem;
       }
+
+      .upload-history { padding: 14px; }
+      .upload-history h3 { font-size: 1rem; }
     }
   </style>
 </head>
