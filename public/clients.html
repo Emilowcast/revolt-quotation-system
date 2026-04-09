@@ -308,31 +308,43 @@
     }
 
     /* ⭐ RESPONSIVE */
+.bs-item {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      width: 100%;
+      padding: 14px 20px;
+      background: none;
+      border: none;
+      font-size: 0.95rem;
+      color: #1a1a1a;
+      font-weight: 500;
+      cursor: pointer;
+      text-align: left;
+    }
+    .bs-item:hover { background: #f3f4f6; }
+    .bs-item i { font-size: 1.1rem; width: 22px; }
+
     @media (max-width: 768px) {
-      .container-main {
-        padding: 25px 20px;
-      }
+      .container-main { padding: 12px; margin-top: 8px; border-radius: 10px; }
+      .page-header h1 { font-size: 1.2rem; }
+      .page-header p { font-size: 0.8rem; display: none; }
+      .stats-card h3 { font-size: 1.6rem; }
+      .stats-card p { font-size: 0.75rem; }
+      .table { font-size: 0.82rem; }
 
-      .page-header h1 {
-        font-size: 1.5rem;
-      }
+      /* Ocultar columnas menos importantes */
+      .table th:nth-child(2),
+      .table td:nth-child(2),
+      .table th:nth-child(3),
+      .table td:nth-child(3),
+      .table th:nth-child(4),
+      .table td:nth-child(4),
+      .table th:nth-child(5),
+      .table td:nth-child(5) { display: none; }
 
-      .table {
-        font-size: 0.85rem;
-      }
-
-      .action-buttons {
-        flex-direction: column;
-      }
-
-      .action-buttons .btn {
-        padding: 5px 10px;
-        font-size: 0.8rem;
-      }
-
-      .stats-card h3 {
-        font-size: 2rem;
-      }
+      .table th:nth-child(6),
+      .table td:nth-child(6) { display: table-cell !important; }
     }
   </style>
 </head>
@@ -764,7 +776,8 @@
             ${client.estado ? `<span class="badge badge-estado">${client.estado}</span>` : '<span class="text-muted">-</span>'}
           </td>
           <td class="text-center">
-            <div class="action-buttons">
+            <!-- PC -->
+            <div class="action-buttons d-none d-md-flex">
               <button class="btn btn-sm btn-info" onclick="viewClient(${client.id})" title="Ver detalles">
                 <i class="bi bi-eye"></i>
               </button>
@@ -773,6 +786,13 @@
               </button>
               <button class="btn btn-sm btn-danger" onclick="deleteClient(${client.id})" title="Eliminar">
                 <i class="bi bi-trash"></i>
+              </button>
+            </div>
+            <!-- Móvil -->
+            <div class="d-md-none">
+              <button class="btn btn-sm btn-dark"
+                onclick="abrirBSClient(${client.id}, '${(client.name || '').replace(/'/g, '')}')">
+                <i class="bi bi-three-dots-vertical"></i>
               </button>
             </div>
           </td>
@@ -989,6 +1009,48 @@
       pendingDeleteClientId = null;
     }
   });
+  // ── BOTTOM SHEET CLIENTES ──
+    let bsClientId = null;
+
+    function abrirBSClient(id, nombre) {
+      bsClientId = id;
+      document.getElementById('bsClientNombre').textContent = nombre;
+      document.getElementById('bsClientOverlay').style.display = 'block';
+      document.getElementById('bsClientSheet').style.display  = 'block';
+    }
+
+    function cerrarBSClient() {
+      document.getElementById('bsClientOverlay').style.display = 'none';
+      document.getElementById('bsClientSheet').style.display   = 'none';
+    }
+
+    function bsClientAccion(accion) {
+      cerrarBSClient();
+      if (accion === 'ver')      viewClient(bsClientId);
+      if (accion === 'editar')   editClient(bsClientId);
+      if (accion === 'eliminar') deleteClient(bsClientId);
+    }
   </script>
+  <!-- Bottom Sheet Móvil Clientes -->
+  <div id="bsClientOverlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9998;" onclick="cerrarBSClient()"></div>
+  <div id="bsClientSheet" style="display:none;position:fixed;bottom:0;left:0;width:100%;background:white;border-radius:16px 16px 0 0;z-index:9999;box-shadow:0 -4px 20px rgba(0,0,0,0.2);">
+    <div style="padding:12px 20px;border-bottom:1px solid #e5e7eb;display:flex;justify-content:space-between;align-items:center;">
+      <div style="font-weight:700;color:#1a1a1a;font-size:0.95rem;" id="bsClientNombre"></div>
+      <button onclick="cerrarBSClient()" style="background:none;border:none;font-size:1.4rem;color:#6b7280;">×</button>
+    </div>
+    <div style="padding:8px 0;">
+      <button onclick="bsClientAccion('ver')" class="bs-item">
+        <i class="bi bi-eye" style="color:#3b82f6;"></i> Ver detalles
+      </button>
+      <button onclick="bsClientAccion('editar')" class="bs-item">
+        <i class="bi bi-pencil" style="color:#f59e0b;"></i> Editar
+      </button>
+      <div style="height:1px;background:#e5e7eb;margin:4px 0;"></div>
+      <button onclick="bsClientAccion('eliminar')" class="bs-item" style="color:#ef4444;">
+        <i class="bi bi-trash" style="color:#ef4444;"></i> Eliminar
+      </button>
+    </div>
+    <div style="height:env(safe-area-inset-bottom, 16px);"></div>
+  </div>
 </body>
 </html>
