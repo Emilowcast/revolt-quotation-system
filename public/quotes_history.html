@@ -8,6 +8,20 @@
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
 
 <style>
+
+  /* Fix dropdown en tabla móvil */
+    @media (max-width: 768px) {
+      .table-responsive {
+        overflow: visible !important;
+      }
+      .table-container {
+        overflow: visible !important;
+      }
+      .dropdown-menu {
+        z-index: 9999;
+      }
+    }
+    
     :root {
       --revolt-red: #F62E41;
       --revolt-dark: #1a1a1a;
