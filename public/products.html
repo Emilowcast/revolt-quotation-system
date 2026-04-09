@@ -671,13 +671,6 @@
       }
     }
 
-    #modalEliminarFicha {
-      z-index: 9999;
-    }
-    #modalEliminarFicha .modal-backdrop {
-      z-index: 9998;
-    }
-
   </style>
 </head>
 
@@ -929,6 +922,29 @@
           </button>
         </div>
       </form>
+      <!-- Confirmación Eliminar Ficha (custom, z-index > 10000) -->
+  <div id="overlayEliminarFicha" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.7);z-index:11000;align-items:center;justify-content:center;">
+    <div style="background:white;border-radius:12px;box-shadow:0 20px 60px rgba(246,46,65,0.4);max-width:400px;width:90%;overflow:hidden;">
+      <div style="background:linear-gradient(135deg,#F62E41,#d41f33);padding:20px 25px;">
+        <h5 style="color:white;font-weight:700;margin:0;display:flex;align-items:center;gap:8px;">
+          <i class="bi bi-trash3-fill"></i> Eliminar Ficha Técnica
+        </h5>
+      </div>
+      <div style="padding:28px;text-align:center;">
+        <i class="bi bi-file-earmark-x-fill" style="font-size:3.5rem;color:#F62E41;display:block;margin-bottom:15px;"></i>
+        <p style="font-size:1.05rem;font-weight:700;color:#1a1a1a;margin-bottom:8px;">¿Eliminar la ficha técnica?</p>
+        <p style="font-size:0.88rem;color:#666;margin:0;">Esta acción no se puede deshacer.</p>
+      </div>
+      <div style="padding:0 25px 25px;display:flex;justify-content:center;gap:12px;">
+        <button id="btnFichaCancelar" style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:10px 22px;font-weight:600;cursor:pointer;">
+          <i class="bi bi-x-lg"></i> Cancelar
+        </button>
+        <button id="btnFichaEliminar" style="background:linear-gradient(135deg,#F62E41,#d41f33);color:white;border:none;border-radius:8px;padding:10px 22px;font-weight:600;cursor:pointer;">
+          <i class="bi bi-trash3-fill"></i> Eliminar
+        </button>
+      </div>
+    </div>
+  </div>
     </div>
   </div>
 
@@ -1106,6 +1122,7 @@ async function loadProducts(page = 1) {
 
     products.forEach(product => {
       const tr = document.createElement('tr');
+      tr.setAttribute('data-id', product.id);
 
       tr.innerHTML = `
         <td><strong>${product.model}</strong></td>
@@ -1220,18 +1237,11 @@ async function loadProducts(page = 1) {
   document.getElementById('btnDeleteFicha').onclick = async () => {
     if (!editingProductId) return;
 
-    await new Promise((resolve, reject) => {
-      const modalEl = document.getElementById('modalEliminarFicha');
-      const modal = new bootstrap.Modal(modalEl);
-      modal.show();
-      // ⭐ Forzar z-index alto después de mostrar
-      modalEl.addEventListener('shown.bs.modal', () => {
-        modalEl.style.zIndex = '9999';
-        document.querySelectorAll('.modal-backdrop').forEach((backdrop, i, arr) => {
-          if (i === arr.length - 1) backdrop.style.zIndex = '9998';
-        });
-      }, { once: true });
-      document.getElementById('btnEliminarFichaConfirmar').onclick = () => { modal.hide(); resolve(); };
+await new Promise((resolve, reject) => {
+      const overlay = document.getElementById('overlayEliminarFicha');
+      overlay.style.display = 'flex';
+      document.getElementById('btnFichaEliminar').onclick = () => { overlay.style.display = 'none'; resolve(); };
+      document.getElementById('btnFichaCancelar').onclick = () => { overlay.style.display = 'none'; reject(); };
     }).catch(() => { return; });
 
     try {
@@ -1245,8 +1255,14 @@ async function loadProducts(page = 1) {
         throw new Error(data.error || 'Error eliminando ficha');
       }
 
-      showToast('Ficha técnica eliminada', 'success');
+    showToast('Ficha técnica eliminada', 'success');
       clearFichaPreview();
+      // ⭐ Actualizar tabla sin recargar página
+    const row = document.querySelector(`tr[data-id="${editingProductId}"]`);
+      if (row) {
+        const fichaCell = row.querySelector('.badge-ficha, .has-ficha');
+        if (fichaCell) fichaCell.outerHTML = '<span class="badge-no-ficha">Sin ficha</span>';
+      }
 
     } catch (e) {
       console.error('Error eliminando ficha:', e);
@@ -1435,32 +1451,6 @@ async function loadProducts(page = 1) {
 <script src="/auth-guard.js"></script>
 
   <script src="/auth-guard.js"></script>
-  <!-- Modal: Eliminar Ficha -->
-  <div class="modal fade" id="modalEliminarFicha" tabindex="-1" aria-hidden="true" style="z-index:9999;">
-    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
-      <div class="modal-content" style="border:none;border-radius:12px;box-shadow:0 20px 60px rgba(246,46,65,0.3);">
-        <div class="modal-header" style="background:linear-gradient(135deg,#F62E41,#d41f33);border-radius:12px 12px 0 0;border:none;padding:20px 25px;">
-          <h5 class="modal-title d-flex align-items-center gap-2" style="color:white;font-weight:700;">
-            <i class="bi bi-trash3-fill"></i> Eliminar Ficha Técnica
-          </h5>
-        </div>
-        <div class="modal-body text-center" style="padding:28px;">
-          <i class="bi bi-file-earmark-x-fill" style="font-size:3.5rem;color:#F62E41;display:block;margin-bottom:15px;"></i>
-          <p style="font-size:1.05rem;font-weight:700;color:#1a1a1a;margin-bottom:8px;">¿Eliminar la ficha técnica?</p>
-          <p style="font-size:0.88rem;color:#666;margin:0;">Esta acción no se puede deshacer.</p>
-        </div>
-        <div class="modal-footer" style="border:none;padding:0 25px 25px;justify-content:center;gap:12px;">
-          <button type="button" data-bs-dismiss="modal"
-            style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:10px 22px;font-weight:600;">
-            <i class="bi bi-x-lg"></i> Cancelar
-          </button>
-          <button type="button" id="btnEliminarFichaConfirmar"
-            style="background:linear-gradient(135deg,#F62E41,#d41f33);color:white;border:none;border-radius:8px;padding:10px 22px;font-weight:600;">
-            <i class="bi bi-trash3-fill"></i> Eliminar
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
+
 </body>
 </html>
