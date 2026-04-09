@@ -1304,20 +1304,38 @@
             <td class="text-end"><strong>${fmt(q.total)} ${q.currency || 'USD'}</strong></td>
             <td class="text-center"><span class="badge bg-secondary">${q.items?.length || 0}</span></td>
             <td class="text-center">
-              <button class="action-btn btn-view" onclick="viewDetail(${q.id})" title="Ver detalle">
-                <i class="bi bi-eye"></i> Ver
-              </button>
-              <button class="action-btn btn-edit" onclick="editQuote(${q.id})" title="Editar">
-                <i class="bi bi-pencil"></i> Editar
-              </button>
-              ${q.status !== 'convertida' && q.status !== 'saldo_pagado' ? `
-                <button class="action-btn btn-sale" onclick="convertToSale(${q.id}, '${q.folio}')" title="Convertir a venta">
-                  <i class="bi bi-check-circle"></i> Venta
+              <!-- PC: botones normales -->
+              <div class="d-none d-md-flex gap-1 justify-content-center">
+                <button class="action-btn btn-view" onclick="viewDetail(${q.id})" title="Ver detalle">
+                  <i class="bi bi-eye"></i> Ver
                 </button>
-              ` : ''}
-              <button class="action-btn btn-delete" onclick="deleteQuote(${q.id}, '${q.folio}')" title="Eliminar">
-                <i class="bi bi-trash"></i>
-              </button>
+                <button class="action-btn btn-edit" onclick="editQuote(${q.id})" title="Editar">
+                  <i class="bi bi-pencil"></i> Editar
+                </button>
+                ${q.status !== 'convertida' && q.status !== 'saldo_pagado' ? `
+                  <button class="action-btn btn-sale" onclick="convertToSale(${q.id}, '${q.folio}')" title="Convertir a venta">
+                    <i class="bi bi-check-circle"></i> Venta
+                  </button>
+                ` : ''}
+                <button class="action-btn btn-delete" onclick="deleteQuote(${q.id}, '${q.folio}')" title="Eliminar">
+                  <i class="bi bi-trash"></i>
+                </button>
+              </div>
+              <!-- Móvil: dropdown -->
+              <div class="d-md-none dropdown">
+                <button class="btn btn-sm btn-dark dropdown-toggle" data-bs-toggle="dropdown">
+                  <i class="bi bi-three-dots-vertical"></i>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end">
+                  <li><a class="dropdown-item" onclick="viewDetail(${q.id})"><i class="bi bi-eye me-2"></i>Ver detalle</a></li>
+                  <li><a class="dropdown-item" onclick="editQuote(${q.id})"><i class="bi bi-pencil me-2"></i>Editar</a></li>
+                  ${q.status !== 'convertida' && q.status !== 'saldo_pagado' ? `
+                  <li><a class="dropdown-item text-success" onclick="convertToSale(${q.id}, '${q.folio}')"><i class="bi bi-check-circle me-2"></i>Convertir a venta</a></li>
+                  ` : ''}
+                  <li><hr class="dropdown-divider"></li>
+                  <li><a class="dropdown-item text-danger" onclick="deleteQuote(${q.id}, '${q.folio}')"><i class="bi bi-trash me-2"></i>Eliminar</a></li>
+                </ul>
+              </div>
             </td>
           </tr>
         `).join('');
