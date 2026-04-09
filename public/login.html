@@ -592,7 +592,10 @@
 
     /* ⭐ RESPONSIVE - VERSIÓN MÓVIL */
 @media (max-width: 900px) {
-      body { padding: 16px; }
+      body { 
+        padding: 20px; 
+        align-items: center;
+      }
 
       .login-wrapper {
         grid-template-columns: 1fr;
@@ -601,68 +604,49 @@
         border-radius: 24px;
       }
 
-      /* Ocultar panel izquierdo */
+      /* Ocultar panel de branding */
       .branding-panel { display: none; }
 
-      /* Header compacto con logo encima del formulario */
+      /* Formulario limpio y elegante */
       .form-panel {
-        padding: 0;
+        padding: 48px 36px;
         border-radius: 24px;
       }
 
-      .form-panel::before {
-        content: '';
-        display: block;
-        background: linear-gradient(135deg, #000000 0%, #1a1a1a 40%, #d41f33 80%, #F62E41 100%);
-        border-radius: 24px 24px 0 0;
-        padding: 28px 35px;
-        text-align: center;
-      }
-
-      /* Logo ficticio usando after */
-      .form-panel::after {
-        content: '⚡ REVOLT SGAC';
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        padding: 28px 35px 22px;
-        text-align: center;
-        font-size: 1.3rem;
-        font-weight: 900;
-        color: white;
-        letter-spacing: 2px;
-        pointer-events: none;
-        border-radius: 24px 24px 0 0;
-      }
-
       .form-header {
-        margin-top: 80px;
-        margin-bottom: 24px;
-        padding: 0 28px;
         text-align: center;
+        margin-bottom: 32px;
       }
 
-      .form-header h2 { font-size: 1.5rem; }
-      .form-header p { font-size: 0.85rem; }
+      /* Mini logo encima del título */
+      .form-header::before {
+        content: '⚡';
+        display: block;
+        font-size: 2.5rem;
+        margin-bottom: 12px;
+        filter: drop-shadow(0 0 12px rgba(246,46,65,0.6));
+        animation: logoFloat 4s ease-in-out infinite;
+      }
 
-      .error-message { margin: 0 28px 16px; }
+      .form-header h2 { 
+        font-size: 1.6rem;
+        margin-bottom: 6px;
+      }
+      .form-header p { font-size: 0.88rem; }
 
-      form { padding: 0 28px 36px; }
-
-      .form-group { margin-bottom: 20px; }
-      .form-group input { padding: 14px 16px; font-size: 0.92rem; }
-      .btn-login { padding: 14px; font-size: 0.95rem; }
+      .form-group { margin-bottom: 22px; }
+      .form-group input { padding: 14px 18px; font-size: 0.95rem; }
+      .btn-login { padding: 15px; font-size: 1rem; margin-top: 4px; }
     }
 
     @media (max-width: 480px) {
-      body { padding: 10px; }
-      .login-wrapper { max-width: 100%; border-radius: 20px; }
-      .form-panel::after { font-size: 1.1rem; padding: 22px 20px 18px; }
-      .form-header { margin-top: 72px; padding: 0 20px; }
-      .form-header h2 { font-size: 1.25rem; }
-      form { padding: 0 20px 28px; }
-      .form-group input { padding: 12px 14px; font-size: 0.88rem; }
+      body { padding: 14px; }
+      .login-wrapper { border-radius: 20px; }
+      .form-panel { padding: 36px 24px; }
+      .form-header::before { font-size: 2rem; }
+      .form-header h2 { font-size: 1.35rem; }
+      .form-group input { padding: 12px 15px; font-size: 0.9rem; }
+      .btn-login { padding: 13px; }
     }
   </style>
 </head>
