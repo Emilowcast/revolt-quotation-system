@@ -55,6 +55,7 @@
       box-shadow: 0 10px 40px rgba(246, 46, 65, 0.3);
       padding: 40px;
       margin: 30px auto;
+      overflow: hidden;
     }
 
     /* ⭐ PAGE HEADER */
@@ -811,24 +812,67 @@
       }
     }
 
-    @media (max-width: 768px) {
-      .container-main { padding: 10px; margin: 6px; border-radius: 8px; }
-      .page-header { padding-bottom: 12px; margin-bottom: 16px; }
-      .page-header h1 { font-size: 1.1rem; gap: 8px; }
-      .page-header .subtitle { font-size: 0.78rem; }
-      .calibration-layout { gap: 12px; margin-top: 12px; }
-      .sidebar-card { padding: 12px; }
-      .sidebar-card-title { font-size: 0.85rem; margin-bottom: 10px; }
-      .toolbar-grid { gap: 6px; }
+@media (max-width: 768px) {
+      body { overflow-x: hidden; }
+      
+      .container-main { 
+        padding: 10px; 
+        margin: 6px;
+        border-radius: 8px;
+        width: calc(100vw - 12px);
+        max-width: calc(100vw - 12px);
+        box-sizing: border-box;
+      }
 
-      /* Aviso escritorio */
+      .calibration-layout { 
+        grid-template-columns: 1fr;
+        gap: 10px; 
+        margin-top: 10px;
+        width: 100%;
+      }
+
+      .calibration-sidebar {
+        width: 100%;
+        gap: 10px;
+      }
+
+      .sidebar-card { 
+        padding: 12px;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: hidden;
+      }
+
+      .sidebar-card-title { font-size: 0.85rem; margin-bottom: 10px; }
+
+      .toolbar-grid { 
+        gap: 6px;
+        width: 100%;
+      }
+
+      .toolbar-grid button {
+        font-size: 0.82rem;
+        padding: 8px 6px;
+      }
+
+      .page-header { padding-bottom: 12px; margin-bottom: 14px; }
+      .page-header h1 { font-size: 1.05rem; gap: 8px; }
+      .page-header .subtitle { font-size: 0.76rem; }
+
+      /* Canvas — scroll horizontal */
+      .canvas-container {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
+
       .canvas-container::before {
-        content: '⚠️ Para mejor experiencia usa esta herramienta en una computadora';
+        content: '⚠️ Desliza para ver el canvas completo. Para mejor experiencia usa una computadora.';
         display: block;
         background: #fffbeb;
         border: 1px solid #fde68a;
         color: #92400e;
-        font-size: 0.8rem;
+        font-size: 0.78rem;
         font-weight: 600;
         padding: 8px 12px;
         border-radius: 8px;
@@ -836,13 +880,14 @@
         text-align: center;
       }
 
-      .canvas-viewport {
-        overflow-x: auto;
-        -webkit-overflow-scrolling: touch;
-      }
-
       .canvas-header { padding: 10px 12px; }
-      .canvas-title { font-size: 0.88rem; }
+      .canvas-title { font-size: 0.85rem; }
+
+      /* Lista de campos */
+      .field-item {
+        padding: 10px;
+        font-size: 0.82rem;
+      }
     }
   </style>
 </head>
