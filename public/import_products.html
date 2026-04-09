@@ -515,50 +515,6 @@
       line-height: 1.5;
     }
 
-    /* ⭐ TOAST */
-    .toast-container {
-      position: fixed;
-      top: 20px;
-      right: 20px;
-      z-index: 9999;
-    }
-
-    .toast {
-      min-width: 350px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-      border-left: 5px solid var(--revolt-red);
-      background: white;
-      padding: 18px 22px;
-      margin-bottom: 12px;
-      animation: slideIn 0.3s ease;
-      font-weight: 500;
-      font-size: 0.95rem;
-    }
-
-    @keyframes slideIn {
-      from {
-        transform: translateX(400px);
-        opacity: 0;
-      }
-      to {
-        transform: translateX(0);
-        opacity: 1;
-      }
-    }
-
-    .toast.success {
-      border-left-color: #10b981;
-    }
-
-    .toast.error {
-      border-left-color: #ef4444;
-    }
-
-    .toast.warning {
-      border-left-color: #f59e0b;
-    }
-
     /* ⭐ LOADING */
     .loading-spinner {
       display: inline-block;
@@ -574,30 +530,92 @@
       to { transform: rotate(360deg); }
     }
 
-    @media (max-width: 768px) {
+@media (max-width: 768px) {
+      .container-main { padding: 0 10px; }
+
       .page-header-secondary {
-        padding: 20px;
+        padding: 12px 14px;
+        margin-bottom: 14px;
+        border-radius: 10px;
       }
 
-      .page-header-secondary h1 {
-        font-size: 1.5rem;
+      .page-header-secondary h1 { font-size: 1.1rem; gap: 8px; }
+      .page-header-secondary p { display: none; }
+
+      .page-header-secondary .d-flex.gap-2 {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .page-header-secondary .btn-revolt-outline,
+      .page-header-secondary .btn-success {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.85rem;
       }
 
       .import-card {
-        padding: 25px 20px;
+        padding: 14px;
+        border-radius: 12px;
+        margin-bottom: 14px;
       }
+
+      .card-header-custom { margin-bottom: 14px; padding-bottom: 10px; }
+      .card-header-custom h3 { font-size: 1rem; }
+      .card-header-custom .step-number { width: 32px; height: 32px; font-size: 1rem; }
 
       .dropzone {
-        padding: 40px 20px;
+        padding: 28px 16px;
+        border-radius: 12px;
       }
 
+      .dropzone-icon { font-size: 2.5rem; margin-bottom: 10px; }
+      .dropzone-title { font-size: 1rem; }
+      .dropzone-desc { font-size: 0.82rem; }
+
+      /* Botones de acción en columna */
+      div[style*="display:flex;gap:12px"] {
+        flex-direction: column !important;
+        gap: 8px !important;
+      }
+
+      .btn-revolt, .btn-success, .btn-danger {
+        width: 100%;
+        justify-content: center;
+        font-size: 0.9rem;
+        padding: 11px 16px;
+        border-radius: 8px;
+      }
+
+      /* Stats en grid 2x2 */
       .stats-grid {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+        margin-bottom: 14px;
       }
 
-      .table-modern {
-        font-size: 0.85rem;
-      }
+      .stat-card { padding: 14px; border-radius: 10px; }
+      .stat-icon { font-size: 1.6rem; margin-bottom: 6px; }
+      .stat-value { font-size: 1.6rem; }
+      .stat-label { font-size: 0.75rem; }
+
+      /* Tabla compacta */
+      .preview-table-container { padding: 10px; border-radius: 10px; }
+      .table-modern { font-size: 0.75rem; }
+      .table-modern thead th { padding: 10px 8px; }
+      .table-modern tbody td { padding: 8px; }
+
+      /* Ocultar columna descripción en móvil */
+      .table-modern th:nth-child(3),
+      .table-modern td:nth-child(3) { display: none; }
+
+      /* Help sidebar */
+      .help-card { padding: 14px; border-radius: 10px; margin-bottom: 14px; }
+      .help-header { margin-bottom: 14px; }
+      .help-header h3 { font-size: 1rem; }
+      .help-step { gap: 10px; margin-bottom: 14px; padding-bottom: 14px; }
+      .help-step-content h4 { font-size: 0.85rem; }
+      .help-step-content p { font-size: 0.78rem; }
     }
   </style>
 </head>
@@ -824,15 +842,27 @@
   let previewData = null;
 
   // ⭐ TOAST
-  function showToast(msg, type='success'){
-    const toastContainer = document.querySelector('.toast-container');
-    const toast = document.createElement('div');
-    toast.className = `toast ${type}`;
-    const icons = {success:'✅',error:'❌',warning:'⚠️',info:'ℹ️'};
-    toast.innerHTML = `<strong>${icons[type]}</strong> ${msg}`;
-    toastContainer.appendChild(toast);
-    setTimeout(()=>toast.remove(),3500);
-  }
+function showToast(msg, type='success'){
+      const toastContainer = document.querySelector('.toast-container');
+      if (!toastContainer) return;
+      const toastId = 'toast-' + Date.now();
+      const icons  = { success: '✓', error: '✗', warning: '⚠', info: 'ℹ' };
+      const colors = { success: '#10b981', error: '#ef4444', warning: '#f59e0b', info: '#3b82f6' };
+      const labels = { success: 'Éxito', error: 'Error', warning: 'Advertencia', info: 'Información' };
+      const toastHTML = `
+        <div class="toast" id="${toastId}" role="alert">
+          <div class="toast-header" style="background: ${colors[type]};">
+            <strong class="me-auto">${icons[type]} ${labels[type]}</strong>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast"></button>
+          </div>
+          <div class="toast-body">${msg}</div>
+        </div>`;
+      toastContainer.insertAdjacentHTML('beforeend', toastHTML);
+      const toastEl = document.getElementById(toastId);
+      const toast = new bootstrap.Toast(toastEl, { autohide: true, delay: 3500 });
+      toast.show();
+      toastEl.addEventListener('hidden.bs.toast', () => toastEl.remove());
+    }
 
   // ⭐ SELECCIONAR ARCHIVO
   btnSelectFile.onclick = () => fileInput.click();
