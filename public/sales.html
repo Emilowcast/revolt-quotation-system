@@ -238,6 +238,23 @@
       border-radius: 12px;
     }
 
+    @media (max-width: 768px) {
+      .pagination-controls {
+        padding: 10px;
+        margin-top: 10px;
+        border-radius: 8px;
+        gap: 8px;
+      }
+      .pagination-btn {
+        padding: 6px 12px;
+        font-size: 0.82rem;
+      }
+      .pagination-info {
+        font-size: 0.78rem;
+        text-align: center;
+      }
+    }
+
     .pagination-btn {
       background: linear-gradient(135deg, var(--revolt-red), #d41f33);
       color: white;
@@ -340,11 +357,11 @@
       .btn.btn-revolt { font-size: 0.8rem; padding: 6px 10px; }
       .btn.btn-revolt i + span, .btn.btn-revolt span { display: none; }
 
-      /* Ocultar columnas menos importantes */
+/* Ocultar columnas menos importantes — mantener acciones visible */
       .table th:nth-child(3),
       .table td:nth-child(3),
-      .table th:nth-child(6),
-      .table td:nth-child(6) { display: none; }
+      .table th:nth-child(5),
+      .table td:nth-child(5) { display: none; }
     }
   </style>
 </head>
@@ -880,7 +897,8 @@ document.addEventListener('DOMContentLoaded', async () => {
             <i class="bi bi-chevron-left"></i> Anterior
           </button>
           <div class="pagination-info">
-            Página ${currentPage} de ${totalPages} (${totalSalesCount} ventas en total)
+            <span class="d-none d-md-inline">Página ${currentPage} de ${totalPages} (${totalSalesCount} ventas en total)</span>
+            <span class="d-md-none">${currentPage} / ${totalPages}</span>
           </div>
           <button class="pagination-btn" onclick="changePage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>
             Siguiente <i class="bi bi-chevron-right"></i>
