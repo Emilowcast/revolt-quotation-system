@@ -1212,7 +1212,11 @@ async function loadProducts(page = 1) {
   document.getElementById('btnDeleteFicha').onclick = async () => {
     if (!editingProductId) return;
 
-    if (!confirm('¿Eliminar la ficha técnica de este producto?')) return;
+    await new Promise((resolve, reject) => {
+      const modal = new bootstrap.Modal(document.getElementById('modalEliminarFicha'));
+      modal.show();
+      document.getElementById('btnEliminarFichaConfirmar').onclick = () => { modal.hide(); resolve(); };
+    }).catch(() => { return; });
 
     try {
       const response = await fetch(`/api/products/${editingProductId}/ficha`, {
@@ -1415,5 +1419,32 @@ async function loadProducts(page = 1) {
 <script src="/auth-guard.js"></script>
 
   <script src="/auth-guard.js"></script>
+  <!-- Modal: Eliminar Ficha -->
+  <div class="modal fade" id="modalEliminarFicha" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" style="max-width:420px;">
+      <div class="modal-content" style="border:none;border-radius:12px;box-shadow:0 20px 60px rgba(246,46,65,0.3);">
+        <div class="modal-header" style="background:linear-gradient(135deg,#F62E41,#d41f33);border-radius:12px 12px 0 0;border:none;padding:20px 25px;">
+          <h5 class="modal-title d-flex align-items-center gap-2" style="color:white;font-weight:700;">
+            <i class="bi bi-trash3-fill"></i> Eliminar Ficha Técnica
+          </h5>
+        </div>
+        <div class="modal-body text-center" style="padding:28px;">
+          <i class="bi bi-file-earmark-x-fill" style="font-size:3.5rem;color:#F62E41;display:block;margin-bottom:15px;"></i>
+          <p style="font-size:1.05rem;font-weight:700;color:#1a1a1a;margin-bottom:8px;">¿Eliminar la ficha técnica?</p>
+          <p style="font-size:0.88rem;color:#666;margin:0;">Esta acción no se puede deshacer.</p>
+        </div>
+        <div class="modal-footer" style="border:none;padding:0 25px 25px;justify-content:center;gap:12px;">
+          <button type="button" data-bs-dismiss="modal"
+            style="background:#f3f4f6;color:#374151;border:none;border-radius:8px;padding:10px 22px;font-weight:600;">
+            <i class="bi bi-x-lg"></i> Cancelar
+          </button>
+          <button type="button" id="btnEliminarFichaConfirmar"
+            style="background:linear-gradient(135deg,#F62E41,#d41f33);color:white;border:none;border-radius:8px;padding:10px 22px;font-weight:600;">
+            <i class="bi bi-trash3-fill"></i> Eliminar
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
