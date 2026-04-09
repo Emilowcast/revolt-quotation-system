@@ -510,44 +510,78 @@
       to { transform: rotate(360deg); }
     }
 
-    @media (max-width: 768px) {
+@media (max-width: 768px) {
+      .container-main {
+        padding: 12px;
+        margin-top: 8px;
+        border-radius: 10px;
+      }
+
       .page-header-secondary {
-        padding: 20px;
+        padding: 12px 15px;
       }
 
       .page-header-secondary h1 {
-        font-size: 1.5rem;
+        font-size: 1.2rem;
+      }
+
+      .page-header-secondary p { display: none; }
+
+      .page-header-secondary .d-flex.gap-2 {
+        flex-direction: column;
+        width: 100%;
+      }
+
+      .page-header-secondary .btn-success,
+      .page-header-secondary .btn-revolt-outline {
+        width: 100%;
+        justify-content: center;
+        text-align: center;
+        font-size: 0.85rem;
       }
 
       .templates-grid {
         grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .template-card {
+        padding: 16px;
       }
 
       .section-header {
         flex-direction: column;
         align-items: flex-start;
-        gap: 15px;
+        gap: 10px;
       }
+
+      .section-title { font-size: 1rem; }
 
       .section-actions {
         width: 100%;
-        flex-direction: column;
+        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 8px;
       }
 
       .section-actions button,
       .section-actions a {
-        width: 100%;
+        flex: 1;
         justify-content: center;
+        text-align: center;
+        font-size: 0.82rem;
       }
 
       .template-actions {
         flex-direction: column;
+        gap: 8px;
       }
 
       .template-actions button,
       .template-actions a {
         width: 100%;
         justify-content: center;
+        font-size: 0.85rem;
       }
     }
   </style>
