@@ -1950,24 +1950,25 @@
       };
 
       // ⭐ VISTA PREVIA PDF
-      window.openPreviewModal = async () => {
+window.openPreviewModal = async () => {
         if (!currentQuote) {
           showToast('No hay cotización cargada', 'error');
           return;
         }
-
         try {
           const pdfUrl = `/api/quotes/${currentQuote.id}/pdf-preview`;
-
+          // En móvil abrir directo en nueva pestaña
+          if (window.innerWidth <= 768) {
+            window.open(pdfUrl, '_blank');
+            return;
+          }
           document.getElementById('previewPDFFrame').src = '';
-
           setTimeout(() => {
             document.getElementById('previewPDFFrame').src = pdfUrl;
             document.getElementById('previewFolio').textContent = currentQuote.folio;
             document.getElementById('previewModal').classList.add('show');
             showToast('Vista previa cargada', 'success');
           }, 100);
-
         } catch (e) {
           showToast('Error cargando vista previa: ' + e.message, 'error');
         }
@@ -1984,16 +1985,19 @@
 
       window.toggleFullscreen = () => {
         const modal = document.querySelector('.preview-modal-content');
-
-        if (!document.fullscreenElement) {
-          if (modal.requestFullscreen) {
-            modal.requestFullscreen();
-          }
+        // Fullscreen no disponible en móvil
+        if (window.innerWidth <= 768) {
+          showToast('Pantalla completa no disponible en móvil', 'warning');
+          return;
+        }
+        const el = document.fullscreenElement || document.webkitFullscreenElement;
+        if (!el) {
+          const req = modal.requestFullscreen || modal.webkitRequestFullscreen;
+          if (req) req.call(modal);
           showToast('Pantalla completa activada (ESC para salir)', 'info');
         } else {
-          if (document.exitFullscreen) {
-            document.exitFullscreen();
-          }
+          const exit = document.exitFullscreen || document.webkitExitFullscreen;
+          if (exit) exit.call(document);
           showToast('Pantalla completa desactivada', 'info');
         }
       };
