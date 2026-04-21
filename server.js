@@ -7985,6 +7985,30 @@ app.post('/api/config', requireAuth, async (req, res) => {
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, async () => {
   console.log(`🚀 Server corriendo en http://localhost:${PORT}`);
+
+  // ⭐ Crear usuario admin por defecto si no hay usuarios
+(async () => {
+  try {
+    const count = await prisma.user.count();
+    if (count === 0) {
+      const bcrypt = require('bcryptjs');
+      const hash = await bcrypt.hash('Admin123', 10);
+      await prisma.user.create({
+        data: {
+          name: 'Administrador',
+          email: 'admin@revolt.com',
+          password: hash,
+          role: 'admin',
+          active: true
+        }
+      });
+      console.log('👤 Usuario admin creado por defecto: admin@revolt.com / Admin123');
+    }
+  } catch(e) {
+    console.log('⚠️ No se pudo crear usuario por defecto:', e.message);
+  }
+})();
+
   console.log('📊 Conectado a PostgreSQL con Prisma');
   
   try {
