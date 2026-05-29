@@ -1389,7 +1389,7 @@
               </div>
               <span class="totals-value" id="displayDiscount">-$0.00</span>
             </div>
-            
+
             <div class="totals-row">
               <div class="d-flex gap-2 align-items-center">
                 <span class="totals-label">IVA (16%)</span>
@@ -2054,28 +2054,28 @@
         tr.querySelector('.subtotal').textContent = fmt(sub);
         subtotal += sub;
       });
-      
-      const discount = toNum($('#discountInput').value);
+
+      const discountPct = toNum($('#discountInput').value);
+      const discount = Number((subtotal * (discountPct / 100)).toFixed(2));
       const taxable = Math.max(0, subtotal - discount);
-      const taxPct = toNum($('#taxInput').value);
-      const tax = Number((taxable * (taxPct/100)).toFixed(2));
+      const ivaActivo = $('#ivaCheck').checked;
+      const tax = ivaActivo ? Number((taxable * 0.16).toFixed(2)) : 0;
       const total = Number((taxable + tax).toFixed(2));
-      
+
       $('#displaySubtotal').textContent = fmt(subtotal);
       $('#displayDiscount').textContent = '-'+fmt(discount);
       $('#displayTax').textContent = fmt(tax);
       $('#displayTotal').textContent = fmt(total);
-      
+
       const fx = toNum($('#exchangeRate').value);
       const mxn = Number((total * fx).toFixed(2));
       $('#displayMXN').textContent = fmt(mxn);
-      
-    sincronizarTarjetas();
-      return {subtotal,discount,tax,total,mxn};
-    }
 
+      sincronizarTarjetas();
+      return {subtotal, discount, tax, total, mxn};
+    }
     $('#discountInput').oninput = recalc;
-    $('#taxInput').oninput = recalc;
+    $('#ivaCheck').onchange = recalc;
     $('#exchangeRate').oninput = recalc;
 
 async function fetchTipoCambio(silencioso = false) {
