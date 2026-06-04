@@ -15,184 +15,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
-        },
-        "estado": {
-          "x": 0.79,
-          "y": 0.85,
-          "anchor": "right",
-          "vAnchor": "center",
-          "fontSize": 10,
-          "offsetX": 0.1468183858995781,
-          "offsetY": 0.012758309738134303,
-          "widthFrac": 0.18,
-          "heightFrac": 0.02,
-          "sampleValue": "",
-          "type": "text",
-          "bold": false,
-          "justify": false,
-          "color": null
-        },
-        "numero": {
-          "x": 0.79,
-          "y": 0.79,
-          "anchor": "right",
-          "vAnchor": "center",
-          "fontSize": 10,
-          "offsetX": 0.14789232955639592,
-          "offsetY": 0.045291484054155756,
-          "widthFrac": 0.18,
-          "heightFrac": 0.02,
-          "sampleValue": "",
-          "type": "text",
-          "bold": false,
-          "justify": false,
-          "color": null
-        },
-        "subtotal": {
-          "x": 0.88,
-          "y": 0.36,
-          "anchor": "right",
-          "vAnchor": "center",
-          "fontSize": 10,
-          "offsetX": 0.08338497009418987,
-          "offsetY": 0.17347703378215443,
-          "widthFrac": 0.17100190926447859,
-          "heightFrac": 0.018454404945904175,
-          "sampleValue": "",
-          "type": "number",
-          "bold": true,
-          "justify": false,
-          "color": null
-        },
-        "descuento": {
-          "x": 0.88,
-          "y": 0.33,
-          "anchor": "right",
-          "vAnchor": "center",
-          "fontSize": 10,
-          "offsetX": 0.08523796449025603,
-          "offsetY": 0.18675756558126513,
-          "widthFrac": 0.16943373327393113,
-          "heightFrac": 0.02,
-          "sampleValue": "",
-          "type": "number",
-          "bold": true,
-          "justify": false,
-          "color": null
-        },
-        "impuestos": {
-          "x": 0.88,
-          "y": 0.3,
-          "anchor": "right",
-          "vAnchor": "center",
-          "fontSize": 10,
-          "offsetX": 0.0856190393706247,
-          "offsetY": 0.19961691130612444,
-          "widthFrac": 0.17027867819888465,
-          "heightFrac": 0.01934708801253591,
-          "sampleValue": "",
-          "type": "number",
-          "bold": true,
-          "justify": false,
-          "color": null
-        },
-        "total": {
-          "x": 0.88,
-          "y": 0.27,
-          "anchor": "right",
-          "vAnchor": "center",
-          "fontSize": 10,
-          "offsetX": 0.08559628477455804,
-          "offsetY": 0.2131556960064172,
-          "widthFrac": 0.16955228060549252,
-          "heightFrac": 0.01804126403760773,
-          "sampleValue": "",
-          "type": "number",
-          "bold": true,
-          "justify": false,
-          "color": null
-        },
-        "item_descripcion": {
-          "x": 0.22,
-          "y": 0.68,
-          "anchor": "left",
-          "vAnchor": "baseline",
-          "fontSize": 10,
-          "offsetX": -0.16913779726047484,
-          "offsetY": 0.014110064474095319,
-          "widthFrac": 0.4253457510125871,
-          "heightFrac": 0.13861551872009448,
-          "sampleValue": "",
-          "type": "text",
-          "bold": false,
-          "justify": false,
-          "color": null
-        },
-        "item_precio": {
-          "x": 0.68,
-          "y": 0.68,
-          "anchor": "left",
-          "vAnchor": "baseline",
-          "fontSize": 10,
-          "offsetX": -0.19070127329875375,
-          "offsetY": 0.014160797611708156,
-          "widthFrac": 0.16082954505299793,
-          "heightFrac": 0.02102333196889071,
-          "sampleValue": "",
-          "type": "number",
-          "bold": false,
-          "justify": false,
-          "color": null
-        },
-        "item_cant": {
-          "x": 0.78,
-          "y": 0.68,
-          "anchor": "left",
-          "vAnchor": "baseline",
-          "fontSize": 10,
-          "offsetX": -0.10924333107147186,
-          "offsetY": 0.013889928389290568,
-          "widthFrac": 0.08,
-          "heightFrac": 0.02,
-          "sampleValue": "",
-          "type": "number",
-          "bold": false,
-          "justify": false,
-          "color": null
-        },
-        "item_subtotal": {
-          "x": 0.88,
-          "y": 0.68,
-          "anchor": "left",
-          "vAnchor": "baseline",
-          "fontSize": 10,
-          "offsetX": -0.044789020516523774,
-          "offsetY": 0.016259516814180378,
-          "widthFrac": 0.14502660663119116,
-          "heightFrac": 0.02511665984445354,
-          "sampleValue": "",
-          "type": "number",
-          "bold": false,
-          "justify": false,
-          "color": null
-        },
-        "precio_neto_mxn_formatted": {
-          "x": 0.83537861,
-          "y": 0.4254446,
-          "anchor": "left",
-          "vAnchor": "center",
-          "fontSize": 10,
-          "offsetX": -0.014384002575038218,
-          "offsetY": 0.00940492476060191,
-          "widthFrac": 0.15,
-          "heightFrac": 0.02,
-          "sampleValue": "",
-          "type": "text",
-          "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "folio": {
           "x": 0.20106626,
@@ -207,8 +30,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "nombre": {
           "x": 0.17,
@@ -223,8 +45,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "empresa": {
           "x": 0.78,
@@ -239,8 +60,22 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
+        },
+        "estado": {
+          "x": 0.79,
+          "y": 0.85,
+          "anchor": "right",
+          "vAnchor": "center",
+          "fontSize": 10,
+          "offsetX": 0.1468183858995781,
+          "offsetY": 0.012758309738134303,
+          "widthFrac": 0.18,
+          "heightFrac": 0.02,
+          "sampleValue": "",
+          "type": "text",
+          "bold": false,
+          "justify": false
         },
         "correo": {
           "x": 0.79,
@@ -255,8 +90,22 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
+        },
+        "numero": {
+          "x": 0.79,
+          "y": 0.79,
+          "anchor": "right",
+          "vAnchor": "center",
+          "fontSize": 10,
+          "offsetX": 0.14789232955639592,
+          "offsetY": 0.045291484054155756,
+          "widthFrac": 0.18,
+          "heightFrac": 0.02,
+          "sampleValue": "",
+          "type": "text",
+          "bold": false,
+          "justify": false
         },
         "nombre_copy": {
           "x": 0.22000000000000003,
@@ -271,8 +120,142 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
+        },
+        "subtotal": {
+          "x": 0.88,
+          "y": 0.36,
+          "anchor": "right",
+          "vAnchor": "center",
+          "fontSize": 10,
+          "offsetX": 0.08338497009418987,
+          "offsetY": 0.17347703378215443,
+          "widthFrac": 0.17100190926447859,
+          "heightFrac": 0.018454404945904175,
+          "sampleValue": "",
+          "type": "number",
+          "bold": true,
+          "justify": false
+        },
+        "descuento": {
+          "x": 0.88,
+          "y": 0.33,
+          "anchor": "right",
+          "vAnchor": "center",
+          "fontSize": 10,
+          "offsetX": 0.08523796449025603,
+          "offsetY": 0.18675756558126513,
+          "widthFrac": 0.16943373327393113,
+          "heightFrac": 0.02,
+          "sampleValue": "",
+          "type": "number",
+          "bold": true,
+          "justify": false
+        },
+        "impuestos": {
+          "x": 0.88,
+          "y": 0.3,
+          "anchor": "right",
+          "vAnchor": "center",
+          "fontSize": 10,
+          "offsetX": 0.0856190393706247,
+          "offsetY": 0.19961691130612444,
+          "widthFrac": 0.17027867819888465,
+          "heightFrac": 0.01934708801253591,
+          "sampleValue": "",
+          "type": "number",
+          "bold": true,
+          "justify": false
+        },
+        "total": {
+          "x": 0.88,
+          "y": 0.27,
+          "anchor": "right",
+          "vAnchor": "center",
+          "fontSize": 10,
+          "offsetX": 0.08559628477455804,
+          "offsetY": 0.2131556960064172,
+          "widthFrac": 0.16955228060549252,
+          "heightFrac": 0.01804126403760773,
+          "sampleValue": "",
+          "type": "number",
+          "bold": true,
+          "justify": false
+        },
+        "precio_neto_mxn_formatted": {
+          "x": 0.83537861,
+          "y": 0.4254446,
+          "anchor": "left",
+          "vAnchor": "center",
+          "fontSize": 10,
+          "offsetX": -0.014384002575038218,
+          "offsetY": 0.00940492476060191,
+          "widthFrac": 0.15,
+          "heightFrac": 0.02,
+          "sampleValue": "",
+          "type": "text",
+          "bold": true,
+          "justify": false
+        },
+        "item_descripcion": {
+          "x": 0.22,
+          "y": 0.68,
+          "anchor": "left",
+          "vAnchor": "baseline",
+          "fontSize": 10,
+          "offsetX": -0.16913779726047484,
+          "offsetY": 0.014110064474095319,
+          "widthFrac": 0.4253457510125871,
+          "heightFrac": 0.13861551872009448,
+          "sampleValue": "",
+          "type": "text",
+          "bold": false,
+          "justify": false
+        },
+        "item_precio": {
+          "x": 0.68,
+          "y": 0.68,
+          "anchor": "left",
+          "vAnchor": "baseline",
+          "fontSize": 10,
+          "offsetX": -0.19070127329875375,
+          "offsetY": 0.014160797611708156,
+          "widthFrac": 0.16082954505299793,
+          "heightFrac": 0.02102333196889071,
+          "sampleValue": "",
+          "type": "number",
+          "bold": false,
+          "justify": false
+        },
+        "item_cant": {
+          "x": 0.78,
+          "y": 0.68,
+          "anchor": "left",
+          "vAnchor": "baseline",
+          "fontSize": 10,
+          "offsetX": -0.10924333107147186,
+          "offsetY": 0.013889928389290568,
+          "widthFrac": 0.08,
+          "heightFrac": 0.02,
+          "sampleValue": "",
+          "type": "number",
+          "bold": false,
+          "justify": false
+        },
+        "item_subtotal": {
+          "x": 0.88,
+          "y": 0.68,
+          "anchor": "left",
+          "vAnchor": "baseline",
+          "fontSize": 10,
+          "offsetX": -0.044789020516523774,
+          "offsetY": 0.016259516814180378,
+          "widthFrac": 0.14502660663119116,
+          "heightFrac": 0.02511665984445354,
+          "sampleValue": "",
+          "type": "number",
+          "bold": false,
+          "justify": false
         }
       },
       "table": {
@@ -295,8 +278,7 @@
           "sampleValue": "22 KA",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "supresor_precio": {
           "x": 0.78,
@@ -311,8 +293,7 @@
           "sampleValue": "$302.58 USD",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "garantia_anos": {
           "x": 0.78,
@@ -320,15 +301,14 @@
           "anchor": "left",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": -0.03872799812379329,
+          "offsetX": -0.03408292401374726,
           "offsetY": 0.07881412527032351,
           "widthFrac": 0.2,
           "heightFrac": 0.02,
           "sampleValue": "5 a 10 años",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "garantia_precio": {
           "x": 0.78,
@@ -343,8 +323,7 @@
           "sampleValue": "$822.08 USD",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "multimetro_estado": {
           "x": 0.78,
@@ -359,8 +338,7 @@
           "sampleValue": "N/A",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "multimetro_precio": {
           "x": 0.78,
@@ -368,15 +346,14 @@
           "anchor": "left",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": -0.16878027137945054,
-          "offsetY": 0.15084852294154616,
+          "offsetX": -0.14903870641175493,
+          "offsetY": 0.15174586680371413,
           "widthFrac": 0.2,
           "heightFrac": 0.02,
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         }
       },
       "table": {
@@ -399,15 +376,14 @@
           "anchor": "left",
           "vAnchor": "baseline",
           "fontSize": 9,
-          "offsetX": 0.11976234174261984,
-          "offsetY": 0.07932310946589104,
-          "widthFrac": 0.22665360168393114,
-          "heightFrac": 0.01,
-          "sampleValue": "",
+          "offsetX": -0.08330034519656254,
+          "offsetY": 0.08332633023288298,
+          "widthFrac": 0.8666866276061641,
+          "heightFrac": 0.011324152542372882,
+          "sampleValue": "15-20 días hábiles",
           "type": "text",
           "bold": false,
-          "justify": true,
-          "color": null
+          "justify": true
         },
         "formaPago": {
           "x": 0.15,
@@ -415,15 +391,14 @@
           "anchor": "left",
           "vAnchor": "baseline",
           "fontSize": 9,
-          "offsetX": -0.11405937308820936,
-          "offsetY": 0.0352547153181738,
-          "widthFrac": 0.226955483377973,
-          "heightFrac": 0.05990019960079841,
-          "sampleValue": "",
+          "offsetX": -0.07621976690675374,
+          "offsetY": 0.04130569117847169,
+          "widthFrac": 0.8584204634377934,
+          "heightFrac": 0.025472233499103512,
+          "sampleValue": "50% anticipo, 50% contra entrega",
           "type": "text",
           "bold": false,
-          "justify": true,
-          "color": null
+          "justify": true
         },
         "firma": {
           "x": 0.65,
@@ -431,55 +406,14 @@
           "anchor": "left",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": -0.559080888587823,
-          "offsetY": 0.18121421375026678,
+          "offsetX": -0.5693625436227183,
+          "offsetY": 0.19246951036043627,
           "widthFrac": 0.3081702802749868,
           "heightFrac": 0.05505023796932841,
           "sampleValue": "🖊️ [Firma Digital]",
           "type": "image",
           "bold": false,
-          "justify": false,
-          "color": null
-        }
-      },
-      "table": {
-        "startY": 0.61,
-        "lineHeight": 0.045
-      }
-    },
-    "5": {
-      "fields": {
-        "tiempoEntrega": {
-          "x": 0.15,
-          "y": 0.7,
-          "anchor": "left",
-          "vAnchor": "top",
-          "fontSize": 11,
-          "offsetX": 0,
-          "offsetY": 0,
-          "widthFrac": 0.7,
-          "heightFrac": 0.08,
-          "sampleValue": "15-20 días hábiles",
-          "type": "text",
-          "bold": false,
-          "justify": true,
-          "color": null
-        },
-        "formaPago": {
-          "x": 0.15,
-          "y": 0.55,
-          "anchor": "left",
-          "vAnchor": "top",
-          "fontSize": 11,
-          "offsetX": 0,
-          "offsetY": 0,
-          "widthFrac": 0.7,
-          "heightFrac": 0.1,
-          "sampleValue": "50% anticipo, 50% contra entrega",
-          "type": "text",
-          "bold": false,
-          "justify": true,
-          "color": null
+          "justify": false
         }
       },
       "table": {

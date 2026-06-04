@@ -194,7 +194,8 @@ function loadCalibrationForTemplate(templateFilename) {
             bold: f.bold || false,
             justify: f.justify || false,
             sampleValue: f.sampleValue || '',
-            type: f.type || 'text'
+            type: f.type || 'text',
+            color: f.color || null
           };
           
           // Eliminar campos con coordenadas inválidas
@@ -237,7 +238,8 @@ function loadCalibrationForTemplate(templateFilename) {
           bold: f.bold || false,
           justify: f.justify || false,
           sampleValue: f.sampleValue || '',
-          type: f.type || 'text'
+          type: f.type || 'text',
+          color: f.color || null
         };
         
         if (!isFinite(calibration.pages['1'].fields[fieldName].x) || 
@@ -1961,6 +1963,7 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
       notasCaso,
       country,
       esExtranjero,
+      adicionales,
     } = req.body;
     
     console.log('💾 [POST /api/quotes] Datos recibidos:', {
@@ -2050,6 +2053,7 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
         notasCaso: notasCaso || null,
         country:      country      || 'MX',
         esExtranjero: esExtranjero || false,
+        adicionales: req.body.adicionales || null,
         tiempoEntrega: tiempoEntrega || null,
         formaPago: formaPago || null,
         template: template || null,
@@ -2108,7 +2112,8 @@ app.put('/api/quotes/:id', async (req, res) => {
       status, 
       tiempoEntrega,
       formaPago,
-      items 
+      items,
+      adicionales
     } = req.body;
     
     // 📝 Obtener cotización original para comparar cambios
@@ -2188,7 +2193,8 @@ app.put('/api/quotes/:id', async (req, res) => {
         exchangeRate: exchangeRateNum,
         status: status || oldQuote.status,
         tiempoEntrega: tiempoEntrega !== undefined ? tiempoEntrega : oldQuote.tiempoEntrega,
-        formaPago: formaPago !== undefined ? formaPago : oldQuote.formaPago, 
+        formaPago: formaPago !== undefined ? formaPago : oldQuote.formaPago,
+        adicionales: req.body.adicionales !== undefined ? req.body.adicionales : oldQuote.adicionales,
         items: {
           create: items.map(item => ({
             modelo: item.modelo || '',
@@ -3818,7 +3824,8 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
         precio: item.unitPrice?.toFixed(2) || '0.00',
         cant: String(item.qty),
         subtotal: item.subtotal?.toFixed(2) || '0.00'
-      }))
+      })),
+      adicionales: quote.adicionales || null
     };
     
     console.log('  📦 pdfData.userSignature:', pdfData.userSignature || 'UNDEFINED');
@@ -4027,7 +4034,8 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
         precio: item.unitPrice?.toFixed(2) || '0.00',
         cant: String(item.qty),
         subtotal: item.subtotal?.toFixed(2) || '0.00'
-      }))
+      })),
+      adicionales: quote.adicionales || null
     };
     
     console.log('  📦 pdfData.userSignature:', pdfData.userSignature || 'UNDEFINED');
@@ -4317,7 +4325,8 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
         precio: item.unitPrice?.toFixed(2) || '0.00',
         cant: String(item.qty),
         subtotal: item.subtotal?.toFixed(2) || '0.00'
-      }))
+      })),
+      adicionales: quote.adicionales || null
     };
 
     console.log('  📦 Datos preparados. Items:', pdfData.items.length);
@@ -6855,8 +6864,13 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
     const anchor = coord.anchor || 'left';
     const vAnchor = coord.vAnchor || 'baseline';
     const fontSize = Number(coord.fontSize) || 10;
-    const isBold = coord.bold === true || coord.bold === 'true'; // ✅ DETECTAR NEGRITAS
-    const isJustified = coord.justify === true || coord.justify === 'true'; // ✅ DETECTAR JUSTIFICADO
+    const isBold = coord.bold === true || coord.bold === 'true';
+    const isJustified = coord.justify === true || coord.justify === 'true';
+    if (coord.color) console.log('🎨 coord.color:', coord.color, 'isArray:', Array.isArray(coord.color));
+    const textColor = Array.isArray(coord.color)
+      ? rgb(coord.color[0], coord.color[1], coord.color[2])
+      : rgb(0, 0, 0);
+    if (coord.color) console.log('🎨 Color del campo:', coord.color, '-> textColor:', textColor);
     
     // ✅ SELECCIONAR FUENTE (Normal o Bold)
     const fontToUse = isBold ? fontBold : font;
@@ -6956,7 +6970,7 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
       } else {
         // Texto normal
         if (xDraw < 0) xDraw = 0;
-        page.drawText(line, { x: xDraw, y: yDraw, size: fontSize, font: lineFont });
+        page.drawText(line, { x: xDraw, y: yDraw, size: fontSize, font: lineFont, color: textColor });
       }
     });
 
@@ -7009,6 +7023,51 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
     }
   }
 
+  console.log('🔍 data.adicionales al entrar a generatePdfBuffer:', JSON.stringify(data.adicionales));
+
+  // ⭐ INYECTAR ADICIONALES EN DATA PARA PÁGINA 3
+  const adicionales = data.adicionales
+    ? (typeof data.adicionales === 'string' ? JSON.parse(data.adicionales) : data.adicionales)
+    : null;
+
+  if (adicionales) {
+    // Supresor
+    if (adicionales.supresor) {
+      data.supresor_ka    = adicionales.supresor.ka + ' KA';
+      data.supresor_precio = '$' + Number(adicionales.supresor.precio).toFixed(2) + ' USD';
+    } else {
+      data.supresor_ka    = 'N/A';
+      data.supresor_precio = '';
+    }
+    console.log('🎯 Campos inyectados:', {
+    supresor_ka: data.supresor_ka,
+    supresor_precio: data.supresor_precio,
+    garantia_anos: data.garantia_anos,
+    multimetro_estado: data.multimetro_estado
+    });
+    // Garantía
+    if (adicionales.garantia) {
+      data.garantia_anos   = adicionales.garantia.anos || '5 a 10 años';
+      data.garantia_precio = '$' + Number(adicionales.garantia.precio).toFixed(2) + ' USD';
+    } else {
+      data.garantia_anos   = 'N/A';
+      data.garantia_precio = '';
+    }
+    // Multímetro
+    if (adicionales.multimetro) {
+      if (adicionales.multimetro.opcion === 'si') {
+        data.multimetro_estado = 'S/A';
+        data.multimetro_precio = '$' + Number(adicionales.multimetro.precio).toFixed(2) + ' USD';
+      } else {
+        data.multimetro_estado = 'N/A';
+        data.multimetro_precio = '';
+      }
+    } else {
+      data.multimetro_estado = 'N/A';
+      data.multimetro_precio = '';
+    }
+  }
+
     // ========================================
     // ⭐ DIBUJAR EN TODAS LAS PÁGINAS
     // ========================================
@@ -7051,6 +7110,10 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
         if (fname === 'firma') return; // ⭐ La firma se procesa después
         
         const coord = pageConfig.fields[fname];
+        // ⭐ Color blanco para campos de adicionales (página 2)
+        if (fname.startsWith('supresor') || fname.startsWith('garantia') || fname.startsWith('multimetro')) {
+          coord.color = [1, 1, 1];
+        }
         const value = (data && (data[fname] !== undefined)) ? data[fname] : '';
         
         drawTextWithAnchor(value, coord, { debug: options.debug, label: fname }, page);

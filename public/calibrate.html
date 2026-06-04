@@ -1214,6 +1214,10 @@
           <div class="preset-icon">📦</div>
           Items (Tabla)
         </button>
+        <button class="preset-btn" data-preset="adicionales">
+          <div class="preset-icon">⚡</div>
+          Adicionales
+        </button>
         <button class="preset-btn" data-preset="condiciones">
           <div class="preset-icon">📄</div>
           Condiciones
@@ -1820,7 +1824,7 @@
       }
 
       function addPreset(preset) {
-        const presets = {
+const presets = {
           header: {
             page: 1,
             fields: {
@@ -1858,12 +1862,23 @@
               item_subtotal: { x: 0.88, y: 0.68, anchor: 'left', vAnchor: 'baseline', fontSize: 10, offsetX: -0.044789020516523774, offsetY: 0.016259516814180378, widthFrac: 0.14502660663119116, heightFrac: 0.02511665984445354, sampleValue: '', type: 'number', bold: false, justify: false }
             }
           },
+          adicionales: {
+            page: 2,
+            fields: {
+              supresor_ka: { x: 0.78, y: 0.72, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.1209246925314565, offsetY: 0.02435575109993714, widthFrac: 0.15, heightFrac: 0.02, sampleValue: '22 KA', type: 'text', bold: true, justify: false },
+              supresor_precio: { x: 0.78, y: 0.68, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.14464110810246816, offsetY: 0.04458007968551917, widthFrac: 0.2, heightFrac: 0.02, sampleValue: '$302.58 USD', type: 'text', bold: false, justify: false },
+              garantia_anos: { x: 0.78, y: 0.52, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.03408292401374726, offsetY: 0.07881412527032351, widthFrac: 0.2, heightFrac: 0.02, sampleValue: '5 a 10 años', type: 'text', bold: true, justify: false },
+              garantia_precio: { x: 0.78, y: 0.48, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.03707147335491951, offsetY: 0.09783789443266677, widthFrac: 0.2, heightFrac: 0.02, sampleValue: '$822.08 USD', type: 'text', bold: false, justify: false },
+              multimetro_estado: { x: 0.78, y: 0.32, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.11128281364266719, offsetY: 0.13157756754093466, widthFrac: 0.15, heightFrac: 0.02, sampleValue: 'N/A', type: 'text', bold: true, justify: false },
+              multimetro_precio: { x: 0.78, y: 0.28, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.14903870641175493, offsetY: 0.15174586680371413, widthFrac: 0.2, heightFrac: 0.02, sampleValue: '', type: 'text', bold: false, justify: false }
+            }
+          },
           condiciones: {
             page: 4,
             fields: {
-              tiempoEntrega: { x: 0.15, y: 0.7, anchor: 'left', vAnchor: 'baseline', fontSize: 9, offsetX: 0.11976234174261984, offsetY: 0.07932310946589104, widthFrac: 0.22665360168393114, heightFrac: 0.01, sampleValue: '15-20 días hábiles', type: 'text', bold: false, justify: true },
-              formaPago: { x: 0.15, y: 0.55, anchor: 'left', vAnchor: 'baseline', fontSize: 9, offsetX: -0.11405937308820936, offsetY: 0.0352547153181738, widthFrac: 0.226955483377973, heightFrac: 0.05990019960079841, sampleValue: '50% anticipo, 50% contra entrega', type: 'text', bold: false, justify: true },
-              firma: { x: 0.65, y: 0.15, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.559080888587823, offsetY: 0.18121421375026678, widthFrac: 0.3081702802749868, heightFrac: 0.05505023796932841, sampleValue: '🖊️ [Firma Digital]', type: 'image', bold: false, justify: false }
+              tiempoEntrega: { x: 0.15, y: 0.7, anchor: 'left', vAnchor: 'baseline', fontSize: 9, offsetX: -0.08330034519656254, offsetY: 0.08332633023288298, widthFrac: 0.8666866276061641, heightFrac: 0.011324152542372882, sampleValue: '15-20 días hábiles', type: 'text', bold: false, justify: true },
+              formaPago: { x: 0.15, y: 0.55, anchor: 'left', vAnchor: 'baseline', fontSize: 9, offsetX: -0.07621976690675374, offsetY: 0.04130569117847169, widthFrac: 0.8584204634377934, heightFrac: 0.025472233499103512, sampleValue: '50% anticipo, 50% contra entrega', type: 'text', bold: false, justify: true },
+              firma: { x: 0.65, y: 0.15, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.5693625436227183, offsetY: 0.19246951036043627, widthFrac: 0.3081702802749868, heightFrac: 0.05505023796932841, sampleValue: '🖊️ [Firma Digital]', type: 'image', bold: false, justify: false }
             }
           }
         };
@@ -1884,19 +1899,15 @@
             });
           });
           
-// Agregar configuración de tabla para páginas 2 y 3
+        // Configuración de tabla por página
+          if (calibration.pages[1]) calibration.pages[1].table = { startY: 0.68, lineHeight: 0.04 };
           [2, 3].forEach(p => {
             if (!calibration.pages[p]) {
               calibration.pages[p] = { fields: {}, table: { startY: 0.61, lineHeight: 0.045 } };
-            } else {
+            } else if (!calibration.pages[p].table) {
               calibration.pages[p].table = { startY: 0.61, lineHeight: 0.045 };
             }
           });
-
-          // Página 1: tabla con startY y lineHeight correctos
-          if (calibration.pages[1]) {
-            calibration.pages[1].table = { startY: 0.68, lineHeight: 0.04 };
-          }
 
           renderFields();
           updateFieldsList();
@@ -1962,7 +1973,8 @@
                   sampleValue: f.sampleValue || '',
                   type: f.type || 'text',
                   bold: f.bold || false,
-                  justify: f.justify || false
+                  justify: f.justify || false,
+                  color: f.color || null
                 };
               });
             });
@@ -1996,7 +2008,8 @@
                 sampleValue: f.sampleValue || '',
                 type: f.type || 'text',
                 bold: f.bold || false,
-                justify: f.justify || false
+                justify: f.justify || false,
+                color: f.color || null
               };
             });
           }

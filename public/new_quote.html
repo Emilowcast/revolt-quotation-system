@@ -1456,6 +1456,9 @@
           <button class="config-tab" data-tab="tipocaso">
             <i class="bi bi-tag"></i> Tipo de Caso
           </button>
+          <button class="config-tab" data-tab="adicionales">
+            <i class="bi bi-plus-square"></i> Adicionales
+          </button>
         </div>
 
         <!-- Tab 1: Condiciones Comerciales -->
@@ -1657,7 +1660,123 @@
             <small style="display:block;margin-top:8px;font-size:0.78rem;color:#92400e;opacity:0.8;">
               <i class="bi bi-info-circle"></i> Ingresa el monto en pesos mexicanos (MXN)
             </small>
+        </div>
+        </div>
+        <!-- Tab 3: Adicionales -->
+        <div class="config-tab-content" id="tab-adicionales">
+
+          <!-- SUPRESOR DE PICOS -->
+          <div class="condicion-card mb-3">
+            <div class="condicion-card-label">
+              <i class="bi bi-lightning-charge"></i> Supresor de Picos
+            </div>
+            <div class="form-check mb-3">
+              <input type="checkbox" class="form-check-input" id="adicionalSupresor" style="accent-color:var(--revolt-red);">
+              <label class="form-check-label fw-bold" for="adicionalSupresor" style="cursor:pointer;">
+                Incluir Supresor de Picos
+              </label>
+            </div>
+            <div id="supresoresPanel" style="display:none;">
+              <div class="row g-2">
+                <!-- Opción 22 KA -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3" id="supresor22Card" style="background:#f8fafc;border:2px solid var(--revolt-red);border-radius:8px;cursor:pointer;">
+                    <div class="form-check mb-2">
+                      <input type="radio" name="supresores" id="supresor22" value="22" class="form-check-input" checked style="accent-color:var(--revolt-red);">
+                      <label class="form-check-label fw-bold" for="supresor22" style="cursor:pointer;">22 KA</label>
+                    </div>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text">USD</span>
+                      <input type="number" id="supresor22Precio" step="0.01" class="form-control" value="302.58" />
+                    </div>
+                  </div>
+                </div>
+                <!-- Opción 36 KA -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3" id="supresor36Card" style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;">
+                    <div class="form-check mb-2">
+                      <input type="radio" name="supresores" id="supresor36" value="36" class="form-check-input" style="accent-color:var(--revolt-red);">
+                      <label class="form-check-label fw-bold" for="supresor36" style="cursor:pointer;">36 KA</label>
+                    </div>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text">USD</span>
+                      <input type="number" id="supresor36Precio" step="0.01" class="form-control" value="455.57" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
+
+          <!-- GARANTÍA -->
+          <div class="condicion-card mb-3">
+            <div class="condicion-card-label">
+              <i class="bi bi-shield-check"></i> Extensión de Garantía
+            </div>
+            <div class="form-check mb-3">
+              <input type="checkbox" class="form-check-input" id="adicionalGarantia" style="accent-color:var(--revolt-red);">
+              <label class="form-check-label fw-bold" for="adicionalGarantia" style="cursor:pointer;">
+                Incluir Extensión de Garantía
+              </label>
+            </div>
+            <div id="garantiaPanel" style="display:none;">
+              <div class="row g-2">
+                <div class="col-12 col-md-6">
+                  <label class="form-label" style="font-size:0.85rem;font-weight:600;">Años de extensión</label>
+                  <input type="text" id="garantiaAnos" class="form-control form-control-sm" placeholder="Ej: 5 a 10 años" value="5 a 10 años" />
+                </div>
+                <div class="col-12 col-md-6">
+                  <label class="form-label" style="font-size:0.85rem;font-weight:600;">Precio (USD)</label>
+                  <div class="input-group input-group-sm">
+                    <span class="input-group-text">USD</span>
+                    <input type="number" id="garantiaPrecio" step="0.01" class="form-control" value="822.08" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- MULTÍMETRO -->
+          <div class="condicion-card mb-3">
+            <div class="condicion-card-label">
+              <i class="bi bi-speedometer2"></i> Multímetro Digital
+            </div>
+            <div class="form-check mb-3">
+              <input type="checkbox" class="form-check-input" id="adicionalMultimetro" style="accent-color:var(--revolt-red);">
+              <label class="form-check-label fw-bold" for="adicionalMultimetro" style="cursor:pointer;">
+                Incluir Multímetro Digital
+              </label>
+            </div>
+            <div id="multimetroPanel" style="display:none;">
+              <div class="row g-2">
+                <!-- Opción N/A -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3" id="multimetroNACard" style="background:#f8fafc;border:2px solid var(--revolt-red);border-radius:8px;cursor:pointer;">
+                    <div class="form-check">
+                      <input type="radio" name="multimetroOpcion" id="multimetroNA" value="na" class="form-check-input" checked style="accent-color:var(--revolt-red);">
+                      <label class="form-check-label fw-bold" for="multimetroNA" style="cursor:pointer;">N/A</label>
+                    </div>
+                    <small style="color:#6b7280;font-size:0.78rem;">Sin precio definido</small>
+                  </div>
+                </div>
+                <!-- Opción Si aplica -->
+                <div class="col-12 col-md-6">
+                  <div class="p-3" id="multimetroSiCard" style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:8px;cursor:pointer;">
+                    <div class="form-check mb-2">
+                      <input type="radio" name="multimetroOpcion" id="multimetroSi" value="si" class="form-check-input" style="accent-color:var(--revolt-red);">
+                      <label class="form-check-label fw-bold" for="multimetroSi" style="cursor:pointer;">S/A</label>
+                    </div>
+                    <div class="input-group input-group-sm">
+                      <span class="input-group-text">USD</span>
+                      <input type="number" id="multimetroPrecio" step="0.01" class="form-control" value="822.08" />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
 
         </div>
 
@@ -2186,6 +2305,26 @@ $$('#itemsBody tr.item-main-row').forEach(tr => {
           ? (parseFloat(document.getElementById('mantenimientoMonto')?.value) || null) : null;
       }
       data.notasCaso = document.getElementById('notasCaso')?.value?.trim() || null;
+
+      // ⭐ Adicionales
+      data.adicionales = {
+        supresor: document.getElementById('adicionalSupresor').checked ? {
+          ka: document.querySelector('input[name="supresores"]:checked')?.value || '22',
+          precio: parseFloat(document.getElementById(
+            document.querySelector('input[name="supresores"]:checked')?.value === '36'
+              ? 'supresor36Precio' : 'supresor22Precio'
+          ).value) || 0
+        } : null,
+        garantia: document.getElementById('adicionalGarantia').checked ? {
+          anos: document.getElementById('garantiaAnos').value.trim(),
+          precio: parseFloat(document.getElementById('garantiaPrecio').value) || 0
+        } : null,
+          multimetro: document.getElementById('adicionalMultimetro').checked ? {
+          opcion: document.querySelector('input[name="multimetroOpcion"]:checked')?.value || 'na',
+          precio: document.querySelector('input[name="multimetroOpcion"]:checked')?.value === 'si'
+            ? (parseFloat(document.getElementById('multimetroPrecio').value) || 0) : null
+        } : null
+      };
       
       console.log('📤 Data completa:', data);
       return data;
@@ -2634,6 +2773,67 @@ $$('#itemsBody tr.item-main-row').forEach(tr => {
       });
     })();
 
+// ============================================
+    // LÓGICA ADICIONALES
+    // ============================================
+    (function setupAdicionales() {
+      // Cargar precios guardados
+      const p = JSON.parse(localStorage.getItem('adicionales_precios') || '{}');
+      if (p.supresor22)      document.getElementById('supresor22Precio').value = p.supresor22;
+      if (p.supresor36)      document.getElementById('supresor36Precio').value = p.supresor36;
+      if (p.garantiaPrecio)  document.getElementById('garantiaPrecio').value   = p.garantiaPrecio;
+      if (p.garantiaAnos)    document.getElementById('garantiaAnos').value     = p.garantiaAnos;
+      if (p.multimetroPrecio) document.getElementById('multimetroPrecio').value = p.multimetroPrecio;
+
+      // Guardar precios al cambiar
+      function guardarPrecios() {
+        localStorage.setItem('adicionales_precios', JSON.stringify({
+          supresor22:      document.getElementById('supresor22Precio').value,
+          supresor36:      document.getElementById('supresor36Precio').value,
+          garantiaPrecio:  document.getElementById('garantiaPrecio').value,
+          garantiaAnos:    document.getElementById('garantiaAnos').value,
+          multimetroPrecio: document.getElementById('multimetroPrecio').value
+        }));
+      }
+      ['supresor22Precio','supresor36Precio','garantiaPrecio','garantiaAnos','multimetroPrecio']
+        .forEach(id => document.getElementById(id)?.addEventListener('input', guardarPrecios));
+
+      // Toggle supresor
+      document.getElementById('adicionalSupresor').onchange = function() {
+        document.getElementById('supresoresPanel').style.display = this.checked ? 'block' : 'none';
+      };
+
+      // Toggle garantía
+      document.getElementById('adicionalGarantia').onchange = function() {
+        document.getElementById('garantiaPanel').style.display = this.checked ? 'block' : 'none';
+      };
+
+      // Toggle multímetro
+      document.getElementById('adicionalMultimetro').onchange = function() {
+        document.getElementById('multimetroPanel').style.display = this.checked ? 'block' : 'none';
+      };
+
+      // Resaltar tarjeta supresor seleccionado
+      document.querySelectorAll('input[name="supresores"]').forEach(radio => {
+        radio.onchange = () => {
+          document.getElementById('supresor22Card').style.border =
+            radio.value === '22' ? '2px solid var(--revolt-red)' : '1.5px solid #e2e8f0';
+          document.getElementById('supresor36Card').style.border =
+            radio.value === '36' ? '2px solid var(--revolt-red)' : '1.5px solid #e2e8f0';
+        };
+      });
+
+      // Resaltar tarjeta multímetro seleccionado
+      document.querySelectorAll('input[name="multimetroOpcion"]').forEach(radio => {
+        radio.onchange = () => {
+          document.getElementById('multimetroNACard').style.border =
+            radio.value === 'na' ? '2px solid var(--revolt-red)' : '1.5px solid #e2e8f0';
+          document.getElementById('multimetroSiCard').style.border =
+            radio.value === 'si' ? '2px solid var(--revolt-red)' : '1.5px solid #e2e8f0';
+        };
+      });
+    })();
+
     // ============================================
     // LÓGICA PANEL ANTICIPO
     // ============================================
@@ -2681,7 +2881,7 @@ $$('#itemsBody tr.item-main-row').forEach(tr => {
     recalc();
 
     console.log('✅ Sistema completamente cargado');
-    showToast('Sistema listo','info');
+    showToast('Sistema listo','info');4
 
   })();
 </script>
