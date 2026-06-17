@@ -648,7 +648,12 @@ app.post('/api/products/import/confirm', async (req, res) => {
               description: sanitizedProduct.description,
               price: sanitizedProduct.price,
               currency: sanitizedProduct.currency,
-              ficha: sanitizedProduct.ficha
+              ...((() => {
+                // Solo actualizar ficha si la existente NO es manual (no tiene timestamp)
+                const fichaActual = existing?.ficha || '';
+                const esManual = /^\d{10,}_/.test(fichaActual);
+                return (!esManual && sanitizedProduct.ficha) ? { ficha: sanitizedProduct.ficha } : {};
+              })())
             }
           });
           updated++;
@@ -986,7 +991,12 @@ app.post('/api/products/import/confirm', async (req, res) => {
               description: sanitizedProduct.description,
               price: sanitizedProduct.price,
               currency: sanitizedProduct.currency,
-              ficha: sanitizedProduct.ficha
+              ...((() => {
+                // Solo actualizar ficha si la existente NO es manual (no tiene timestamp)
+                const fichaActual = existing?.ficha || '';
+                const esManual = /^\d{10,}_/.test(fichaActual);
+                return (!esManual && sanitizedProduct.ficha) ? { ficha: sanitizedProduct.ficha } : {};
+              })())
             }
           });
           updated++;
