@@ -3792,14 +3792,18 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
 
     // ⭐ OBTENER FIRMA CON FALLBACK
     let userSignature = null;
+    let userName = '';
+    let userEmail = '';
     let userId = quote.createdById || req.user?.id;
 
     if (userId) {
-      const user = await prisma.user.findUnique({
+    const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { signature: true }
+        select: { signature: true, name: true, email: true }
       });
       userSignature = user?.signature || null;
+      userName = user?.name || '';
+      userEmail = user?.email || '';
     }
     
     const pdfData = {
@@ -3818,6 +3822,9 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
       precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
+      fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
+      usuario_nombre: userName,
+      usuario_correo: userEmail,
       items: quote.items.map(item => ({
         modelo: item.modelo,
         descripcion: item.descripcion,
@@ -3983,17 +3990,20 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
     
     // ⭐⭐⭐ OBTENER FIRMA CON FALLBACK
     let userSignature = null;
+    let userName = '';
+    let userEmail = '';
     let userId = quote.createdById || req.user?.id;
-    
     if (userId) {
       try {
         const user = await prisma.user.findUnique({
           where: { id: userId },
-          select: { id: true, name: true, signature: true }
+          select: { id: true, name: true, email: true, signature: true }
         });
         
         if (user) {
           userSignature = user.signature || null;
+          userName = user.name || '';
+          userEmail = user.email || '';
           console.log('  ✅ Usuario encontrado:', user.name);
           console.log('  🖊️ Firma:', userSignature || 'SIN FIRMA');
           
@@ -4028,6 +4038,9 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
       precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
+      fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
+      usuario_nombre: userName,
+      usuario_correo: userEmail,
       items: quote.items.map(item => ({
         modelo: item.modelo,
         descripcion: item.descripcion,
@@ -4292,14 +4305,17 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
 
     // ⭐ OBTENER FIRMA CON FALLBACK
     let userSignature = null;
+    let userName = '';
+    let userEmail = '';
     let userId = quote.createdById || req.user?.id;
-
     if (userId) {
       const user = await prisma.user.findUnique({
         where: { id: userId },
-        select: { signature: true }
+        select: { signature: true, name: true, email: true }
       });
       userSignature = user?.signature || null;
+      userName = user?.name || '';
+      userEmail = user?.email || '';
     }
 
     // Preparar datos para el PDF
@@ -4319,6 +4335,9 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
       precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
+      fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
+      usuario_nombre: userName,
+      usuario_correo: userEmail,
       items: quote.items.map(item => ({
         modelo: item.modelo,
         descripcion: item.descripcion,
@@ -5698,7 +5717,7 @@ app.get('/api/users/:id/signature', requireAuth, async (req, res) => {
     
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, signature: true }
+      select: { id: true, name: true, email: true, signature: true }
     });
     
     if (!user) {
