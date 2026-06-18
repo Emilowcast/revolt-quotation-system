@@ -1824,7 +1824,7 @@
       }
 
       function addPreset(preset) {
-const presets = {
+      const presets = {
           header: {
             page: 1,
             fields: {
@@ -1879,13 +1879,12 @@ const presets = {
               tiempoEntrega: { x: 0.15, y: 0.7, anchor: 'left', vAnchor: 'baseline', fontSize: 9, offsetX: -0.08330034519656254, offsetY: 0.08332633023288298, widthFrac: 0.8666866276061641, heightFrac: 0.011324152542372882, sampleValue: '15-20 días hábiles', type: 'text', bold: false, justify: true },
               formaPago: { x: 0.15, y: 0.55, anchor: 'left', vAnchor: 'baseline', fontSize: 9, offsetX: -0.07621976690675374, offsetY: 0.04130569117847169, widthFrac: 0.8584204634377934, heightFrac: 0.025472233499103512, sampleValue: '50% anticipo, 50% contra entrega', type: 'text', bold: false, justify: true },
               firma: { x: 0.65, y: 0.15, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.5693625436227183, offsetY: 0.19246951036043627, widthFrac: 0.3081702802749868, heightFrac: 0.05505023796932841, sampleValue: '🖊️ [Firma Digital]', type: 'image', bold: false, justify: false },
-              fecha_firma: { x: 0.065, y: 0.26, anchor: 'left', vAnchor: 'center', fontSize: 9, offsetX: -0.006854436689930207, offsetY: 0.0026483050847457617, widthFrac: 0.18, heightFrac: 0.02, sampleValue: '09 / 06 / 2026', type: 'text', bold: false, justify: false },
-              usuario_nombre: { x: 0.065, y: 0.22, anchor: 'left', vAnchor: 'center', fontSize: 9, offsetX: -0.005140827517447655, offsetY: 0.007944915254237286, widthFrac: 0.3125348953140578, heightFrac: 0.022648305084745763, sampleValue: 'Lic. Marlen Rios', type: 'text', bold: false, justify: false },
-              usuario_correo: { x: 0.065, y: 0.19, anchor: 'left', vAnchor: 'center', fontSize: 9, offsetX: -0.0042840229312063795, offsetY: 0.021186440677966094, widthFrac: 0.3108212861415752, heightFrac: 0.023972457627118644, sampleValue: 'mrios@revolt.mx', type: 'text', bold: false, justify: false }
+              fecha_firma: { x: 0.065, y: 0.26, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.006854436689930207, offsetY: 0.0026483050847457617, widthFrac: 0.18, heightFrac: 0.02, sampleValue: '09 / 06 / 2026', type: 'text', bold: false, justify: false },
+              usuario_nombre: { x: 0.065, y: 0.22, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.005140827517447655, offsetY: 0.007107113645658198, widthFrac: 0.3125348953140578, heightFrac: 0.022648305084745763, sampleValue: 'Lic. Marlen Rios', type: 'text', bold: false, justify: false },
+              nombre_cliente_firma: { x: 0.73, y: 0.21, anchor: 'left', vAnchor: 'center', fontSize: 10, offsetX: -0.021823977643524107, offsetY: 0.01832737095222287, widthFrac: 0.2855862017968721, heightFrac: 0.05142677561282211, sampleValue: 'Sr. Ricardo Sánchez', type: 'text', bold: false, justify: false }
             }
           }
         };
-        
         let targetPage = currentPage;
         
         if (preset === 'all') {

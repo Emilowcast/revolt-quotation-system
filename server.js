@@ -3834,6 +3834,7 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
       formaPago: quote.formaPago || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
+      nombre_cliente_firma: quote.client?.name || '',
       usuario_correo: userEmail,
       items: quote.items.map(item => ({
         modelo: item.modelo,
@@ -4050,6 +4051,7 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
       formaPago: quote.formaPago || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
+      nombre_cliente_firma: quote.client?.name || '',
       usuario_correo: userEmail,
       items: quote.items.map(item => ({
         modelo: item.modelo,
@@ -4347,6 +4349,7 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
       formaPago: quote.formaPago || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
+      nombre_cliente_firma: quote.client?.name || '',
       usuario_correo: userEmail,
       items: quote.items.map(item => ({
         modelo: item.modelo,

@@ -15,8 +15,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "folio": {
           "x": 0.20106626,
@@ -31,8 +30,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "nombre": {
           "x": 0.17,
@@ -47,8 +45,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "empresa": {
           "x": 0.78,
@@ -63,8 +60,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "estado": {
           "x": 0.79,
@@ -79,8 +75,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "correo": {
           "x": 0.79,
@@ -95,8 +90,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "numero": {
           "x": 0.79,
@@ -111,8 +105,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "nombre_copy": {
           "x": 0.22000000000000003,
@@ -127,8 +120,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "subtotal": {
           "x": 0.88,
@@ -143,8 +135,7 @@
           "sampleValue": "",
           "type": "number",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "descuento": {
           "x": 0.88,
@@ -159,8 +150,7 @@
           "sampleValue": "",
           "type": "number",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "impuestos": {
           "x": 0.88,
@@ -175,8 +165,7 @@
           "sampleValue": "",
           "type": "number",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "total": {
           "x": 0.88,
@@ -191,8 +180,7 @@
           "sampleValue": "",
           "type": "number",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "precio_neto_mxn_formatted": {
           "x": 0.83537861,
@@ -207,8 +195,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "item_descripcion": {
           "x": 0.22,
@@ -223,8 +210,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "item_precio": {
           "x": 0.68,
@@ -239,8 +225,7 @@
           "sampleValue": "",
           "type": "number",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "item_cant": {
           "x": 0.78,
@@ -255,8 +240,7 @@
           "sampleValue": "",
           "type": "number",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "item_subtotal": {
           "x": 0.88,
@@ -271,8 +255,7 @@
           "sampleValue": "",
           "type": "number",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         }
       },
       "table": {
@@ -295,8 +278,7 @@
           "sampleValue": "22 KA",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "supresor_precio": {
           "x": 0.78,
@@ -311,8 +293,7 @@
           "sampleValue": "$302.58 USD",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "garantia_anos": {
           "x": 0.78,
@@ -327,8 +308,7 @@
           "sampleValue": "5 a 10 años",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "garantia_precio": {
           "x": 0.78,
@@ -343,8 +323,7 @@
           "sampleValue": "$822.08 USD",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "multimetro_estado": {
           "x": 0.78,
@@ -359,8 +338,7 @@
           "sampleValue": "N/A",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "multimetro_precio": {
           "x": 0.78,
@@ -375,8 +353,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         }
       },
       "table": {
@@ -406,8 +383,7 @@
           "sampleValue": "15-20 días hábiles",
           "type": "text",
           "bold": false,
-          "justify": true,
-          "color": null
+          "justify": true
         },
         "formaPago": {
           "x": 0.15,
@@ -422,8 +398,7 @@
           "sampleValue": "50% anticipo, 50% contra entrega",
           "type": "text",
           "bold": false,
-          "justify": true,
-          "color": null
+          "justify": true
         },
         "firma": {
           "x": 0.65,
@@ -438,15 +413,14 @@
           "sampleValue": "🖊️ [Firma Digital]",
           "type": "image",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "fecha_firma": {
           "x": 0.065,
           "y": 0.26,
           "anchor": "left",
           "vAnchor": "center",
-          "fontSize": 9,
+          "fontSize": 10,
           "offsetX": -0.006854436689930207,
           "offsetY": 0.0026483050847457617,
           "widthFrac": 0.18,
@@ -454,40 +428,37 @@
           "sampleValue": "09 / 06 / 2026",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "usuario_nombre": {
           "x": 0.065,
           "y": 0.22,
           "anchor": "left",
           "vAnchor": "center",
-          "fontSize": 9,
+          "fontSize": 10,
           "offsetX": -0.005140827517447655,
-          "offsetY": 0.007944915254237286,
+          "offsetY": 0.007107113645658198,
           "widthFrac": 0.3125348953140578,
           "heightFrac": 0.022648305084745763,
           "sampleValue": "Lic. Marlen Rios",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
-        "usuario_correo": {
-          "x": 0.065,
-          "y": 0.19,
+        "nombre_cliente_firma": {
+          "x": 0.73,
+          "y": 0.21,
           "anchor": "left",
           "vAnchor": "center",
-          "fontSize": 9,
-          "offsetX": -0.0042840229312063795,
-          "offsetY": 0.021186440677966094,
-          "widthFrac": 0.3108212861415752,
-          "heightFrac": 0.023972457627118644,
-          "sampleValue": "mrios@revolt.mx",
+          "fontSize": 10,
+          "offsetX": -0.021823977643524107,
+          "offsetY": 0.01832737095222287,
+          "widthFrac": 0.2855862017968721,
+          "heightFrac": 0.05142677561282211,
+          "sampleValue": "Sr. Ricardo Sánchez",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         }
       },
       "table": {
