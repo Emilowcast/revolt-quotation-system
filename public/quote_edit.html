@@ -1272,6 +1272,16 @@
               Descargar
             </button>
           </div>
+          <!-- ⭐ Selector moneda PDF -->
+          <div style="display:flex;align-items:center;gap:8px;padding:8px 0 4px 0;">
+            <span style="font-size:0.8rem;font-weight:600;color:#475569;">PDF en:</span>
+            <div class="btn-group btn-group-sm" role="group">
+              <input type="radio" class="btn-check" name="pdfMonedaEdit" id="pdfEditUSD" value="USD" checked>
+              <label class="btn btn-outline-secondary" for="pdfEditUSD" style="font-size:0.8rem;padding:4px 10px;">🇺🇸 USD</label>
+              <input type="radio" class="btn-check" name="pdfMonedaEdit" id="pdfEditMXN" value="MXN">
+              <label class="btn btn-outline-secondary" for="pdfEditMXN" style="font-size:0.8rem;padding:4px 10px;">🇲🇽 MXN</label>
+            </div>
+          </div>
 
           <iframe id="previewFrame" class="preview-frame"></iframe>
         </div>
@@ -1647,6 +1657,17 @@
 
       // ⭐ RECOLECTAR DATOS
       function collectData(){
+        // ⭐ Leer moneda seleccionada para el PDF
+        const monedaPdf = document.querySelector('input[name="pdfMonedaEdit"]:checked')?.value || 'USD';
+        const usarMXN = monedaPdf === 'MXN';
+        const exchangeRateValor = Number(toNum($('#exchangeRate').value).toFixed(4)) || 18;
+
+        // ⭐ Convierte monto USD → MXN si corresponde, y formatea
+        function fmtPdf(num) {
+          const convertido = usarMXN ? num * exchangeRateValor : num;
+          return fmt(convertido);
+        }
+
         const items = [];
         $$('#itemsBody tr').forEach(tr => {
           const modelo = tr.querySelector('.modelo').value.trim();
@@ -1654,7 +1675,9 @@
           const precio = toNum(tr.querySelector('.precio').value);
           const cant = Math.max(1,Math.floor(toNum(tr.querySelector('.cant').value)));
           const subtotal = Number((precio*cant).toFixed(2));
-          items.push({modelo,descripcion,precio,cant,subtotal});
+          const precioPdf = usarMXN ? Number((precio * exchangeRateValor).toFixed(2)) : precio;
+          const subtotalPdf = usarMXN ? Number((subtotal * exchangeRateValor).toFixed(2)) : subtotal;
+          items.push({modelo, descripcion, precio: precioPdf, cant, subtotal: subtotalPdf});
         });
 
         const calc = recalc();
@@ -1674,10 +1697,10 @@
           estado: $('#estado').value,
           correo: $('#correo').value,
           numero: $('#numero').value,
-          subtotal: fmt(calc.subtotal),
-          descuento: fmt(calc.discount),
-          impuestos: fmt(calc.tax),
-          total: fmt(calc.total),
+          subtotal: fmtPdf(calc.subtotal),
+          descuento: fmtPdf(calc.discount),
+          impuestos: fmtPdf(calc.tax),
+          total: fmtPdf(calc.total),
           precio_neto_mxn: calc.mxn,
           precio_neto_mxn_formatted: fmt(calc.mxn).replace('$','')+' MXN'
         };
@@ -1693,10 +1716,11 @@
           numero: $('#numero').value,
           fields: baseFields,
           items: items,
-          subtotal: subtotalNum,
-          descuento: discountNum,
-          impuestos: taxNum,
-          total: totalNum,
+          subtotal: usarMXN ? Number((subtotalNum * exchangeRateValor).toFixed(2)) : subtotalNum,
+          descuento: usarMXN ? Number((discountNum * exchangeRateValor).toFixed(2)) : discountNum,
+          impuestos: usarMXN ? Number((taxNum * exchangeRateValor).toFixed(2)) : taxNum,
+          total: usarMXN ? Number((totalNum * exchangeRateValor).toFixed(2)) : totalNum,
+          currency: monedaPdf,
           precio_neto_mxn: mxnNum,
           precio_neto_mxn_formatted: fmt(calc.mxn).replace('$','')+' MXN',
           exchangeRate: exchangeRateNum,
@@ -1737,6 +1761,41 @@
       };
       }
 
+      // ⭐ Aplica conversión de moneda SOLO para PDF, sin tocar los datos originales
+      function applyMonedaPdf(data) {
+        const monedaPdf = document.querySelector('input[name="pdfMonedaEdit"]:checked')?.value || 'USD';
+        const usarMXN = monedaPdf === 'MXN';
+        if (!usarMXN) {
+          return { ...data, currency: 'USD' };
+        }
+
+        const fx = Number(toNum($('#exchangeRate').value).toFixed(4)) || 18;
+
+        const convertir = (num) => Number((parseFloat(num) * fx).toFixed(2));
+        const fmtPdf = (num) => fmt(parseFloat(num) * fx);
+
+        return {
+          ...data,
+          currency: 'MXN',
+          subtotal: fmtPdf(data.subtotal),
+          descuento: fmtPdf(data.descuento),
+          impuestos: fmtPdf(data.impuestos),
+          total: fmtPdf(data.total),
+          fields: {
+            ...data.fields,
+            subtotal: fmtPdf(data.subtotal),
+            descuento: fmtPdf(data.descuento),
+            impuestos: fmtPdf(data.impuestos),
+            total: fmtPdf(data.total),
+          },
+          items: data.items.map(item => ({
+            ...item,
+            precio: convertir(item.precio),
+            subtotal: convertir(item.subtotal)
+          }))
+        };
+      }
+
       function flattenPayload(data){
         const flat = {...data};
         if(flat.fields){
@@ -1753,7 +1812,7 @@
         btn.disabled = true;
         $('#previewIcon').className = 'loading-spinner';
         try {
-          const data = collectData();
+          const data = applyMonedaPdf(collectData());
           const payload = flattenPayload(data);
           // ❌ NO INCLUIR debug: true para que no muestre los cuadritos rojos
           // payload.debug = true; 
@@ -1774,7 +1833,7 @@
       // ⭐ DESCARGAR PDF
       $('#btnGenerate').onclick = async () => {
         try {
-          const data = collectData();
+          const data = applyMonedaPdf(collectData());
           const payload = flattenPayload(data);
 
           const r = await fetch('/generate',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});

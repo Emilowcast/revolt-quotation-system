@@ -1424,6 +1424,18 @@
           <i class="bi bi-x-lg"></i>
           Cerrar
         </button>
+
+        <!-- ⭐ Selector de moneda para el PDF -->
+        <div style="display:flex;align-items:center;gap:8px;background:#f1f5f9;border-radius:8px;padding:6px 12px;">
+          <span style="font-size:0.8rem;font-weight:600;color:#475569;">PDF en:</span>
+          <div class="btn-group btn-group-sm" role="group">
+            <input type="radio" class="btn-check" name="pdfMoneda" id="pdfUSD" value="USD" checked>
+            <label class="btn btn-outline-secondary" for="pdfUSD" style="font-size:0.8rem;padding:4px 10px;">🇺🇸 USD</label>
+            <input type="radio" class="btn-check" name="pdfMoneda" id="pdfMXN" value="MXN">
+            <label class="btn btn-outline-secondary" for="pdfMXN" style="font-size:0.8rem;padding:4px 10px;">🇲🇽 MXN</label>
+          </div>
+        </div>
+
         <button class="btn-info" onclick="downloadPDFFromPreview()">
           <i class="bi bi-download"></i>
           Descargar PDF
@@ -1785,10 +1797,13 @@
         text.textContent = 'Enviando...';
 
         try {
+          const moneda = document.querySelector('input[name="pdfMoneda"]:checked')?.value || 'USD';
+
           const payload = {
             customMessage: customMessage || undefined,
             cc: emailCC || undefined,
-            bcc: emailBCC || undefined
+            bcc: emailBCC || undefined,
+            moneda: moneda
           };
 
           const r = await fetch(`/api/quotes/${quoteId}/send-email`, {
@@ -1956,7 +1971,8 @@ window.openPreviewModal = async () => {
           return;
         }
         try {
-          const pdfUrl = `/api/quotes/${currentQuote.id}/pdf-preview`;
+          const moneda = document.querySelector('input[name="pdfMoneda"]:checked')?.value || 'USD';
+          const pdfUrl = `/api/quotes/${currentQuote.id}/pdf-preview?moneda=${moneda}`;
           // En móvil abrir directo en nueva pestaña
           if (window.innerWidth <= 768) {
             window.open(pdfUrl, '_blank');
@@ -2008,7 +2024,8 @@ window.openPreviewModal = async () => {
           return;
         }
 
-        const downloadUrl = `/api/quotes/${currentQuote.id}/pdf-download`;
+        const moneda = document.querySelector('input[name="pdfMoneda"]:checked')?.value || 'USD';
+        const downloadUrl = `/api/quotes/${currentQuote.id}/pdf-download?moneda=${moneda}`;
         window.open(downloadUrl, '_blank');
         showToast('Descargando PDF...', 'success');
       };

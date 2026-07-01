@@ -3816,8 +3816,22 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
       userEmail = user?.email || '';
     }
     
+// ⭐ SOPORTE MONEDA: ?moneda=MXN o ?moneda=USD (default USD)
+    const monedaPdf = (req.query.moneda || 'USD').toUpperCase();
+    const usarMXN = monedaPdf === 'MXN';
+    const exchangeRate = quote.exchangeRate || 18;
+
+    // Función para convertir monto según moneda elegida
+    function convertirMonto(montoUSD) {
+      if (!montoUSD && montoUSD !== 0) return '0.00';
+      const num = parseFloat(montoUSD);
+      if (isNaN(num)) return '0.00';
+      return usarMXN ? (num * exchangeRate).toFixed(2) : num.toFixed(2);
+    }
+
     const pdfData = {
       folio: quote.folio,
+      currency: monedaPdf,
       userSignature: userSignature,
       fecha: quote.date ? new Date(quote.date).toLocaleDateString('es-MX') : new Date().toLocaleDateString('es-MX'),
       nombre: quote.client?.name || '',
@@ -3825,10 +3839,10 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
       correo: quote.client?.email || '',
       numero: quote.client?.phone || '',
       estado: quote.client?.estado || '',
-      subtotal: quote.subtotal?.toFixed(2) || '0.00',
-      descuento: quote.discount?.toFixed(2) || '0.00',
-      impuestos: quote.tax?.toFixed(2) || '0.00',
-      total: quote.total?.toFixed(2) || '0.00',
+      subtotal: convertirMonto(quote.subtotal),
+      descuento: convertirMonto(quote.discount),
+      impuestos: convertirMonto(quote.tax),
+      total: convertirMonto(quote.total),
       precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
@@ -3839,9 +3853,9 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
       items: quote.items.map(item => ({
         modelo: item.modelo,
         descripcion: item.descripcion,
-        precio: item.unitPrice?.toFixed(2) || '0.00',
+        precio: convertirMonto(item.unitPrice),
         cant: String(item.qty),
-        subtotal: item.subtotal?.toFixed(2) || '0.00'
+        subtotal: convertirMonto(item.subtotal)
       })),
       adicionales: quote.adicionales || null
     };
@@ -4033,8 +4047,21 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
       console.log('  ⚠️ Sin createdById ni usuario autenticado');
     }
     
+    // ⭐ SOPORTE MONEDA: ?moneda=MXN o ?moneda=USD (default USD)
+    const monedaPdf = (req.query.moneda || 'USD').toUpperCase();
+    const usarMXN = monedaPdf === 'MXN';
+    const exchangeRate = quote.exchangeRate || 18;
+
+    function convertirMonto(montoUSD) {
+      if (!montoUSD && montoUSD !== 0) return '0.00';
+      const num = parseFloat(montoUSD);
+      if (isNaN(num)) return '0.00';
+      return usarMXN ? (num * exchangeRate).toFixed(2) : num.toFixed(2);
+    }
+
     const pdfData = {
       folio: quote.folio,
+      currency: monedaPdf,
       userSignature: userSignature,
       fecha: quote.date ? new Date(quote.date).toLocaleDateString('es-MX') : new Date().toLocaleDateString('es-MX'),
       nombre: quote.client?.name || '',
@@ -4042,10 +4069,10 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
       correo: quote.client?.email || '',
       numero: quote.client?.phone || '',
       estado: quote.client?.estado || '',
-      subtotal: quote.subtotal?.toFixed(2) || '0.00',
-      descuento: quote.discount?.toFixed(2) || '0.00',
-      impuestos: quote.tax?.toFixed(2) || '0.00',
-      total: quote.total?.toFixed(2) || '0.00',
+      subtotal: convertirMonto(quote.subtotal),
+      descuento: convertirMonto(quote.discount),
+      impuestos: convertirMonto(quote.tax),
+      total: convertirMonto(quote.total),
       precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
@@ -4056,9 +4083,9 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
       items: quote.items.map(item => ({
         modelo: item.modelo,
         descripcion: item.descripcion,
-        precio: item.unitPrice?.toFixed(2) || '0.00',
+        precio: convertirMonto(item.unitPrice),
         cant: String(item.qty),
-        subtotal: item.subtotal?.toFixed(2) || '0.00'
+        subtotal: convertirMonto(item.subtotal)
       })),
       adicionales: quote.adicionales || null
     };
@@ -4331,8 +4358,21 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
     }
 
     // Preparar datos para el PDF
+    // ⭐ SOPORTE MONEDA: moneda viene del body (enviada desde el frontend)
+    const monedaPdf = (req.body.moneda || 'USD').toUpperCase();
+    const usarMXN = monedaPdf === 'MXN';
+    const exchangeRate = quote.exchangeRate || 18;
+
+    function convertirMontoEmail(montoUSD) {
+      if (!montoUSD && montoUSD !== 0) return '0.00';
+      const num = parseFloat(montoUSD);
+      if (isNaN(num)) return '0.00';
+      return usarMXN ? (num * exchangeRate).toFixed(2) : num.toFixed(2);
+    }
+
     const pdfData = {
       folio: quote.folio,
+      currency: monedaPdf,
       userSignature: userSignature,
       fecha: quote.date ? new Date(quote.date).toLocaleDateString('es-MX') : new Date().toLocaleDateString('es-MX'),
       nombre: quote.client?.name || '',
@@ -4340,10 +4380,10 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
       correo: quote.client?.email || '',
       numero: quote.client?.phone || '',
       estado: quote.client?.estado || '',
-      subtotal: quote.subtotal?.toFixed(2) || '0.00',
-      descuento: quote.discount?.toFixed(2) || '0.00',
-      impuestos: quote.tax?.toFixed(2) || '0.00',
-      total: quote.total?.toFixed(2) || '0.00',
+      subtotal: convertirMontoEmail(quote.subtotal),
+      descuento: convertirMontoEmail(quote.discount),
+      impuestos: convertirMontoEmail(quote.tax),
+      total: convertirMontoEmail(quote.total),
       precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
@@ -4354,9 +4394,9 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
       items: quote.items.map(item => ({
         modelo: item.modelo,
         descripcion: item.descripcion,
-        precio: item.unitPrice?.toFixed(2) || '0.00',
+        precio: convertirMontoEmail(item.unitPrice),
         cant: String(item.qty),
-        subtotal: item.subtotal?.toFixed(2) || '0.00'
+        subtotal: convertirMontoEmail(item.subtotal)
       })),
       adicionales: quote.adicionales || null
     };
