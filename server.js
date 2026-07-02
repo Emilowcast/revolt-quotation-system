@@ -1881,15 +1881,43 @@ app.get('/api/quotes', async (req, res) => {
       }
     }
     
+    // Filtro por vendedor
+    if (req.query.vendedor) where.createdById = parseInt(req.query.vendedor);
+
     const quotes = await prisma.quote.findMany({
       where,
-      include: { client: true, items: { include: { product: true } } },
+      include: {
+        client: true,
+        items: { include: { product: true } },
+        createdBy: { select: { id: true, name: true } }
+      },
       orderBy: { createdAt: 'desc' },
       take: 500
     });
     
     res.json({ ok: true, quotes });
   } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ⭐ Lista de vendedores con identificador V1, V2...
+app.get('/api/quotes/vendedores-lista', requireAuth, async (req, res) => {
+  try {
+    const users = await prisma.user.findMany({
+      where: { active: true },
+      select: { id: true, name: true, createdAt: true },
+      orderBy: { createdAt: 'asc' }
+    });
+
+    const vendedores = users.map((u, index) => ({
+      id: u.id,
+      name: u.name,
+      codigo: `V${index + 1}`
+    }));
+
+    res.json({ ok: true, vendedores });
+  } catch(e) {
     res.status(500).json({ ok: false, error: e.message });
   }
 });
