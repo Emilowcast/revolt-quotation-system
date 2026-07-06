@@ -75,6 +75,7 @@ model Quote {
   status             String      @default("vigente")
   tiempoEntrega      String?     @db.Text
   formaPago          String?     @db.Text
+  entregaEnvio       String?     @db.Text
   template           String?
   createdBy          User?       @relation("UserQuotes", fields: [createdById], references: [id])
   createdById        Int?

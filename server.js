@@ -1986,7 +1986,8 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
       clientId,  // ⭐ AGREGAR AQUÍ
       fields, 
       tiempoEntrega, 
-      formaPago, 
+      formaPago,
+      entregaEnvio, 
       items, 
       subtotal, 
       descuento, 
@@ -2094,6 +2095,7 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
         adicionales: req.body.adicionales || null,
         tiempoEntrega: tiempoEntrega || null,
         formaPago: formaPago || null,
+        entregaEnvio: entregaEnvio || null,
         template: template || null,
         currency: 'USD',
         status: 'vigente',
@@ -2150,6 +2152,7 @@ app.put('/api/quotes/:id', async (req, res) => {
       status, 
       tiempoEntrega,
       formaPago,
+      entregaEnvio,
       items,
       adicionales
     } = req.body;
@@ -2232,6 +2235,7 @@ app.put('/api/quotes/:id', async (req, res) => {
         status: status || oldQuote.status,
         tiempoEntrega: tiempoEntrega !== undefined ? tiempoEntrega : oldQuote.tiempoEntrega,
         formaPago: formaPago !== undefined ? formaPago : oldQuote.formaPago,
+        entregaEnvio: entregaEnvio !== undefined ? entregaEnvio : oldQuote.entregaEnvio,
         adicionales: req.body.adicionales !== undefined ? req.body.adicionales : oldQuote.adicionales,
         items: {
           create: items.map(item => ({
@@ -3874,6 +3878,7 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
       precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
+      entregaEnvio: quote.entregaEnvio || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
       nombre_cliente_firma: quote.client?.name || '',
@@ -4104,6 +4109,7 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
       precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
+      entregaEnvio: quote.entregaEnvio || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
       nombre_cliente_firma: quote.client?.name || '',
@@ -4415,6 +4421,7 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
       precio_neto_mxn_formatted: quote.netMxn ? (quote.netMxn.toFixed(2) + ' MXN') : '',
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
+      entregaEnvio: quote.entregaEnvio || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
       nombre_cliente_firma: quote.client?.name || '',

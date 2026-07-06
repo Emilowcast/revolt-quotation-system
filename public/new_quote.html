@@ -1482,16 +1482,17 @@
 
                 <select id="tiempoEntregaSelect" class="form-select form-select-sm mb-2">
                   <option value="">Seleccionar plazo...</option>
-                  <option value="5-10 días hábiles">5-10 días hábiles</option>
-                  <option value="10-15 días hábiles">10-15 días hábiles</option>
-                  <option value="10-20 días hábiles">10-20 días hábiles</option>
-                  <option value="15-20 días hábiles">15-20 días hábiles</option>
-                  <option value="20-30 días hábiles">20-30 días hábiles</option>
+                  <option value="De 5 a 10 días hábiles">De 5 a 10 días hábiles</option>
+                  <option value="De 10 a 15 días hábiles">De 10 a 15 días hábiles</option>
+                  <option value="De 10 a 20 días hábiles">De 10 a 20 días hábiles</option>
+                  <option value="De 15 a 20 días hábiles">De 15 a 20 días hábiles</option>
+                  <option value="De 20 a 30 días hábiles">De 20 a 30 días hábiles</option>
                   <option value="manual">✏️ Otro plazo...</option>
                 </select>
 
-                <input id="tiempoEntregaManual" type="text" class="form-control form-control-sm"
-                  placeholder="Escribe el plazo personalizado" style="display:none;" maxlength="200" />
+                <textarea id="tiempoEntregaManual" class="form-control form-control-sm"
+                  placeholder="Escribe el plazo o condición personalizada..."
+                  rows="3" style="display:none;resize:vertical;font-size:0.85rem;"></textarea>
               </div>
             </div>
 
@@ -1513,6 +1514,44 @@
               </div>
             </div>
 
+          </div>
+
+          <!-- Entrega / Envío -->
+          <div class="row g-4 mt-0">
+            <div class="col-12">
+              <div class="condicion-card" style="border:1.5px solid #fde68a;background:#fffbeb;">
+                <div class="condicion-card-label">
+                  <i class="bi bi-truck"></i> Entrega / Envío
+                </div>
+
+                <div class="d-flex gap-3 mb-3">
+                  <div class="form-check" style="padding:10px 14px;background:#f0fdf4;border-radius:8px;border:1.5px solid #bbf7d0;cursor:pointer;">
+                    <input type="radio" class="form-check-input" name="entregaEnvioTipo" id="entregaNormal" value="normal" checked style="accent-color:#10b981;">
+                    <label class="form-check-label fw-bold" for="entregaNormal" style="color:#065f46;cursor:pointer;">
+                      <i class="bi bi-check-circle-fill" style="color:#10b981;"></i> Normal
+                    </label>
+                  </div>
+                  <div class="form-check" style="padding:10px 14px;background:#f0f9ff;border-radius:8px;border:1.5px solid #bae6fd;cursor:pointer;">
+                    <input type="radio" class="form-check-input" name="entregaEnvioTipo" id="entregaPersonalizada" value="personalizada" style="accent-color:#3b82f6;">
+                    <label class="form-check-label fw-bold" for="entregaPersonalizada" style="color:#1e40af;cursor:pointer;">
+                      <i class="bi bi-pencil-fill" style="color:#3b82f6;"></i> Personalizada
+                    </label>
+                  </div>
+                </div>
+
+                <!-- Preview del texto normal -->
+                <div id="entregaNormalPreview" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;font-size:0.78rem;color:#475569;line-height:1.5;">
+                  <i class="bi bi-info-circle" style="color:#10b981;"></i>
+                  CONSOLIDADA Sin costo en CDMX y Area Metropolitana, Para el Interior de la República Recolección y entrega por transportadora Tres Guerras o la que el Cliente envíe. El flete no esta incluido, confirmación de horarios de entrega vía telefónica, carga no asegurada, viaja por cuenta y riesgo del cliente. Maximo 2 Días Habiles a partir del finiquito del equipo. No incluye maniobras de descarga.
+                </div>
+
+                <!-- Campo libre (solo visible si selecciona Personalizada) -->
+                <textarea id="entregaEnvioManual" class="form-control form-control-sm mt-2"
+                  placeholder="Escribe las condiciones de entrega personalizadas..."
+                  rows="4" style="display:none;resize:vertical;font-size:0.85rem;"></textarea>
+
+              </div>
+            </div>
           </div>
 
 <!-- Venta al extranjero -->
@@ -2271,14 +2310,24 @@ $$('#itemsBody tr.item-main-row').forEach(tr => {
         precio_neto_mxn_formatted: fmt(calc.mxn) + ' MXN',
         exchangeRate: Number(toNum($('#exchangeRate').value).toFixed(4)),
         tiempoEntrega: (() => {
-          if ($('#disponibilidadInmediata').checked) return 'Disponibilidad inmediata';
+          if ($('#disponibilidadInmediata').checked) {
+            return 'Disponibilidad inmediata, salvo previa venta y sin Equipo opcional, a partir de Confirmación de Pedido más Tiempo de traslado. Disponibilidad y tiempos al día de la cotización.';
+          }
           if ($('#tiempoEntregaSelect').value === 'manual' && $('#tiempoEntregaManual').value.trim()) {
             return $('#tiempoEntregaManual').value.trim();
           }
-          if ($('#tiempoEntregaSelect').value) return $('#tiempoEntregaSelect').value;
+          if ($('#tiempoEntregaSelect').value) {
+            return `${$('#tiempoEntregaSelect').value}, a partir de Confirmación de Pedido más Tiempo de traslado. Disponibilidad y tiempos al día de la cotización.`;
+          }
           return null;
         })(),
         formaPago: $('#formaPago').value.trim() || null,
+        entregaEnvio: (() => {
+          if (document.getElementById('entregaPersonalizada').checked) {
+            return document.getElementById('entregaEnvioManual').value.trim() || null;
+          }
+          return 'CONSOLIDADA Sin costo en CDMX y Area Metropolitana, Para el Interior de la República Recolección y entrega por transportadora Tres Guerras o la que el Cliente envíe. El flete no esta incluido, confirmación de horarios de entrega vía telefónica, carga no asegurada, viaja por cuenta y riesgo del cliente. Maximo 2 Días Habiles a partir del finiquito del equipo. No incluye maniobras de descarga.';
+        })(),
         esExtranjero: document.getElementById('esExtranjero').checked,
         country: document.getElementById('esExtranjero').checked
           ? document.getElementById('paisExtranjero').value
@@ -2732,6 +2781,9 @@ $$('#itemsBody tr.item-main-row').forEach(tr => {
         } else if (tiempoEntregaSelect.value && tiempoEntregaSelect.value !== 'manual') {
           formaPago.value = '50% anticipo, 50% contra entrega';
           tiempoEntregaSelect.disabled = false;
+        } else if (tiempoEntregaSelect.value === 'manual') {
+          formaPago.value = '50% anticipo, 50% contra entrega';
+          tiempoEntregaSelect.disabled = false;
         } else {
           formaPago.value = '';
           tiempoEntregaSelect.disabled = false;
@@ -2752,6 +2804,15 @@ $$('#itemsBody tr.item-main-row').forEach(tr => {
         actualizarCondiciones();
       };
       
+      // ⭐ Entrega / Envío toggle
+      document.querySelectorAll('input[name="entregaEnvioTipo"]').forEach(radio => {
+        radio.onchange = () => {
+          const esPersonalizada = document.getElementById('entregaPersonalizada').checked;
+          document.getElementById('entregaNormalPreview').style.display = esPersonalizada ? 'none' : 'block';
+          document.getElementById('entregaEnvioManual').style.display = esPersonalizada ? 'block' : 'none';
+          if (esPersonalizada) document.getElementById('entregaEnvioManual').focus();
+        };
+      });
 
       // Tipo de caso → mostrar/ocultar panel anticipo
       document.querySelectorAll('input[name="tipoCaso"]').forEach(radio => {

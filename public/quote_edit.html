@@ -1108,22 +1108,20 @@
                   style="width:100%;padding:10px;font-size:0.9rem;border:2px solid #bae6fd;border-radius:8px;margin-bottom:10px;"
                 >
                   <option value="">Seleccionar plazo...</option>
-                  <option value="5-10 días hábiles">5-10 días hábiles</option>
-                  <option value="10-15 días hábiles">10-15 días hábiles</option>
-                  <option value="10-20 días hábiles">10-20 días hábiles</option>
-                  <option value="15-20 días hábiles">15-20 días hábiles</option>
-                  <option value="20-30 días hábiles">20-30 días hábiles</option>
-                  <option value="manual">Otro (especificar manualmente)</option>
+                  <option value="De 5 a 10 días hábiles">De 5 a 10 días hábiles</option>
+                  <option value="De 10 a 15 días hábiles">De 10 a 15 días hábiles</option>
+                  <option value="De 10 a 20 días hábiles">De 10 a 20 días hábiles</option>
+                  <option value="De 15 a 20 días hábiles">De 15 a 20 días hábiles</option>
+                  <option value="De 20 a 30 días hábiles">De 20 a 30 días hábiles</option>
+                  <option value="manual">✏️ Otro plazo...</option>
                 </select>
 
-                <input 
-                  id="tiempoEntregaManual" 
-                  type="text" 
-                  placeholder="Especificar plazo personalizado"
-                  maxlength="200"
-                  style="width:100%;padding:10px;font-size:0.9rem;border:2px solid #bae6fd;border-radius:8px;display:none;"
-                />
-              </div>
+                <textarea
+                  id="tiempoEntregaManual"
+                  placeholder="Escribe el plazo o condición personalizada..."
+                  rows="3"
+                  style="width:100%;padding:10px;font-size:0.9rem;border:2px solid #bae6fd;border-radius:8px;display:none;resize:vertical;"
+                ></textarea>
 
               <!-- Forma de Pago -->
               <div class="condiciones-item">
@@ -1509,8 +1507,10 @@
               $('#disponibilidadInmediata').checked = true;
               $('#disponibilidadInmediata').dispatchEvent(new Event('change'));
             } 
-            else if (['5-10 días hábiles', '10-15 días hábiles', '10-20 días hábiles', '15-20 días hábiles', '20-30 días hábiles'].includes(tiempoValue)) {
-              $('#tiempoEntregaSelect').value = tiempoValue;
+            else if (tiempoValue.startsWith('De 5 a 10') || tiempoValue.startsWith('De 10 a 15') || tiempoValue.startsWith('De 10 a 20') || tiempoValue.startsWith('De 15 a 20') || tiempoValue.startsWith('De 20 a 30')) {
+              // Extraer solo el plazo base para seleccionar la opción correcta
+              const plazoBase = tiempoValue.split(',')[0].trim();
+              $('#tiempoEntregaSelect').value = plazoBase;
               $('#tiempoEntregaSelect').dispatchEvent(new Event('change'));
             }
             else {
@@ -1522,6 +1522,21 @@
 
           if (currentQuote.formaPago) {
             $('#formaPago').value = currentQuote.formaPago;
+          }
+
+          // ⭐ Cargar entregaEnvio
+          if (currentQuote.entregaEnvio) {
+            const textoNormal = 'CONSOLIDADA Sin costo en CDMX';
+            if (currentQuote.entregaEnvio.startsWith(textoNormal)) {
+              document.getElementById('entregaNormal').checked = true;
+              document.getElementById('entregaNormalPreview').style.display = 'block';
+              document.getElementById('entregaEnvioManual').style.display = 'none';
+            } else {
+              document.getElementById('entregaPersonalizada').checked = true;
+              document.getElementById('entregaNormalPreview').style.display = 'none';
+              document.getElementById('entregaEnvioManual').style.display = 'block';
+              document.getElementById('entregaEnvioManual').value = currentQuote.entregaEnvio;
+            }
           }
 
           // Cargar adicionales
@@ -1731,15 +1746,21 @@
             const tiempoEntregaManual = $('#tiempoEntregaManual');
 
             if (disponibilidadInmediata.checked) {
-              return 'Disponibilidad inmediata';
+              return 'Disponibilidad inmediata, salvo previa venta y sin Equipo opcional, a partir de Confirmación de Pedido más Tiempo de traslado. Disponibilidad y tiempos al día de la cotización.';
             } else if (tiempoEntregaSelect.value === 'manual' && tiempoEntregaManual.value.trim()) {
               return tiempoEntregaManual.value.trim();
             } else if (tiempoEntregaSelect.value) {
-              return tiempoEntregaSelect.value;
+              return `${tiempoEntregaSelect.value}, a partir de Confirmación de Pedido más Tiempo de traslado. Disponibilidad y tiempos al día de la cotización.`;
             }
             return null;
           })(),
         formaPago: $('#formaPago').value.trim() || null,
+        entregaEnvio: (() => {
+          if (document.getElementById('entregaPersonalizada').checked) {
+            return document.getElementById('entregaEnvioManual').value.trim() || null;
+          }
+          return 'CONSOLIDADA Sin costo en CDMX y Area Metropolitana, Para el Interior de la República Recolección y entrega por transportadora Tres Guerras o la que el Cliente envíe. El flete no esta incluido, confirmación de horarios de entrega vía telefónica, carga no asegurada, viaja por cuenta y riesgo del cliente. Maximo 2 Días Habiles a partir del finiquito del equipo. No incluye maniobras de descarga.';
+        })(),
         adicionales: {
           supresor: document.getElementById('adicionalSupresor').checked ? {
             ka: document.querySelector('input[name="supresores"]:checked')?.value || '22',
@@ -1932,6 +1953,11 @@
             formaPago.style.background = '#eff6ff';
             formaPago.readOnly = false;
             formaPagoHintText.textContent = 'Puedes editar si es necesario';
+          } else if (tiempoEntregaSelect.value === 'manual') {
+            formaPago.value = '50% anticipo, 50% contra entrega';
+            formaPago.style.background = '#eff6ff';
+            formaPago.readOnly = false;
+            formaPagoHintText.textContent = 'Puedes editar si es necesario';
           } else {
             formaPago.value = '';
             formaPago.style.background = '#f0f9ff';
@@ -1953,6 +1979,16 @@
           }
           actualizarFormaPago();
         };
+
+        // ⭐ Entrega / Envío toggle
+        document.querySelectorAll('input[name="entregaEnvioTipo"]').forEach(radio => {
+          radio.onchange = () => {
+            const esPersonalizada = document.getElementById('entregaPersonalizada').checked;
+            document.getElementById('entregaNormalPreview').style.display = esPersonalizada ? 'none' : 'block';
+            document.getElementById('entregaEnvioManual').style.display = esPersonalizada ? 'block' : 'none';
+            if (esPersonalizada) document.getElementById('entregaEnvioManual').focus();
+          };
+        });
 
         tiempoEntregaSelect.onchange = () => {
           if (tiempoEntregaSelect.value === 'manual') {
