@@ -1142,7 +1142,39 @@
                   <span id="formaPagoHintText">Selecciona tiempo de entrega para auto-completar</span>
                 </div>
               </div>
-</div>
+        </div>
+          </div>
+
+          <!-- Entrega / Envío -->
+          <div class="condiciones-box" style="margin-top:16px;">
+            <div class="condiciones-header">
+              <i class="bi bi-truck"></i>
+              Entrega / Envío
+            </div>
+
+            <div class="d-flex gap-3 mb-3">
+              <div class="form-check" style="padding:10px 14px;background:#f0fdf4;border-radius:8px;border:1.5px solid #bbf7d0;cursor:pointer;">
+                <input type="radio" class="form-check-input" name="entregaEnvioTipo" id="entregaNormal" value="normal" checked style="accent-color:#10b981;">
+                <label class="form-check-label fw-bold" for="entregaNormal" style="color:#065f46;cursor:pointer;">
+                  <i class="bi bi-check-circle-fill" style="color:#10b981;"></i> Normal
+                </label>
+              </div>
+              <div class="form-check" style="padding:10px 14px;background:#f0f9ff;border-radius:8px;border:1.5px solid #bae6fd;cursor:pointer;">
+                <input type="radio" class="form-check-input" name="entregaEnvioTipo" id="entregaPersonalizada" value="personalizada" style="accent-color:#3b82f6;">
+                <label class="form-check-label fw-bold" for="entregaPersonalizada" style="color:#1e40af;cursor:pointer;">
+                  <i class="bi bi-pencil-fill" style="color:#3b82f6;"></i> Personalizada
+                </label>
+              </div>
+            </div>
+
+            <div id="entregaNormalPreview" style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:10px 14px;font-size:0.78rem;color:#475569;line-height:1.5;">
+              <i class="bi bi-info-circle" style="color:#10b981;"></i>
+              CONSOLIDADA Sin costo en CDMX y Area Metropolitana, Para el Interior de la República Recolección y entrega por transportadora Tres Guerras o la que el Cliente envíe. El flete no esta incluido, confirmación de horarios de entrega vía telefónica, carga no asegurada, viaja por cuenta y riesgo del cliente. Maximo 2 Días Habiles a partir del finiquito del equipo. No incluye maniobras de descarga.
+            </div>
+
+            <textarea id="entregaEnvioManual" class="form-control form-control-sm mt-2"
+              placeholder="Escribe las condiciones de entrega personalizadas..."
+              rows="4" style="display:none;resize:vertical;font-size:0.85rem;"></textarea>
           </div>
 
           <!-- Adicionales -->
