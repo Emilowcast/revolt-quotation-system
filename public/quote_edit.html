@@ -796,6 +796,33 @@
       .custom-dialog-actions { flex-direction: column; gap: 8px; }
       .custom-dialog-actions > * { width: 100%; justify-content: center; }
     }
+
+    /* ⭐ Modales de búsqueda */
+    .custom-modal-overlay {
+      position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+      display: flex; align-items: center; justify-content: center; z-index: 9999;
+    }
+    .custom-modal {
+      background: white; border-radius: 12px; padding: 24px;
+      min-width: 340px; max-width: 560px; width: 90%; max-height: 80vh;
+      display: flex; flex-direction: column; gap: 16px;
+    }
+    .custom-modal-header { display: flex; align-items: center; gap: 10px; }
+    .custom-modal-header h3 { margin: 0; font-size: 1.1rem; }
+    .custom-modal-body { overflow-y: auto; }
+    .custom-modal-input { width: 100%; padding: 10px; border: 1.5px solid #e2e8f0; border-radius: 8px; font-size: 0.95rem; }
+    .custom-modal-footer { display: flex; gap: 10px; justify-content: flex-end; }
+    .custom-modal-btn { padding: 8px 18px; border-radius: 8px; border: none; cursor: pointer; font-size: 0.9rem; }
+    .custom-modal-btn-primary { background: var(--revolt-red); color: white; }
+    .custom-modal-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+    .custom-modal-btn-secondary { background: #f1f5f9; color: #334155; }
+    .product-selector-list { display: flex; flex-direction: column; gap: 8px; max-height: 300px; overflow-y: auto; }
+    .product-selector-item { padding: 12px; border: 1.5px solid #e2e8f0; border-radius: 8px; cursor: pointer; }
+    .product-selector-item:hover { border-color: var(--revolt-red); background: #fef2f2; }
+    .product-selector-item.selected { border-color: var(--revolt-red); background: #fef2f2; }
+    .product-selector-item h4 { margin: 0 0 4px; font-size: 0.9rem; }
+    .product-selector-item p { margin: 0 0 4px; font-size: 0.8rem; color: #64748b; }
+    .product-selector-item .price { font-size: 0.85rem; font-weight: 700; color: var(--revolt-red); }
   </style>
 </head>
 <body>
@@ -979,6 +1006,10 @@
               <button class="btn-secondary-custom btn-sm" id="addRowBtn">
                 <i class="bi bi-plus-lg"></i>
                 Agregar
+              </button>
+              <button class="btn-secondary-custom btn-sm" id="searchProductBtn">
+                <i class="bi bi-search"></i>
+                Buscar
               </button>
             </div>
           </div>
@@ -1647,6 +1678,191 @@
 
         recalc();
       }
+
+      // ⭐ KEYWORDS DE COMERCIALIZACIÓN
+      let COMERCIALIZACION_KEYWORDS = [
+        { keywords: ['ups', 'no break', 'nobreak', 'no-break'],                          tipo: 'ups' },
+        { keywords: ['regulador electrónico', 'regulador electronico', 'electronico'],   tipo: 'regulador_electronico' },
+        { keywords: ['equipo ec'],                                                        tipo: 'equipo_ec' },
+        { keywords: ['planta'],                                                           tipo: 'planta' },
+        { keywords: ['transformador'],                                                    tipo: 'transformador' },
+        { keywords: ['instalacion', 'instalación'],                                       tipo: 'instalacion' },
+        { keywords: ['supresor'],                                                         tipo: 'supresor' },
+        { keywords: ['multimetro', 'multímetro'],                                         tipo: 'multimetro' },
+        { keywords: ['extension de garantia', 'extensión de garantía'],                  tipo: 'garantia' },
+      ];
+      fetch('/api/comercializacion/keywords')
+        .then(r => r.json())
+        .then(d => { if (d.keywords?.length) COMERCIALIZACION_KEYWORDS = d.keywords; })
+        .catch(() => {});
+
+      function detectarComercializacion(texto) {
+        if (!texto) return { esComercializacion: false, tipo: null };
+        const t = texto.toLowerCase();
+        for (const entry of COMERCIALIZACION_KEYWORDS) {
+          if (entry.keywords.some(kw => t.includes(kw))) {
+            return { esComercializacion: true, tipo: entry.tipo };
+          }
+        }
+        return { esComercializacion: false, tipo: null };
+      }
+
+      const TIPO_LABELS = {
+        ups: 'UPS / No Break', regulador_electronico: 'Regulador Electrónico',
+        equipo_ec: 'Equipo EC', planta: 'Planta', transformador: 'Transformador',
+        instalacion: 'Instalación', supresor: 'Supresor de Picos',
+        multimetro: 'Multímetro', garantia: 'Extensión de Garantía'
+      };
+
+      // ⭐ CARGAR PRODUCTOS
+      let productsCache = [];
+      async function loadProducts(search = '') {
+        try {
+          const r = await fetch('/api/products?search=' + encodeURIComponent(search));
+          const js = await r.json();
+          productsCache = js.products || [];
+          return productsCache;
+        } catch(e) {
+          return [];
+        }
+      }
+
+      // ⭐ VERIFICAR SI UNA FILA ESTÁ VACÍA
+      function isRowEmpty(tr) {
+        const modelo = tr.querySelector('.modelo')?.value.trim() || '';
+        const descripcion = tr.querySelector('.descripcion')?.value.trim() || '';
+        const precio = toNum(tr.querySelector('.precio')?.value || '0');
+        return modelo === '' && descripcion === '' && precio === 0;
+      }
+
+      // ⭐ MODAL PROMPT
+      function showPrompt(title, message, placeholder = '') {
+        return new Promise((resolve) => {
+          const overlay = document.createElement('div');
+          overlay.className = 'custom-modal-overlay';
+          overlay.innerHTML = `
+            <div class="custom-modal">
+              <div class="custom-modal-header">
+                <i class="bi bi-pencil-square"></i>
+                <h3>${title}</h3>
+              </div>
+              <div class="custom-modal-body">
+                <p>${message}</p>
+                <input type="text" class="custom-modal-input" placeholder="${placeholder}" id="customPromptInput">
+              </div>
+              <div class="custom-modal-footer">
+                <button class="custom-modal-btn custom-modal-btn-secondary" id="customPromptCancel">
+                  <i class="bi bi-x-lg"></i> Cancelar
+                </button>
+                <button class="custom-modal-btn custom-modal-btn-primary" id="customPromptOk">
+                  <i class="bi bi-check-lg"></i> Aceptar
+                </button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(overlay);
+          const input = overlay.querySelector('#customPromptInput');
+          const btnOk = overlay.querySelector('#customPromptOk');
+          const btnCancel = overlay.querySelector('#customPromptCancel');
+          input.focus();
+          const cleanup = () => overlay.remove();
+          btnOk.onclick = () => { cleanup(); resolve(input.value.trim() || null); };
+          btnCancel.onclick = () => { cleanup(); resolve(null); };
+          input.onkeydown = (e) => {
+            if (e.key === 'Enter') { e.preventDefault(); btnOk.click(); }
+            if (e.key === 'Escape') btnCancel.click();
+          };
+          overlay.onclick = (e) => { if (e.target === overlay) btnCancel.click(); };
+        });
+      }
+
+      // ⭐ MODAL SELECTOR DE PRODUCTO
+      function showProductSelector(products) {
+        return new Promise((resolve) => {
+          const overlay = document.createElement('div');
+          overlay.className = 'custom-modal-overlay';
+          let selectedIndex = null;
+          const productsList = products.map((p, i) => `
+            <div class="product-selector-item" data-index="${i}">
+              <h4>${p.model}</h4>
+              <p>${p.description || 'Sin descripción'}</p>
+              <span class="price">$${Number(p.price).toFixed(2)} USD</span>
+            </div>
+          `).join('');
+          overlay.innerHTML = `
+            <div class="custom-modal">
+              <div class="custom-modal-header">
+                <i class="bi bi-box-seam"></i>
+                <h3>Seleccionar Producto</h3>
+              </div>
+              <div class="custom-modal-body">
+                <p>Se encontraron <strong>${products.length}</strong> productos. Selecciona uno:</p>
+                <div class="product-selector-list">${productsList}</div>
+              </div>
+              <div class="custom-modal-footer">
+                <button class="custom-modal-btn custom-modal-btn-secondary" id="productSelectorCancel">
+                  <i class="bi bi-x-lg"></i> Cancelar
+                </button>
+                <button class="custom-modal-btn custom-modal-btn-primary" id="productSelectorOk" disabled>
+                  <i class="bi bi-check-lg"></i> Agregar
+                </button>
+              </div>
+            </div>
+          `;
+          document.body.appendChild(overlay);
+          const btnOk = overlay.querySelector('#productSelectorOk');
+          const btnCancel = overlay.querySelector('#productSelectorCancel');
+          const items = overlay.querySelectorAll('.product-selector-item');
+          const cleanup = () => overlay.remove();
+          items.forEach(item => {
+            item.onclick = () => {
+              items.forEach(i => i.classList.remove('selected'));
+              item.classList.add('selected');
+              selectedIndex = parseInt(item.dataset.index);
+              btnOk.disabled = false;
+            };
+          });
+          btnOk.onclick = () => { cleanup(); resolve(selectedIndex !== null ? products[selectedIndex] : null); };
+          btnCancel.onclick = () => { cleanup(); resolve(null); };
+          overlay.onclick = (e) => { if (e.target === overlay) btnCancel.click(); };
+        });
+      }
+
+      // ⭐ HANDLER BÚSQUEDA DE PRODUCTO
+      $('#searchProductBtn').onclick = async () => {
+        const search = await showPrompt('Buscar Producto', 'Ingresa el modelo o descripción:', 'Buscar...');
+        if (!search) return;
+        try {
+          const products = await loadProducts(search);
+          if (products.length === 0) { showToast('No encontrado', 'warning'); return; }
+          let selectedProduct = null;
+          if (products.length === 1) {
+            selectedProduct = products[0];
+          } else {
+            selectedProduct = await showProductSelector(products);
+          }
+          if (!selectedProduct) return;
+          // Verificar si hay fila vacía
+          const rows = $$('#itemsBody tr');
+          let emptyRow = null;
+          for (let tr of rows) {
+            if (isRowEmpty(tr)) { emptyRow = tr; break; }
+          }
+          if (emptyRow) {
+            emptyRow.querySelector('.modelo').value = selectedProduct.model;
+            emptyRow.querySelector('.descripcion').value = selectedProduct.description || '';
+            emptyRow.querySelector('.precio').value = Number(selectedProduct.price || 0).toFixed(2);
+            emptyRow.querySelector('.cant').value = '1';
+            autoResizeTextarea(emptyRow.querySelector('.descripcion'));
+          } else {
+            addRow({ modelo: selectedProduct.model, descripcion: selectedProduct.description || '', precio: selectedProduct.price, cant: 1 });
+          }
+          recalc();
+          showToast('Producto agregado', 'success');
+        } catch(e) {
+          showToast('Error buscando producto', 'error');
+        }
+      };
 
       $('#addRowBtn').onclick = () => addRow();
 
