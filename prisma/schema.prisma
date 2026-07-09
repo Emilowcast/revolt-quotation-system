@@ -18,8 +18,9 @@ model User {
   role          String     @default("vendedor")
   active        Boolean    @default(true)
   signature     String?
-  emailPassword String?    // Contraseña de aplicación de Gmail
-  emailFrom     String?    // Nombre que aparece en el correo enviado
+  emailPassword    String?    // Contraseña de aplicación de Gmail
+  emailFrom        String?    // Nombre que aparece en el correo enviado
+  codigoVendedor   String?    // Identificador del vendedor (V1, V2, etc.)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
   quotes     Quote[]    @relation("UserQuotes")
@@ -67,6 +68,7 @@ model Quote {
   clientId           Int?
   subtotal           Float
   discount           Float
+  discountNote       String?     @db.Text
   tax                Float
   total              Float
   netMxn             Float?

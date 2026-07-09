@@ -1824,7 +1824,7 @@
       }
 
       function addPreset(preset) {
-const presets = {
+        const presets = {
           header: {
             page: 1,
             fields: {
@@ -1847,6 +1847,7 @@ const presets = {
             page: 1,
             fields: {
               subtotal: { x: 0.88, y: 0.36, anchor: 'right', vAnchor: 'center', fontSize: 10, offsetX: 0.058058172708568945, offsetY: 0.1728457206508413, widthFrac: 0.21757053671545898, heightFrac: 0.01719177868327791, sampleValue: '', type: 'number', bold: true, justify: false },
+              discountNote: { x: 0.15, y: 0.33, anchor: 'right', vAnchor: 'center', fontSize: 10, offsetX: 0.661965582130331, offsetY: 0.18389858503525017, widthFrac: 0.5, heightFrac: 0.02, sampleValue: 'Cliente preferente', type: 'text', bold: false, justify: false },
               descuento: { x: 0.88, y: 0.33, anchor: 'right', vAnchor: 'center', fontSize: 10, offsetX: 0.05664319324842596, offsetY: 0.18738887871257826, widthFrac: 0.2168193541889638, heightFrac: 0.021262626262626264, sampleValue: '', type: 'number', bold: true, justify: false },
               impuestos: { x: 0.88, y: 0.3, anchor: 'right', vAnchor: 'center', fontSize: 10, offsetX: 0.058658255056899214, offsetY: 0.19898559817481132, widthFrac: 0.21684730564986504, heightFrac: 0.021872340537788436, sampleValue: '', type: 'number', bold: true, justify: false },
               total: { x: 0.88, y: 0.27, anchor: 'right', vAnchor: 'center', fontSize: 10, offsetX: 0.058635500460832546, offsetY: 0.21473397883470005, widthFrac: 0.2234738492329435, heightFrac: 0.023723082219425914, sampleValue: '', type: 'number', bold: true, justify: false },
@@ -2061,9 +2062,10 @@ const presets = {
             items: [
               { modelo: 'PROD-001', descripcion: 'Producto de prueba', precio: '100.00', cant: '2', subtotal: '200.00' }
             ],
-            tiempoEntrega: '15-20 días hábiles',
+            tiempoEntrega: 'De 10 a 15 días hábiles',
             formaPago: '50% anticipo, 50% contra entrega',
-            entregaEnvio: 'CONSOLIDADA Sin costo en CDMX y Area Metropolitana, Para el Interior de la República Recolección y entrega por transportadora Tres Guerras o la que el Cliente envíe. El flete no esta incluido, confirmación de horarios de entrega vía telefónica, carga no asegurada, viaja por cuenta y riesgo del cliente. Maximo 2 Días Habiles a partir del finiquito del equipo. No incluye maniobras de descarga.'
+            entregaEnvio: 'CONSOLIDADA Sin costo en CDMX y Area Metropolitana, Para el Interior de la República Recolección y entrega por transportadora Tres Guerras o la que el Cliente envíe. El flete no esta incluido, confirmación de horarios de entrega vía telefónica, carga no asegurada, viaja por cuenta y riesgo del cliente. Maximo 2 Días Habiles a partir del finiquito del equipo. No incluye maniobras de descarga.',
+            discountNote: 'Cliente preferente'
           };
 
           Object.keys(calibration.pages).forEach(pageNum => {

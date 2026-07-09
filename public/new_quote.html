@@ -1389,6 +1389,42 @@
               </div>
               <span class="totals-value" id="displayDiscount">-$0.00</span>
             </div>
+            <div class="totals-row" style="align-items:flex-start;">
+              <div style="display:flex;flex-direction:column;gap:6px;width:100%;">
+                <span class="totals-label" style="font-size:0.78rem;color:#94a3b8;">
+                  <i class="bi bi-tag"></i> Motivo del descuento <span style="color:#cbd5e1;">(opcional)</span>
+                </span>
+                <!-- Opciones rápidas -->
+                <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                  <button type="button"
+                    onclick="document.getElementById('discountNote').value='Descuento cliente preferente'"
+                    style="font-size:0.85rem;padding:5px 14px;border-radius:20px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#475569;cursor:pointer;transition:all 0.15s;"
+                    onmouseover="this.style.borderColor='var(--revolt-red)';this.style.color='var(--revolt-red)'"
+                    onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#475569'">
+                    ⭐ Cliente preferente
+                  </button>
+                  <button type="button"
+                    onclick="document.getElementById('discountNote').value='Descuento por pago de contado'"
+                    style="font-size:0.85rem;padding:5px 14px;border-radius:20px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#475569;cursor:pointer;transition:all 0.15s;"
+                    onmouseover="this.style.borderColor='var(--revolt-red)';this.style.color='var(--revolt-red)'"
+                    onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#475569'">
+                    💵 Pago de contado
+                  </button>
+                  <button type="button"
+                    onclick="document.getElementById('discountNote').value='Descuento aliado comercial'"
+                    style="font-size:0.85rem;padding:5px 14px;border-radius:20px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#475569;cursor:pointer;transition:all 0.15s;"
+                    onmouseover="this.style.borderColor='var(--revolt-red)';this.style.color='var(--revolt-red)'"
+                    onmouseout="this.style.borderColor='#e2e8f0';this.style.color='#475569'">
+                    🤝 Aliado comercial
+                  </button>
+                </div>
+                <!-- Campo libre -->
+                <input id="discountNote" type="text" class="form-control form-control-sm"
+                  value="Descuento cliente preferente"
+                  placeholder="O escribe un motivo personalizado..."
+                  style="font-size:0.8rem;border-radius:6px;border:1.5px solid #e2e8f0;color:#475569;" />
+              </div>
+            </div>
 
             <div class="totals-row">
               <div class="d-flex gap-2 align-items-center">
@@ -2232,6 +2268,18 @@
       sincronizarTarjetas();
       return {subtotal, discount, tax, total, mxn};
     }
+
+    function setDiscountNote(texto) {
+      $('#discountNote').value = texto;
+    }
+
+    // ⭐ Opciones rápidas de motivo de descuento
+    document.querySelectorAll('#discountNoteOptions button').forEach(btn => {
+      btn.onclick = () => {
+        document.getElementById('discountNote').value = btn.dataset.note;
+      };
+    });
+
     $('#discountInput').oninput = recalc;
     $('#ivaCheck').onchange = recalc;
     $('#exchangeRate').oninput = recalc;
@@ -2321,6 +2369,7 @@ $$('#itemsBody tr.item-main-row').forEach(tr => {
           }
           return null;
         })(),
+        discountNote: $('#discountNote').value.trim() || null,
         formaPago: $('#formaPago').value.trim() || null,
         entregaEnvio: (() => {
           if (document.getElementById('entregaPersonalizada').checked) {

@@ -1906,15 +1906,17 @@ app.get('/api/quotes/vendedores-lista', requireAuth, async (req, res) => {
   try {
     const users = await prisma.user.findMany({
       where: { active: true },
-      select: { id: true, name: true, createdAt: true },
+      select: { id: true, name: true, codigoVendedor: true, createdAt: true },
       orderBy: { createdAt: 'asc' }
     });
 
-    const vendedores = users.map((u, index) => ({
-      id: u.id,
-      name: u.name,
-      codigo: `V${index + 1}`
-    }));
+    const vendedores = users
+      .filter(u => u.codigoVendedor)
+      .map(u => ({
+        id: u.id,
+        name: u.name,
+        codigo: u.codigoVendedor
+      }));
 
     res.json({ ok: true, vendedores });
   } catch(e) {
@@ -1987,7 +1989,8 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
       fields, 
       tiempoEntrega, 
       formaPago,
-      entregaEnvio, 
+      entregaEnvio,
+      discountNote, 
       items, 
       subtotal, 
       descuento, 
@@ -2096,6 +2099,7 @@ app.post('/api/quotes', requireAuth, async (req, res) => {
         tiempoEntrega: tiempoEntrega || null,
         formaPago: formaPago || null,
         entregaEnvio: entregaEnvio || null,
+        discountNote: discountNote || null,
         template: template || null,
         currency: 'USD',
         status: 'vigente',
@@ -2153,6 +2157,7 @@ app.put('/api/quotes/:id', async (req, res) => {
       tiempoEntrega,
       formaPago,
       entregaEnvio,
+      discountNote,
       items,
       adicionales
     } = req.body;
@@ -2236,6 +2241,7 @@ app.put('/api/quotes/:id', async (req, res) => {
         tiempoEntrega: tiempoEntrega !== undefined ? tiempoEntrega : oldQuote.tiempoEntrega,
         formaPago: formaPago !== undefined ? formaPago : oldQuote.formaPago,
         entregaEnvio: entregaEnvio !== undefined ? entregaEnvio : oldQuote.entregaEnvio,
+        discountNote: discountNote !== undefined ? discountNote : oldQuote.discountNote,
         adicionales: req.body.adicionales !== undefined ? req.body.adicionales : oldQuote.adicionales,
         items: {
           create: items.map(item => ({
@@ -3879,6 +3885,7 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
       entregaEnvio: quote.entregaEnvio || '',
+      discountNote: quote.discountNote || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
       nombre_cliente_firma: quote.client?.name || '',
@@ -4110,6 +4117,7 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
       entregaEnvio: quote.entregaEnvio || '',
+      discountNote: quote.discountNote || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
       nombre_cliente_firma: quote.client?.name || '',
@@ -4422,6 +4430,7 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
       entregaEnvio: quote.entregaEnvio || '',
+      discountNote: quote.discountNote || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
       nombre_cliente_firma: quote.client?.name || '',
@@ -5143,6 +5152,7 @@ app.get('/api/auth/me', requireAuth, async (req, res) => {
         email: true,
         role: true,
         active: true,
+        codigoVendedor: true,
         createdAt: true,
         emailFrom: true,
         emailPassword: true
@@ -5418,7 +5428,7 @@ app.post('/api/users', requireAuth, requireAdmin, async (req, res) => {
 app.put('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
   try {
     const userId = parseInt(req.params.id);
-    const { name, email, password, role, active } = req.body;
+    const { name, email, password, role, active, codigoVendedor } = req.body;
     
     // Verificar que el usuario existe
     const existingUser = await prisma.user.findUnique({
@@ -5483,6 +5493,10 @@ app.put('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
     if (typeof active === 'boolean') {
       updateData.active = active;
     }
+
+    if (codigoVendedor !== undefined) {
+      updateData.codigoVendedor = codigoVendedor.trim() || null;
+    }
     
     // Actualizar usuario
     const user = await prisma.user.update({
@@ -5494,6 +5508,7 @@ app.put('/api/users/:id', requireAuth, requireAdmin, async (req, res) => {
         email: true,
         role: true,
         active: true,
+        codigoVendedor: true,
         createdAt: true
       }
     });

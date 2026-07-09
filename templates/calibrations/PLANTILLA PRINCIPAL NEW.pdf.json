@@ -15,8 +15,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "folio": {
           "x": 0.20106626,
@@ -25,14 +24,13 @@
           "vAnchor": "center",
           "fontSize": 10,
           "offsetX": -0.0788130520277805,
-          "offsetY": 0.006881576662012296,
+          "offsetY": 0.005618950399386034,
           "widthFrac": 0.15,
           "heightFrac": 0.02,
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "nombre": {
           "x": 0.17,
@@ -47,8 +45,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "empresa": {
           "x": 0.78,
@@ -56,15 +53,14 @@
           "anchor": "right",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": 0.159529019092844,
-          "offsetY": -0.0029760486520316767,
-          "widthFrac": 0.32099308610936517,
-          "heightFrac": 0.02235700817096166,
+          "offsetX": 0.15789503216473944,
+          "offsetY": -0.004238674914657939,
+          "widthFrac": 0.5709930861093652,
+          "heightFrac": 0.019831755645709135,
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "estado": {
           "x": 0.79,
@@ -72,15 +68,14 @@
           "anchor": "right",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": 0.146617619854518,
-          "offsetY": 0.01422503328276824,
-          "widthFrac": 0.32132805856472063,
-          "heightFrac": 0.026285355122564424,
+          "offsetX": 0.14825160678262256,
+          "offsetY": 0.010437154494889451,
+          "widthFrac": 0.5664260977804069,
+          "heightFrac": 0.016184345021554324,
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "correo": {
           "x": 0.79,
@@ -88,15 +83,14 @@
           "anchor": "right",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": 0.1517288644141357,
-          "offsetY": 0.031689284826540695,
-          "widthFrac": 0.32336155581025616,
-          "heightFrac": 0.019214330609679448,
+          "offsetX": 0.1509118709500834,
+          "offsetY": 0.02727009290734878,
+          "widthFrac": 0.5709105754180993,
+          "heightFrac": 0.01,
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "numero": {
           "x": 0.79,
@@ -105,14 +99,13 @@
           "vAnchor": "center",
           "fontSize": 10,
           "offsetX": 0.15046274331511972,
-          "offsetY": 0.047062070908768266,
-          "widthFrac": 0.32437830443302396,
-          "heightFrac": 0.015285983658076683,
+          "offsetY": 0.043274192120889475,
+          "widthFrac": 0.41179660508661875,
+          "heightFrac": 0.010235478607571631,
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "nombre_copy": {
           "x": 0.22000000000000003,
@@ -122,13 +115,12 @@
           "fontSize": 10,
           "offsetX": 0.7169835662479003,
           "offsetY": 0.15895897411213059,
-          "widthFrac": 0.324422404620763,
-          "heightFrac": 0.023928346951602765,
+          "widthFrac": 0.5678864569083447,
+          "heightFrac": 0.013196023719279533,
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "subtotal": {
           "x": 0.88,
@@ -136,15 +128,14 @@
           "anchor": "right",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": 0.08338497009418987,
-          "offsetY": 0.17347703378215443,
-          "widthFrac": 0.17100190926447859,
-          "heightFrac": 0.018454404945904175,
+          "offsetX": 0.058058172708568945,
+          "offsetY": 0.1728457206508413,
+          "widthFrac": 0.21757053671545898,
+          "heightFrac": 0.01719177868327791,
           "sampleValue": "",
           "type": "number",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "descuento": {
           "x": 0.88,
@@ -152,15 +143,14 @@
           "anchor": "right",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": 0.08523796449025603,
-          "offsetY": 0.18675756558126513,
-          "widthFrac": 0.16943373327393113,
-          "heightFrac": 0.02,
+          "offsetX": 0.05664319324842596,
+          "offsetY": 0.18738887871257826,
+          "widthFrac": 0.2168193541889638,
+          "heightFrac": 0.021262626262626264,
           "sampleValue": "",
           "type": "number",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "impuestos": {
           "x": 0.88,
@@ -168,15 +158,14 @@
           "anchor": "right",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": 0.0856190393706247,
-          "offsetY": 0.19961691130612444,
-          "widthFrac": 0.17027867819888465,
-          "heightFrac": 0.01934708801253591,
+          "offsetX": 0.058658255056899214,
+          "offsetY": 0.19898559817481132,
+          "widthFrac": 0.21684730564986504,
+          "heightFrac": 0.021872340537788436,
           "sampleValue": "",
           "type": "number",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "total": {
           "x": 0.88,
@@ -184,15 +173,14 @@
           "anchor": "right",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": 0.08559628477455804,
-          "offsetY": 0.2131556960064172,
-          "widthFrac": 0.16955228060549252,
-          "heightFrac": 0.01804126403760773,
+          "offsetX": 0.058635500460832546,
+          "offsetY": 0.21473397883470005,
+          "widthFrac": 0.2234738492329435,
+          "heightFrac": 0.023723082219425914,
           "sampleValue": "",
           "type": "number",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "precio_neto_mxn_formatted": {
           "x": 0.83537861,
@@ -200,15 +188,14 @@
           "anchor": "left",
           "vAnchor": "center",
           "fontSize": 10,
-          "offsetX": -0.014384002575038218,
-          "offsetY": 0.00940492476060191,
-          "widthFrac": 0.15,
-          "heightFrac": 0.02,
+          "offsetX": -0.015609492771116673,
+          "offsetY": 0.010036237891915042,
+          "widthFrac": 0.18431372549019603,
+          "heightFrac": 0.05851010101010101,
           "sampleValue": "",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "item_descripcion": {
           "x": 0.22,
@@ -216,15 +203,14 @@
           "anchor": "left",
           "vAnchor": "baseline",
           "fontSize": 10,
-          "offsetX": -0.16913779726047484,
-          "offsetY": 0.014110064474095319,
+          "offsetX": -0.1585168822277951,
+          "offsetY": 0.005271680635711481,
           "widthFrac": 0.4253457510125871,
           "heightFrac": 0.13861551872009448,
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "item_precio": {
           "x": 0.68,
@@ -233,14 +219,13 @@
           "vAnchor": "baseline",
           "fontSize": 10,
           "offsetX": -0.19070127329875375,
-          "offsetY": 0.014160797611708156,
+          "offsetY": 0.0072163531672637116,
           "widthFrac": 0.16082954505299793,
           "heightFrac": 0.02102333196889071,
           "sampleValue": "",
           "type": "number",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "item_cant": {
           "x": 0.78,
@@ -248,31 +233,44 @@
           "anchor": "left",
           "vAnchor": "baseline",
           "fontSize": 10,
-          "offsetX": -0.10924333107147186,
-          "offsetY": 0.013889928389290568,
+          "offsetX": -0.11169431146362871,
+          "offsetY": 0.006945483944846123,
           "widthFrac": 0.08,
           "heightFrac": 0.02,
           "sampleValue": "",
           "type": "number",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "item_subtotal": {
           "x": 0.88,
           "y": 0.68,
-          "anchor": "left",
+          "anchor": "right",
           "vAnchor": "baseline",
           "fontSize": 10,
-          "offsetX": -0.044789020516523774,
-          "offsetY": 0.016259516814180378,
-          "widthFrac": 0.14502660663119116,
-          "heightFrac": 0.02511665984445354,
+          "offsetX": 0.05325019516975074,
+          "offsetY": 0.005211537016200578,
+          "widthFrac": 0.18996124715406698,
+          "heightFrac": 0.02322272045051415,
           "sampleValue": "",
           "type": "number",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
+        },
+        "discountNote": {
+          "x": 0.15,
+          "y": 0.33,
+          "anchor": "right",
+          "vAnchor": "center",
+          "fontSize": 10,
+          "offsetX": 0.661965582130331,
+          "offsetY": 0.18389858503525017,
+          "widthFrac": 0.5,
+          "heightFrac": 0.02,
+          "sampleValue": "Cliente preferente",
+          "type": "text",
+          "bold": false,
+          "justify": false
         }
       },
       "table": {
@@ -295,8 +293,7 @@
           "sampleValue": "22 KA",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "supresor_precio": {
           "x": 0.78,
@@ -311,8 +308,7 @@
           "sampleValue": "$302.58 USD",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "garantia_anos": {
           "x": 0.78,
@@ -327,8 +323,7 @@
           "sampleValue": "5 a 10 años",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "garantia_precio": {
           "x": 0.78,
@@ -343,8 +338,7 @@
           "sampleValue": "$822.08 USD",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "multimetro_estado": {
           "x": 0.78,
@@ -359,8 +353,7 @@
           "sampleValue": "N/A",
           "type": "text",
           "bold": true,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "multimetro_precio": {
           "x": 0.78,
@@ -375,8 +368,7 @@
           "sampleValue": "",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         }
       },
       "table": {
@@ -401,13 +393,12 @@
           "fontSize": 9,
           "offsetX": -0.08330034519656254,
           "offsetY": 0.08332633023288298,
-          "widthFrac": 0.8666866276061641,
-          "heightFrac": 0.04117958937455389,
-          "sampleValue": "15-20 días hábiles",
+          "widthFrac": 0.8614528079954561,
+          "heightFrac": 0.04728461697862897,
+          "sampleValue": "De 10 a 15 días hábiles",
           "type": "text",
           "bold": false,
-          "justify": true,
-          "color": null
+          "justify": true
         },
         "formaPago": {
           "x": 0.15,
@@ -422,8 +413,7 @@
           "sampleValue": "50% anticipo, 50% contra entrega",
           "type": "text",
           "bold": false,
-          "justify": true,
-          "color": null
+          "justify": true
         },
         "firma": {
           "x": 0.65,
@@ -438,8 +428,7 @@
           "sampleValue": "🖊️ [Firma Digital]",
           "type": "image",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "fecha_firma": {
           "x": 0.065,
@@ -454,8 +443,7 @@
           "sampleValue": "09 / 06 / 2026",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "usuario_nombre": {
           "x": 0.065,
@@ -470,8 +458,7 @@
           "sampleValue": "Lic. Marlen Rios",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
         },
         "nombre_cliente_firma": {
           "x": 0.73,
@@ -486,8 +473,37 @@
           "sampleValue": "Sr. Ricardo Sánchez",
           "type": "text",
           "bold": false,
-          "justify": false,
-          "color": null
+          "justify": false
+        },
+        "entregaEnvio": {
+          "x": 0.15,
+          "y": 0.63,
+          "anchor": "left",
+          "vAnchor": "baseline",
+          "fontSize": 9,
+          "offsetX": -0.08248335173251026,
+          "offsetY": 0.08742292153877662,
+          "widthFrac": 0.8638697467617882,
+          "heightFrac": 0.06505638847574795,
+          "sampleValue": "CONSOLIDADA Sin costo en CDMX y Area Metropolitana...",
+          "type": "text",
+          "bold": false,
+          "justify": true
+        },
+        "usuario_correo": {
+          "x": 0.065,
+          "y": 0.19,
+          "anchor": "left",
+          "vAnchor": "center",
+          "fontSize": 9,
+          "offsetX": -0.0042840229312063795,
+          "offsetY": 0.021186440677966094,
+          "widthFrac": 0.3108212861415752,
+          "heightFrac": 0.023972457627118644,
+          "sampleValue": "mrios@revolt.mx",
+          "type": "text",
+          "bold": false,
+          "justify": false
         }
       },
       "table": {

@@ -807,6 +807,15 @@
           </select>
         </div>
 
+        <div class="form-group">
+          <label>
+            <i class="bi bi-person-badge"></i>
+            Código Vendedor <span style="color:#94a3b8;font-weight:400;">(opcional, ej: V1, V2)</span>
+          </label>
+          <input type="text" id="userCodigoVendedor" placeholder="Ej: V1" maxlength="10" />
+          <small><i class="bi bi-info-circle"></i> Se muestra en el historial de cotizaciones para identificar al vendedor.</small>
+        </div>
+
         <div class="form-group" id="activeFieldGroup" style="display:none;">
           <div class="checkbox-wrapper">
             <input type="checkbox" id="userActive" checked />
@@ -1020,6 +1029,7 @@ async function checkAuth() {
         tr.innerHTML = `
           <td>
             <strong>${user.name}</strong>
+            ${user.codigoVendedor ? `<br><span style="background:#f1f5f9;color:#334155;padding:2px 8px;border-radius:20px;font-size:0.75rem;font-weight:700;">${user.codigoVendedor}</span>` : ''}
             ${isCurrentUser ? '<br><span style="color:var(--revolt-red);font-size:0.85rem;font-weight:600;"><i class="bi bi-star-fill"></i> Tú</span>' : ''}
           </td>
           <td>${user.email}</td>
@@ -1080,6 +1090,7 @@ async function checkAuth() {
       document.getElementById('modalTitle').innerHTML = '<i class="bi bi-person-plus"></i> Nuevo Usuario';
       document.getElementById('userForm').reset();
       document.getElementById('userId').value = '';
+      document.getElementById('userCodigoVendedor').value = '';
       document.getElementById('passwordHint').style.display = 'none';
       document.getElementById('activeFieldGroup').style.display = 'none';
       document.getElementById('userPassword').required = true;
@@ -1100,6 +1111,7 @@ async function checkAuth() {
       document.getElementById('userPassword').required = false;
       document.getElementById('userRole').value = user.role;
       document.getElementById('userActive').checked = user.active;
+      document.getElementById('userCodigoVendedor').value = user.codigoVendedor || '';
       document.getElementById('passwordHint').style.display = 'block';
       document.getElementById('activeFieldGroup').style.display = 'block';
       document.getElementById('userModal').classList.add('show');
@@ -1130,7 +1142,8 @@ async function checkAuth() {
       btnSaveText.textContent = 'Guardando...';
 
       try {
-        const payload = { name, email, role };
+        const codigoVendedor = document.getElementById('userCodigoVendedor').value.trim();
+        const payload = { name, email, role, codigoVendedor: codigoVendedor || '' };
 
         if (password) {
           payload.password = password;
