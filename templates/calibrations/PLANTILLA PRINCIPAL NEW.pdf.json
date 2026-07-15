@@ -227,21 +227,6 @@
           "bold": false,
           "justify": false
         },
-        "item_cant": {
-          "x": 0.78,
-          "y": 0.68,
-          "anchor": "left",
-          "vAnchor": "baseline",
-          "fontSize": 10,
-          "offsetX": -0.11169431146362871,
-          "offsetY": 0.006945483944846123,
-          "widthFrac": 0.08,
-          "heightFrac": 0.02,
-          "sampleValue": "",
-          "type": "number",
-          "bold": false,
-          "justify": false
-        },
         "item_subtotal": {
           "x": 0.88,
           "y": 0.68,
@@ -269,6 +254,21 @@
           "heightFrac": 0.02,
           "sampleValue": "Cliente preferente",
           "type": "text",
+          "bold": false,
+          "justify": false
+        },
+        "item_cant": {
+          "x": 0.78,
+          "y": 0.68,
+          "anchor": "left",
+          "vAnchor": "baseline",
+          "fontSize": 10,
+          "offsetX": -0.11169431146362871,
+          "offsetY": 0.006945483944846123,
+          "widthFrac": 0.08,
+          "heightFrac": 0.02,
+          "sampleValue": "",
+          "type": "number",
           "bold": false,
           "justify": false
         }

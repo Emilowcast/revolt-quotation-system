@@ -7349,10 +7349,18 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
           if (pageConfig.fields['item_modelo']) {
             drawTextWithAnchor(item.modelo || '', baseCoordModelo, { debug: options.debug }, page);
           }
-          drawTextWithAnchor(item.descripcion || '', baseCoordDesc, { debug: options.debug, boldFirstBlock: true }, page);
-          drawTextWithAnchor(item.precio || '', baseCoordPrecio, { debug: options.debug }, page);
-          drawTextWithAnchor(item.cant || '1', baseCoordCant, { debug: options.debug }, page);
-          drawTextWithAnchor(item.subtotal || '', baseCoordSubtotal, { debug: options.debug }, page);
+          if (pageConfig.fields['item_descripcion']) {
+            drawTextWithAnchor(item.descripcion || '', baseCoordDesc, { debug: options.debug, boldFirstBlock: true }, page);
+          }
+          if (pageConfig.fields['item_precio']) {
+            drawTextWithAnchor(item.precio || '', baseCoordPrecio, { debug: options.debug }, page);
+          }
+          if (pageConfig.fields['item_cant']) {
+            drawTextWithAnchor(item.cant || '1', baseCoordCant, { debug: options.debug }, page);
+          }
+          if (pageConfig.fields['item_subtotal']) {
+            drawTextWithAnchor(item.subtotal || '', baseCoordSubtotal, { debug: options.debug }, page);
+          }
         });
       }
 
