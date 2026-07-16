@@ -1851,6 +1851,24 @@
             </div>
           </div>
 
+          <!-- CAMPOS DE TEXTO EXTRA -->
+          <div class="condicion-card mb-3">
+            <div class="condicion-card-label">
+              <i class="bi bi-pencil-square"></i> Texto Adicional
+            </div>
+            <small style="color:#94a3b8;font-size:0.78rem;display:block;margin-bottom:10px;">
+              <i class="bi bi-info-circle"></i> Campos opcionales — solo se plasman en el PDF si tienen contenido.
+            </small>
+            <div style="display:flex;flex-direction:column;gap:10px;">
+              <textarea id="textoExtra1" class="form-control form-control-sm" rows="2"
+                placeholder="Campo de texto libre 1 (se plasma en hoja 1)..."
+                style="resize:vertical;font-size:0.85rem;border:1.5px solid #e2e8f0;border-radius:8px;"></textarea>
+              <textarea id="textoExtra2" class="form-control form-control-sm" rows="2"
+                placeholder="Campo de texto libre 2 (se plasma en hoja 2)..."
+                style="resize:vertical;font-size:0.85rem;border:1.5px solid #e2e8f0;border-radius:8px;"></textarea>
+            </div>
+          </div>
+
         </div>
 
         </div>
@@ -2404,8 +2422,11 @@ $$('#itemsBody tr.item-main-row').forEach(tr => {
       }
       data.notasCaso = document.getElementById('notasCaso')?.value?.trim() || null;
 
+
       // ⭐ Adicionales
       data.adicionales = {
+        textoExtra1: document.getElementById('textoExtra1').value.trim() || null,
+        textoExtra2: document.getElementById('textoExtra2').value.trim() || null,
         supresor: document.getElementById('adicionalSupresor').checked ? {
           ka: document.querySelector('input[name="supresores"]:checked')?.value || '22',
           precio: parseFloat(document.getElementById(
@@ -2916,6 +2937,16 @@ $$('#itemsBody tr.item-main-row').forEach(tr => {
       // Toggle garantía
       document.getElementById('adicionalGarantia').onchange = function() {
         document.getElementById('garantiaPanel').style.display = this.checked ? 'block' : 'none';
+        if (this.checked) {
+          // ⭐ Calcular 10% del precio del primer producto
+          const primerPrecioInput = document.querySelector('#itemsBody tr .precio');
+          if (primerPrecioInput) {
+            const precioBase = toNum(primerPrecioInput.value) || 0;
+            if (precioBase > 0) {
+              document.getElementById('garantiaPrecio').value = (precioBase * 0.10).toFixed(2);
+            }
+          }
+        }
       };
 
       // Toggle multímetro

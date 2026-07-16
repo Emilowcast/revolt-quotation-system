@@ -1343,6 +1343,22 @@
               </div>
             </div>
 
+            <!-- CAMPOS DE TEXTO EXTRA -->
+            <div style="background:#f8fafc;border:1.5px solid #e2e8f0;border-radius:10px;padding:16px;margin-top:12px;">
+              <div style="font-weight:700;margin-bottom:8px;"><i class="bi bi-pencil-square" style="color:var(--revolt-red);"></i> Texto Adicional</div>
+              <small style="color:#94a3b8;font-size:0.78rem;display:block;margin-bottom:10px;">
+                <i class="bi bi-info-circle"></i> Campos opcionales — solo se plasman en el PDF si tienen contenido.
+              </small>
+              <div style="display:flex;flex-direction:column;gap:10px;">
+              <textarea id="textoExtra1" class="form-control form-control-sm" rows="2"
+                placeholder="Campo de texto libre 1 (se plasma en hoja 1)..."
+                style="resize:vertical;font-size:0.85rem;border:1.5px solid #e2e8f0;border-radius:8px;"></textarea>
+              <textarea id="textoExtra2" class="form-control form-control-sm" rows="2"
+                placeholder="Campo de texto libre 2 (se plasma en hoja 2)..."
+                style="resize:vertical;font-size:0.85rem;border:1.5px solid #e2e8f0;border-radius:8px;"></textarea>
+              </div>
+            </div>
+
           </div>
         </div>
       </div>
@@ -1623,6 +1639,10 @@
             $('#formaPago').value = currentQuote.formaPago;
           }
 
+          // ⭐ Cargar campos de texto extra
+          if (currentQuote.adicionales?.textoExtra1) document.getElementById('textoExtra1').value = currentQuote.adicionales.textoExtra1;
+          if (currentQuote.adicionales?.textoExtra2) document.getElementById('textoExtra2').value = currentQuote.adicionales.textoExtra2;
+
           // ⭐ Cargar entregaEnvio
           if (currentQuote.entregaEnvio) {
             const textoNormal = 'CONSOLIDADA Sin costo en CDMX';
@@ -1644,13 +1664,18 @@
             if (ad.supresor) {
               document.getElementById('adicionalSupresor').checked = true;
               document.getElementById('supresoresPanel').style.display = 'block';
-              if (ad.supresor.ka === '36') {
+              const kaVal = String(ad.supresor.ka);
+              if (kaVal === '36') {
                 document.getElementById('supresor36').checked = true;
                 document.getElementById('supresor22Card').style.border = '1.5px solid #e2e8f0';
                 document.getElementById('supresor36Card').style.border = '2px solid var(--revolt-red)';
+              } else {
+                document.getElementById('supresor22').checked = true;
+                document.getElementById('supresor22Card').style.border = '2px solid var(--revolt-red)';
+                document.getElementById('supresor36Card').style.border = '1.5px solid #e2e8f0';
               }
-              document.getElementById('supresor22Precio').value = ad.supresor.ka === '22' ? ad.supresor.precio : document.getElementById('supresor22Precio').value;
-              document.getElementById('supresor36Precio').value = ad.supresor.ka === '36' ? ad.supresor.precio : document.getElementById('supresor36Precio').value;
+              document.getElementById('supresor22Precio').value = kaVal === '22' ? ad.supresor.precio : document.getElementById('supresor22Precio').value;
+              document.getElementById('supresor36Precio').value = kaVal === '36' ? ad.supresor.precio : document.getElementById('supresor36Precio').value;
             }
             if (ad.garantia) {
               document.getElementById('adicionalGarantia').checked = true;
@@ -2058,6 +2083,8 @@
           return 'CONSOLIDADA Sin costo en CDMX y Area Metropolitana, Para el Interior de la República Recolección y entrega por transportadora Tres Guerras o la que el Cliente envíe. El flete no esta incluido, confirmación de horarios de entrega vía telefónica, carga no asegurada, viaja por cuenta y riesgo del cliente. Maximo 2 Días Habiles a partir del finiquito del equipo. No incluye maniobras de descarga.';
         })(),
         adicionales: {
+          textoExtra1: document.getElementById('textoExtra1').value.trim() || null,
+          textoExtra2: document.getElementById('textoExtra2').value.trim() || null,
           supresor: document.getElementById('adicionalSupresor').checked ? {
             ka: document.querySelector('input[name="supresores"]:checked')?.value || '22',
             precio: parseFloat(document.getElementById(
@@ -2332,6 +2359,16 @@
         };
         document.getElementById('adicionalGarantia').onchange = function() {
           document.getElementById('garantiaPanel').style.display = this.checked ? 'block' : 'none';
+          if (this.checked) {
+            // ⭐ Calcular 10% del precio del primer producto
+            const primerPrecioInput = document.querySelector('#itemsBody tr .precio');
+            if (primerPrecioInput) {
+              const precioBase = toNum(primerPrecioInput.value) || 0;
+              if (precioBase > 0) {
+                document.getElementById('garantiaPrecio').value = (precioBase * 0.10).toFixed(2);
+              }
+            }
+          }
         };
         document.getElementById('adicionalMultimetro').onchange = function() {
           document.getElementById('multimetroPanel').style.display = this.checked ? 'block' : 'none';

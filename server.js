@@ -3868,10 +3868,14 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
     }
 
     const pdfData = {
-      folio: quote.folio,
+      folio: quote.folio.replace(/^COT-/, ''),
       currency: monedaPdf,
       userSignature: userSignature,
-      fecha: quote.date ? new Date(quote.date).toLocaleDateString('es-MX') : new Date().toLocaleDateString('es-MX'),
+      fecha: (() => {
+        const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const d = quote.date ? new Date(quote.date) : new Date();
+        return `${d.getDate()}-${meses[d.getMonth()]}-${d.getFullYear()}`;
+      })(),
       nombre: quote.client?.name || '',
       empresa: quote.client?.company || '',
       correo: quote.client?.email || '',
@@ -3885,6 +3889,8 @@ app.get('/api/quotes/:id/pdf-download', requireAuth, async (req, res) => {
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
       entregaEnvio: quote.entregaEnvio || '',
+      texto_extra_1: quote.adicionales?.textoExtra1 || '',
+      texto_extra_2: quote.adicionales?.textoExtra2 || '',
       discountNote: quote.discountNote || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
@@ -4100,10 +4106,14 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
     }
 
     const pdfData = {
-      folio: quote.folio,
+      folio: quote.folio.replace(/^COT-/, ''),
       currency: monedaPdf,
       userSignature: userSignature,
-      fecha: quote.date ? new Date(quote.date).toLocaleDateString('es-MX') : new Date().toLocaleDateString('es-MX'),
+      fecha: (() => {
+        const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const d = quote.date ? new Date(quote.date) : new Date();
+        return `${d.getDate()}-${meses[d.getMonth()]}-${d.getFullYear()}`;
+      })(),
       nombre: quote.client?.name || '',
       empresa: quote.client?.company || '',
       correo: quote.client?.email || '',
@@ -4117,6 +4127,8 @@ app.get('/api/quotes/:id/pdf-preview', requireAuth, async (req, res) => {
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
       entregaEnvio: quote.entregaEnvio || '',
+      texto_extra_1: quote.adicionales?.textoExtra1 || '',
+      texto_extra_2: quote.adicionales?.textoExtra2 || '',
       discountNote: quote.discountNote || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
@@ -4413,10 +4425,14 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
     }
 
     const pdfData = {
-      folio: quote.folio,
+      folio: quote.folio.replace(/^COT-/, ''),
       currency: monedaPdf,
       userSignature: userSignature,
-      fecha: quote.date ? new Date(quote.date).toLocaleDateString('es-MX') : new Date().toLocaleDateString('es-MX'),
+      fecha: (() => {
+        const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+        const d = quote.date ? new Date(quote.date) : new Date();
+        return `${d.getDate()}-${meses[d.getMonth()]}-${d.getFullYear()}`;
+      })(),
       nombre: quote.client?.name || '',
       empresa: quote.client?.company || '',
       correo: quote.client?.email || '',
@@ -4430,6 +4446,8 @@ app.post('/api/quotes/:id/send-email', requireAuth, async (req, res) => {
       tiempoEntrega: quote.tiempoEntrega || '',
       formaPago: quote.formaPago || '',
       entregaEnvio: quote.entregaEnvio || '',
+      texto_extra_1: quote.adicionales?.textoExtra1 || '',
+      texto_extra_2: quote.adicionales?.textoExtra2 || '',
       discountNote: quote.discountNote || '',
       fecha_firma: quote.date ? new Date(quote.date).toLocaleDateString('es-MX', { day: '2-digit', month: '2-digit', year: 'numeric' }).replace(/\//g, ' / ') : '',
       usuario_nombre: userName,
@@ -7012,17 +7030,37 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
     const maxWidthPts = width * fieldWidthFrac;
     const maxHeightPts = height * fieldHeightFrac;
     
-    // ✅ SI EL CAMPO TIENE DIMENSIONES, APLICAR WRAPPING
+// ✅ SI EL CAMPO TIENE DIMENSIONES, APLICAR WRAPPING + AUTO-SHRINK
     let lines = [];
+    let fontSizeActual = fontSize;
     if (fieldWidthFrac > 0 && textStr.length > 0) {
-      lines = wrapText(textStr, maxWidthPts, fontSize, fontToUse, isJustified);
-      console.log(`📝 Wrapping "${textStr.substring(0, 30)}..." → ${lines.length} líneas (maxWidth: ${maxWidthPts.toFixed(0)}pts) ${isBold ? '**BOLD**' : ''} ${isJustified ? '[JUSTIFIED]' : ''}`);
+      lines = wrapText(textStr, maxWidthPts, fontSizeActual, fontToUse, isJustified);
+
+      // ⭐ AUTO-SHRINK: si el texto genera más de 1 línea y el campo tiene altura limitada,
+      // reducir el fontSize hasta que quepa en 1 línea o hasta fontSize mínimo de 6
+      if (fieldHeightFrac > 0 && lines.length > 1) {
+        const lineHeightCheck = fontSizeActual * 1.2;
+        const maxLinesCheck = Math.floor(maxHeightPts / lineHeightCheck);
+        if (maxLinesCheck <= 1) {
+          // Campo de una sola línea — reducir font hasta que quepa
+          while (fontSizeActual > 6) {
+            fontSizeActual -= 0.5;
+            const testWidth = (() => {
+              try { return fontToUse.widthOfTextAtSize(textStr, fontSizeActual); }
+              catch(e) { return maxWidthPts + 1; }
+            })();
+            if (testWidth <= maxWidthPts) break;
+          }
+          lines = [textStr];
+        }
+      }
+      console.log(`📝 Wrapping "${textStr.substring(0, 30)}..." → ${lines.length} líneas (maxWidth: ${maxWidthPts.toFixed(0)}pts, fontSize: ${fontSizeActual}) ${isBold ? '**BOLD**' : ''} ${isJustified ? '[JUSTIFIED]' : ''}`);
     } else {
       lines = [textStr];
     }
 
     // ✅ CALCULAR ALTURA DE LÍNEA
-    const lineHeightPts = fontSize * 1.2;
+    const lineHeightPts = fontSizeActual * 1.2;
     const totalTextHeight = lines.length * lineHeightPts;
     
     // ✅ LIMITAR LÍNEAS SI EXCEDEN LA ALTURA DEL CAMPO
@@ -7043,7 +7081,7 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
     lines.forEach((line, index) => {
       let textWidth = 0;
       try { 
-        textWidth = fontToUse.widthOfTextAtSize(line, fontSize);
+        textWidth = fontToUse.widthOfTextAtSize(line, fontSizeActual);
       } catch (e) { 
         textWidth = 0; 
       }
@@ -7092,7 +7130,10 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
       } else {
         // Texto normal
         if (xDraw < 0) xDraw = 0;
-        page.drawText(line, { x: xDraw, y: yDraw, size: fontSize, font: lineFont, color: textColor });
+        page.drawText(line, {
+          x: xDraw,
+          y: yDraw,
+          size: fontSizeActual, font: lineFont, color: textColor });
       }
     });
 
@@ -7188,6 +7229,10 @@ function wrapText(text, maxWidthPts, fontSize, fontToUse, justify = false) {
       data.multimetro_estado = 'N/A';
       data.multimetro_precio = '';
     }
+
+    // ⭐ Inyectar campos de texto extra
+    if (adicionales.textoExtra1) data.texto_extra_1 = adicionales.textoExtra1;
+    if (adicionales.textoExtra2) data.texto_extra_2 = adicionales.textoExtra2;
   }
 
     // ========================================
