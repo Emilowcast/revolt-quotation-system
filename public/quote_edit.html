@@ -1040,11 +1040,13 @@
                 <input 
                   id="discountInput" 
                   type="number" 
-                  step="0.01" 
+                  step="0.01"
+                  min="0"
+                  max="100"
                   value="0"
-                  style="width:100px;padding:6px 10px;font-size:0.9rem;border:2px solid #e0e0e0;border-radius:6px;"
+                  style="width:80px;padding:6px 10px;font-size:0.9rem;border:2px solid #e0e0e0;border-radius:6px;"
                 />
-                <span style="font-size:0.85rem;color:#999;">USD</span>
+                <span style="font-size:0.85rem;color:#999;">%</span>
               </div>
               <span class="totals-value" id="displayDiscount">-$0.00</span>
             </div>
@@ -1605,7 +1607,12 @@
             addRow();
           }
 
-          if(currentQuote.discount !== undefined) $('#discountInput').value = currentQuote.discount;
+          if(currentQuote.discount !== undefined && currentQuote.subtotal) {
+            const discountPct = currentQuote.subtotal > 0
+              ? (currentQuote.discount / currentQuote.subtotal) * 100
+              : 0;
+            $('#discountInput').value = discountPct.toFixed(2);
+          }
           if(currentQuote.tax !== undefined && currentQuote.subtotal){
             const taxPct = currentQuote.subtotal > 0 ? (currentQuote.tax / (currentQuote.subtotal - (currentQuote.discount||0))) * 100 : 0;
             $('#taxInput').value = taxPct.toFixed(2);
@@ -1938,7 +1945,8 @@
           subtotal += sub;
         });
 
-        const discount = toNum($('#discountInput').value);
+        const discountPct = toNum($('#discountInput').value);
+        const discount = Number((subtotal * (discountPct / 100)).toFixed(2));
         const taxable = Math.max(0, subtotal - discount);
         const taxPct = toNum($('#taxInput').value);
         const tax = Number((taxable * (taxPct/100)).toFixed(2));
